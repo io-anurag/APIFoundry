@@ -8,6 +8,14 @@
 
 **Input**: User description: "Spec 003 — Read-Only Catalog & Nested Resources + Search"
 
+## Clarifications
+
+### Session 2026-09-12
+
+- Q: What are the valid values for a Payment's `status` field? → A: `pending`, `completed`, `failed`, `refunded`.
+- Q: What are the valid values (and range) for a Review's `rating` field? → A: Integer, 1–5 inclusive.
+- Q: How are Comments and Reviews attributed to their author? → A: Validated `userId` reference to an existing User (rejecting unknown/missing values), consistent with Spec 002's cross-reference validation rule.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Browse the Read-Only Catalog (Priority: P1)
@@ -175,8 +183,11 @@ confirming each case returns the documented status and shape.
   write-validation rules established in Spec 002.
 - What happens when a client attempts to supply or change the parent-linking field (`userId` on a
   nested-created post, `postId` on a nested-created comment) to a value other than the parent in the
-  URL? The system must ignore the conflicting value and use the URL's parent identifier, or reject
-  the request — applied consistently every time.
+  URL? The system must ignore the conflicting value and use the URL's parent identifier every time.
+- What happens when `POST /api/v1/posts/{id}/comments` supplies a `userId` (the comment's author)
+  that is missing or does not match any existing User? The system must reject the write with a
+  structured `400`/`422` validation error and create nothing, the same way Spec 002 rejects an
+  order referencing a nonexistent customer or product.
 - What happens when `GET /api/v1/products/{id}/category` is requested for a product whose
   `category` value has no matching seeded Category record? This must not happen for any seeded
   product (every category value used by Spec 002 products is seeded as a Category record here); if
@@ -220,8 +231,8 @@ confirming each case returns the documented status and shape.
   of payments processed on the given calendar date, and returning `400` for a malformed or invalid
   date rather than a crash or silent empty result.
 - **FR-008**: System MUST expose `GET /api/v1/reviews/by-rating/{rating}`, returning the paginated
-  set of reviews with the given rating value, and returning `400` when `rating` falls outside the
-  documented rating enum.
+  set of reviews with the given rating value, and returning `400` when `rating` is not an integer
+  from 1 to 5 inclusive.
 
 **Nested resources**
 
@@ -249,28 +260,33 @@ confirming each case returns the documented status and shape.
   the request body using the same validation categories as Spec 002 writes (missing required
   fields, wrong types, invalid enum/bounds values, unexpected fields) and reject invalid bodies with
   a structured `400`/`422` error, creating nothing.
-- **FR-018**: A nested-created post or comment's parent-linking field (`userId`, `postId`) MUST be
-  set from the URL's parent identifier; any conflicting value supplied in the request body MUST be
-  ignored, never applied.
-- **FR-019**: Identifiers on nested-created records MUST be server-assigned and immutable, matching
+- **FR-018**: A nested-created post's `userId` (author) MUST be set from the URL's parent user
+  identifier; any conflicting `userId` supplied in the request body MUST be ignored, never applied.
+  A nested-created comment's `postId` MUST likewise be set from the URL's parent post identifier and
+  never overridden by the body; the comment's `userId` (author) MUST instead be supplied in the
+  request body and validated against existing Users, rejecting the write with a structured `400`/
+  `422` error when it is missing or does not reference an existing User.
+- **FR-019**: A Review's `userId` MUST reference an existing User; since this feature exposes no
+  write path for Reviews, this constraint governs seed-data consistency only.
+- **FR-020**: Identifiers on nested-created records MUST be server-assigned and immutable, matching
   the identifier-handling rule established in Spec 002.
 
 **Search**
 
-- **FR-020**: System MUST expose `GET /api/v1/search?q=`, matching the query term case-insensitively
+- **FR-021**: System MUST expose `GET /api/v1/search?q=`, matching the query term case-insensitively
   against the name/title/description-style fields of users, customers, products, categories, posts,
   comments, and reviews, and returning a paginated, combined result set in which each match is
   tagged with its source resource type.
-- **FR-021**: System MUST return `400` with a structured validation error when `q` is omitted or is
+- **FR-022**: System MUST return `400` with a structured validation error when `q` is omitted or is
   an empty string.
-- **FR-022**: System MUST return `200` with an empty `data` array (not `404`) when `q` is
+- **FR-023**: System MUST return `200` with an empty `data` array (not `404`) when `q` is
   well-formed but matches no records.
-- **FR-023**: System MUST handle special characters and excessively long values in `q` without
+- **FR-024**: System MUST handle special characters and excessively long values in `q` without
   crashing, returning a well-formed success response in every case.
 
 **Cross-cutting**
 
-- **FR-024**: Every response produced by this feature — success or error — MUST include the
+- **FR-025**: Every response produced by this feature — success or error — MUST include the
   `X-Request-ID` header, and every error body MUST embed the same request ID in the standard error
   envelope.
 
@@ -283,14 +299,17 @@ confirming each case returns the documented status and shape.
   references a User), title, body, published-at timestamp/date, creation metadata. Referenced by
   `users/:id/posts` and has child Comments.
 - **Comment**: A remark on a Post. Key attributes: numeric identifier, `postId` (references a Post),
-  author name or `userId`, body text, creation metadata. Referenced by `posts/:id/comments`.
+  `userId` (references an existing User, the comment's author), body text, creation metadata.
+  Referenced by `posts/:id/comments`.
 - **Review**: Feedback on a Product. Key attributes: numeric identifier, `productId` (references a
-  Product), `rating` (a fixed enum, e.g. 1–5), review text, author reference, creation metadata.
-  Referenced by `products/:id/reviews` and `reviews/by-rating/{rating}`.
+  Product), `userId` (references an existing User, the review's author), `rating` (integer, 1–5
+  inclusive), review text, creation metadata. Referenced by `products/:id/reviews` and
+  `reviews/by-rating/{rating}`.
 - **Payment**: A transaction record associated with an Order. Key attributes: UUID identifier,
-  `orderId` (references an Order), amount, status, `processedAt` (a calendar date), creation
-  metadata. Referenced by `payments/by-date/{date}`; not writable in this feature (transaction
-  creation with idempotency support is introduced in a later spec).
+  `orderId` (references an Order), amount, `status` (one of `pending`, `completed`, `failed`,
+  `refunded`), `processedAt` (a calendar date), creation metadata. Referenced by
+  `payments/by-date/{date}`; not writable in this feature (transaction creation with idempotency
+  support is introduced in a later spec).
 
 ## Success Criteria *(mandatory)*
 
