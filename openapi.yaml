@@ -18,6 +18,8 @@ servers:
 tags:
   - name: Meta
     description: Health, liveness/readiness, version and instance info — outside the versioned API prefix (except /api/v1/info).
+  - name: Core Resources
+    description: Full CRUD for the four primary resources — users, products, orders, customers.
 
 paths:
   /health:
@@ -96,8 +98,722 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiInfo"
 
+  /api/v1/users:
+    get:
+      tags: [Core Resources]
+      summary: List users
+      operationId: listUsers
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SortParam"
+        - name: role
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/UserRole"
+      responses:
+        "200":
+          description: Paginated list of users
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+    post:
+      tags: [Core Resources]
+      summary: Create a user
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+      responses:
+        "201":
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/v1/users/{id}:
+    parameters:
+      - $ref: "#/components/parameters/UserIdParam"
+    get:
+      tags: [Core Resources]
+      summary: Get a user by id
+      operationId: getUserById
+      responses:
+        "200":
+          description: The requested user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Core Resources]
+      summary: Replace a user
+      operationId: replaceUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Core Resources]
+      summary: Partially update a user
+      operationId: patchUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPatch"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Core Resources]
+      summary: Delete a user
+      operationId: deleteUser
+      responses:
+        "204":
+          description: User deleted
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/products:
+    get:
+      tags: [Core Resources]
+      summary: List products
+      operationId: listProducts
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SortParam"
+        - name: category
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/ProductCategory"
+      responses:
+        "200":
+          description: Paginated list of products
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+    post:
+      tags: [Core Resources]
+      summary: Create a product
+      operationId: createProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCreate"
+      responses:
+        "201":
+          description: Created product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/v1/products/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ProductIdParam"
+    get:
+      tags: [Core Resources]
+      summary: Get a product by id
+      operationId: getProductById
+      responses:
+        "200":
+          description: The requested product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Core Resources]
+      summary: Replace a product
+      operationId: replaceProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCreate"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Core Resources]
+      summary: Partially update a product
+      operationId: patchProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductPatch"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Core Resources]
+      summary: Delete a product
+      operationId: deleteProduct
+      responses:
+        "204":
+          description: Product deleted
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/customers:
+    get:
+      tags: [Core Resources]
+      summary: List customers
+      operationId: listCustomers
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SortParam"
+        - name: country
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of customers
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Customer"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+    post:
+      tags: [Core Resources]
+      summary: Create a customer
+      operationId: createCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerCreate"
+      responses:
+        "201":
+          description: Created customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/v1/customers/{id}:
+    parameters:
+      - $ref: "#/components/parameters/CustomerIdParam"
+    get:
+      tags: [Core Resources]
+      summary: Get a customer by id
+      operationId: getCustomerById
+      responses:
+        "200":
+          description: The requested customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Core Resources]
+      summary: Replace a customer
+      operationId: replaceCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerCreate"
+      responses:
+        "200":
+          description: Updated customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Core Resources]
+      summary: Partially update a customer
+      operationId: patchCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerPatch"
+      responses:
+        "200":
+          description: Updated customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Core Resources]
+      summary: Delete a customer
+      operationId: deleteCustomer
+      responses:
+        "204":
+          description: Customer deleted
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/orders:
+    get:
+      tags: [Core Resources]
+      summary: List orders
+      operationId: listOrders
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SortParam"
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/OrderStatus"
+      responses:
+        "200":
+          description: Paginated list of orders
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+    post:
+      tags: [Core Resources]
+      summary: Create an order
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCreate"
+      responses:
+        "201":
+          description: Created order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/v1/orders/{id}:
+    parameters:
+      - $ref: "#/components/parameters/OrderIdParam"
+    get:
+      tags: [Core Resources]
+      summary: Get an order by id
+      operationId: getOrderById
+      responses:
+        "200":
+          description: The requested order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Core Resources]
+      summary: Replace an order
+      operationId: replaceOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCreate"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Core Resources]
+      summary: Partially update an order
+      operationId: patchOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderPatch"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Core Resources]
+      summary: Delete an order
+      operationId: deleteOrder
+      responses:
+        "204":
+          description: Order deleted
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    LimitParam:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    SortParam:
+      name: sort
+      in: query
+      required: false
+      description: Field name for ascending order, or `-field` for descending.
+      schema:
+        type: string
+    UserIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    ProductIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    CustomerIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    OrderIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+
   schemas:
+    UserRole:
+      type: string
+      enum: [user, admin, manager, readonly]
+
+    UserStatus:
+      type: string
+      enum: [active, inactive]
+
+    ProductCategory:
+      type: string
+      enum: [electronics, books, clothing, home, toys, grocery, sports, beauty, automotive, other]
+
+    OrderStatus:
+      type: string
+      enum: [pending, processing, shipped, delivered, cancelled]
+
+    User:
+      type: object
+      required: [id, name, email, role, status, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string, format: email }
+        role: { $ref: "#/components/schemas/UserRole" }
+        status: { $ref: "#/components/schemas/UserStatus" }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    UserCreate:
+      type: object
+      required: [name, email, role]
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        email: { type: string, format: email }
+        role: { $ref: "#/components/schemas/UserRole" }
+        status: { $ref: "#/components/schemas/UserStatus" }
+
+    UserPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        email: { type: string, format: email }
+        role: { $ref: "#/components/schemas/UserRole" }
+        status: { $ref: "#/components/schemas/UserStatus" }
+
+    Product:
+      type: object
+      required: [id, name, description, price, category, stock, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string }
+        price: { type: number, exclusiveMinimum: 0 }
+        category: { $ref: "#/components/schemas/ProductCategory" }
+        stock: { type: integer, minimum: 0 }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    ProductCreate:
+      type: object
+      required: [name, price, category, stock]
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 2000 }
+        price: { type: number, exclusiveMinimum: 0 }
+        category: { $ref: "#/components/schemas/ProductCategory" }
+        stock: { type: integer, minimum: 0 }
+
+    ProductPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 2000 }
+        price: { type: number, exclusiveMinimum: 0 }
+        category: { $ref: "#/components/schemas/ProductCategory" }
+        stock: { type: integer, minimum: 0 }
+
+    Address:
+      type: object
+      required: [street, city, postalCode, country]
+      additionalProperties: false
+      properties:
+        street: { type: string }
+        city: { type: string }
+        postalCode: { type: string }
+        country: { type: string }
+
+    Customer:
+      type: object
+      required: [id, name, email, address, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string, format: email }
+        address: { $ref: "#/components/schemas/Address" }
+        userId: { type: integer, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CustomerCreate:
+      type: object
+      required: [name, email, address]
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        email: { type: string, format: email }
+        address: { $ref: "#/components/schemas/Address" }
+        userId: { type: integer, nullable: true }
+
+    CustomerPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        email: { type: string, format: email }
+        address: { $ref: "#/components/schemas/Address" }
+        userId: { type: integer, nullable: true }
+
+    OrderLineItem:
+      type: object
+      required: [productId, quantity]
+      additionalProperties: false
+      properties:
+        productId: { type: integer }
+        quantity: { type: integer, minimum: 1 }
+
+    Order:
+      type: object
+      required: [id, customerId, items, status, total, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        customerId: { type: integer }
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: "#/components/schemas/OrderLineItem" }
+        status: { $ref: "#/components/schemas/OrderStatus" }
+        total: { type: number, minimum: 0 }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    OrderCreate:
+      type: object
+      required: [customerId, items]
+      additionalProperties: false
+      properties:
+        customerId: { type: integer }
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: "#/components/schemas/OrderLineItem" }
+        status: { $ref: "#/components/schemas/OrderStatus" }
+
+    OrderPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        customerId: { type: integer }
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: "#/components/schemas/OrderLineItem" }
+        status: { $ref: "#/components/schemas/OrderStatus" }
+
     HealthStatus:
       type: object
       required: [status, uptimeSeconds, timestamp]

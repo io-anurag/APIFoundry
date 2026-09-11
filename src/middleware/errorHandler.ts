@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import { ZodError } from "zod";
 import { buildErrorEnvelope } from "../models/errorEnvelope";
 import { HttpError } from "../utils/httpError";
 import { requestIdOf } from "./requestId";
@@ -26,7 +27,20 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
   const requestId = requestIdOf(req);
 
   if (err instanceof HttpError) {
-    res.status(err.statusCode).json(buildErrorEnvelope(err.code, err.message, requestId));
+    res.status(err.statusCode).json(buildErrorEnvelope(err.code, err.message, requestId, err.details));
+    return;
+  }
+
+  if (err instanceof ZodError) {
+    const { fieldErrors, formErrors } = err.flatten();
+    res
+      .status(400)
+      .json(
+        buildErrorEnvelope("VALIDATION_ERROR", "Request body failed validation", requestId, {
+          fieldErrors,
+          formErrors,
+        })
+      );
     return;
   }
 

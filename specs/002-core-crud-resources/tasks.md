@@ -33,10 +33,10 @@ layout. No new top-level directories.
 
 **Purpose**: Feature-specific groundwork shared by every later phase.
 
-- [ ] T001 [P] Add a test helper `tests/helpers/resetStores.ts` that resets all four in-memory stores
+- [x] T001 [P] Add a test helper `tests/helpers/resetStores.ts` that resets all four in-memory stores
       (users, products, customers, orders) back to their seeded state, for use in `beforeEach()` across
       this spec's test files so mutations in one test never leak into another within the same file.
-- [ ] T002 [P] Add a shared enum constants module `src/models/enums.ts` exporting, verbatim per
+- [x] T002 [P] Add a shared enum constants module `src/models/enums.ts` exporting, verbatim per
       data-model.md: `USER_ROLES = ["user", "admin", "manager", "readonly"] as const`,
       `USER_STATUSES = ["active", "inactive"] as const`,
       `PRODUCT_CATEGORIES = ["electronics", "books", "clothing", "home", "toys", "grocery", "sports", "beauty", "automotive", "other"] as const`,
@@ -50,22 +50,22 @@ layout. No new top-level directories.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T003 Implement a generic in-memory store `src/data/inMemoryStore.ts`: `createInMemoryStore<T extends { id: number }>()`
+- [x] T003 Implement a generic in-memory store `src/data/inMemoryStore.ts`: `createInMemoryStore<T extends { id: number }>()`
       returning `{ list(): T[], get(id): T | undefined, create(data): T, replace(id, data): T | undefined, patch(id, partial): T | undefined, remove(id): boolean }`,
       backed by a `Map<number, T>` plus an auto-incrementing id counter that starts past the highest
       seed id (research.md).
-- [ ] T004 [P] Implement a shared path-id parsing utility `src/utils/idParam.ts`: given a route's `:id`
+- [x] T004 [P] Implement a shared path-id parsing utility `src/utils/idParam.ts`: given a route's `:id`
       path segment, return a valid positive integer, or throw `HttpError(400, "VALIDATION_ERROR", ...)`
       for malformed (non-numeric), negative, zero, or unreasonably large (e.g. exceeding
       `Number.MAX_SAFE_INTEGER`) values — never throws an unhandled exception (FR-006). Does not handle
       the not-found case (callers issue `RESOURCE_NOT_FOUND` / `404` themselves once a store lookup
       misses).
-- [ ] T005 [P] Define shared list-query types and parameter validation in `src/models/listQuery.ts`:
+- [x] T005 [P] Define shared list-query types and parameter validation in `src/models/listQuery.ts`:
       a `ListQuery` type (`page: number`, `limit: number`, `sort?: string`) and a parser that validates
       `page` (integer >= 1, default 1), `limit` (integer 1–100, default 20), and `sort` (a field name or
       a `-`-prefixed field name, checked against a caller-supplied allowed-fields list), throwing
       `HttpError(400, "VALIDATION_ERROR", ...)` on any invalid value (FR-008, FR-009).
-- [ ] T006 Implement the shared list-query application service `src/services/listQuery.service.ts`:
+- [x] T006 Implement the shared list-query application service `src/services/listQuery.service.ts`:
       `applyListQuery<T>(records: T[], query: ListQuery, options: { allowedSortFields: string[], filters?: Array<(r: T) => boolean> })`
       that filters, then sorts, then paginates `records`, returning `{ data: T[], total: number }` for
       `buildPaginationEnvelope` (depends on T005 for types).
@@ -85,29 +85,29 @@ started server's collections already contain the documented minimum seed counts.
 
 ### Users
 
-- [ ] T007 [P] [US1] Create the User model and zod schemas in `src/models/user.ts`: `User` type —
+- [x] T007 [P] [US1] Create the User model and zod schemas in `src/models/user.ts`: `User` type —
       `id` (integer, server-assigned, immutable), `name` (string, 1–200 chars, required), `email`
       (string, valid email format, unique across users, required), `role` (enum `user`/`admin`/
       `manager`/`readonly`, required), `status` (enum `active`/`inactive`, default `active`),
       `createdAt`/`updatedAt` (ISO 8601 string, server-assigned) — plus `UserCreate` (required: `name`,
       `email`, `role`; optional: `status`) and `UserPatch` (all fields optional), both zod `.strict()`
       to reject unknown fields (FR-013). Import enums from `src/models/enums.ts` (T002).
-- [ ] T008 [US1] Implement `src/services/user.service.ts`: CRUD backed by
+- [x] T008 [US1] Implement `src/services/user.service.ts`: CRUD backed by
       `createInMemoryStore<User>()` (T003); `create`/`replace` reject a duplicate `email` across all
       other users with a structured `VALIDATION_ERROR`; `list` delegates to `applyListQuery` (T006)
       with `allowedSortFields: ["id", "name", "email", "role", "createdAt"]`.
-- [ ] T009 [US1] Implement `src/controllers/user.controller.ts`: `listUsers`, `getUserById`,
+- [x] T009 [US1] Implement `src/controllers/user.controller.ts`: `listUsers`, `getUserById`,
       `createUser`, `replaceUser`, `patchUser`, `deleteUser` handlers; parse `:id` via
       `src/utils/idParam.ts` (T004); respond `404`/`RESOURCE_NOT_FOUND` when a lookup misses; `201` on
       create, `200` on get/replace/patch, `204` on delete.
-- [ ] T010 [US1] Implement `src/routes/user.routes.ts` mounting `GET /users`, `POST /users`,
+- [x] T010 [US1] Implement `src/routes/user.routes.ts` mounting `GET /users`, `POST /users`,
       `GET /users/:id`, `PUT /users/:id`, `PATCH /users/:id`, `DELETE /users/:id`; mount `userRouter` on
       the existing `apiRouter` in `src/app.ts`.
-- [ ] T011 [US1] Create the deterministic seed generator `src/data/users.seed.ts`: generate exactly 50
+- [x] T011 [US1] Create the deterministic seed generator `src/data/users.seed.ts`: generate exactly 50
       `User` records (ids 1–50) with index-derived `name`/`email` (e.g. `User ${i}` /
       `user${i}@example.com`), cycling deterministically through all 4 `role` values, and populate the
       store from T003 at module load (FR-002, FR-003).
-- [ ] T012 [P] [US1] Write CRUD lifecycle tests in `tests/users.test.ts`: `POST` → `201` with a
+- [x] T012 [P] [US1] Write CRUD lifecycle tests in `tests/users.test.ts`: `POST` → `201` with a
       server-assigned `id`; `GET /users` shows `pagination.total >= 50` (FR-002); `GET /users/:id` →
       `200`; full `PUT` → `200` with all supplied fields replaced; partial `PATCH` → `200` with only the
       supplied field(s) changed; `DELETE` → `204`, then `GET` on the same id → `404` (User Story 1,
@@ -115,50 +115,50 @@ started server's collections already contain the documented minimum seed counts.
 
 ### Products
 
-- [ ] T013 [P] [US1] Create the Product model and zod schemas in `src/models/product.ts`: `Product`
+- [x] T013 [P] [US1] Create the Product model and zod schemas in `src/models/product.ts`: `Product`
       type — `id` (integer, server-assigned, immutable), `name` (string, 1–200 chars, required),
       `description` (string, 0–2000 chars, optional, default `""`), `price` (number, > 0, required),
       `category` (enum of the 10 `PRODUCT_CATEGORIES` values, required), `stock` (integer, >= 0,
       required), `createdAt`/`updatedAt` (server-assigned) — plus `ProductCreate` (required: `name`,
       `price`, `category`, `stock`) and `ProductPatch` (all optional), both `.strict()`.
-- [ ] T014 [US1] Implement `src/services/product.service.ts`: CRUD via the store; reject `price <= 0`
+- [x] T014 [US1] Implement `src/services/product.service.ts`: CRUD via the store; reject `price <= 0`
       or `stock < 0` with a structured `VALIDATION_ERROR`; `list` via `applyListQuery` with
       `allowedSortFields: ["id", "name", "price", "stock", "createdAt"]`.
-- [ ] T015 [US1] Implement `src/controllers/product.controller.ts` (same handler shape as T009).
-- [ ] T016 [US1] Implement `src/routes/product.routes.ts` mounting the 6 `/products` routes; mount
+- [x] T015 [US1] Implement `src/controllers/product.controller.ts` (same handler shape as T009).
+- [x] T016 [US1] Implement `src/routes/product.routes.ts` mounting the 6 `/products` routes; mount
       `productRouter` on `apiRouter` in `src/app.ts`.
-- [ ] T017 [US1] Create the seed generator `src/data/products.seed.ts`: generate exactly 50 `Product`
+- [x] T017 [US1] Create the seed generator `src/data/products.seed.ts`: generate exactly 50 `Product`
       records (ids 1–50), cycling deterministically through all 10 categories, with index-derived
       `name`/`price`/`stock` (FR-002, FR-003).
-- [ ] T018 [P] [US1] Write CRUD lifecycle tests in `tests/products.test.ts` (same pattern as T012,
+- [x] T018 [P] [US1] Write CRUD lifecycle tests in `tests/products.test.ts` (same pattern as T012,
       asserting `pagination.total >= 50`).
 
 ### Customers
 
-- [ ] T019 [P] [US1] Create the Customer model and zod schemas in `src/models/customer.ts`: `Customer`
+- [x] T019 [P] [US1] Create the Customer model and zod schemas in `src/models/customer.ts`: `Customer`
       type — `id` (integer, server-assigned, immutable), `name` (string, 1–200 chars, required),
       `email` (string, valid email format, unique across customers, required), `address` (object:
       `street`/`city`/`postalCode`/`country`, all strings, required together), `userId` (integer,
       nullable, optional — when present MUST reference an existing `User.id`), `createdAt`/`updatedAt`
       (server-assigned) — plus `CustomerCreate` (required: `name`, `email`, `address`; optional:
       `userId`) and `CustomerPatch` (all optional), both `.strict()`.
-- [ ] T020 [US1] Implement `src/services/customer.service.ts`: CRUD via the store; reject a duplicate
+- [x] T020 [US1] Implement `src/services/customer.service.ts`: CRUD via the store; reject a duplicate
       `email` across other customers; when `userId` is present on create/replace/patch, validate it
       resolves against the user store (T008's store instance) and reject with a structured
       `VALIDATION_ERROR` naming `userId` if it does not (FR-020); `list` via `applyListQuery` with
       `allowedSortFields: ["id", "name", "email", "createdAt"]`.
-- [ ] T021 [US1] Implement `src/controllers/customer.controller.ts` (same handler shape as T009).
-- [ ] T022 [US1] Implement `src/routes/customer.routes.ts` mounting the 6 `/customers` routes; mount
+- [x] T021 [US1] Implement `src/controllers/customer.controller.ts` (same handler shape as T009).
+- [x] T022 [US1] Implement `src/routes/customer.routes.ts` mounting the 6 `/customers` routes; mount
       `customerRouter` on `apiRouter` in `src/app.ts`.
-- [ ] T023 [US1] Create the seed generator `src/data/customers.seed.ts`: generate a deterministic set of
+- [x] T023 [US1] Create the seed generator `src/data/customers.seed.ts`: generate a deterministic set of
       `Customer` records sufficient to back every seeded order (at least as many as the distinct
       customers referenced by `orders.seed.ts`), with a subset's `userId` linked to seeded users
       (FR-002, FR-003).
-- [ ] T024 [P] [US1] Write CRUD lifecycle tests in `tests/customers.test.ts` (same pattern as T012).
+- [x] T024 [P] [US1] Write CRUD lifecycle tests in `tests/customers.test.ts` (same pattern as T012).
 
 ### Orders
 
-- [ ] T025 [P] [US1] Create the Order and OrderLineItem model and zod schemas in `src/models/order.ts`:
+- [x] T025 [P] [US1] Create the Order and OrderLineItem model and zod schemas in `src/models/order.ts`:
       `OrderLineItem` — `productId` (integer, required), `quantity` (integer, >= 1, required);
       `Order` type — `id` (integer, server-assigned, immutable), `customerId` (integer, required, MUST
       reference an existing `Customer.id`), `items` (array of `OrderLineItem`, minimum 1 entry,
@@ -167,20 +167,20 @@ started server's collections already contain the documented minimum seed counts.
       (server-assigned) — plus `OrderCreate` (required: `customerId`, `items`; optional: `status`) and
       `OrderPatch` (all optional), both `.strict()` and both omitting `total` entirely so it can never
       be client-supplied.
-- [ ] T026 [US1] Implement `src/services/order.service.ts`: CRUD via the store; on create/replace,
+- [x] T026 [US1] Implement `src/services/order.service.ts`: CRUD via the store; on create/replace,
       validate `customerId` resolves against the customer store (T020's store instance) and every
       `items[].productId` resolves against the product store (T014's store instance), rejecting with a
       structured `VALIDATION_ERROR` naming the offending id if any do not resolve (FR-015); compute
       `total` server-side as the sum of `items[].quantity * product.price`; `list` via `applyListQuery`
       with `allowedSortFields: ["id", "customerId", "status", "total", "createdAt"]`.
-- [ ] T027 [US1] Implement `src/controllers/order.controller.ts` (same handler shape as T009).
-- [ ] T028 [US1] Implement `src/routes/order.routes.ts` mounting the 6 `/orders` routes; mount
+- [x] T027 [US1] Implement `src/controllers/order.controller.ts` (same handler shape as T009).
+- [x] T028 [US1] Implement `src/routes/order.routes.ts` mounting the 6 `/orders` routes; mount
       `orderRouter` on `apiRouter` in `src/app.ts`.
-- [ ] T029 [US1] Create the seed generator `src/data/orders.seed.ts`: generate exactly 100 `Order`
+- [x] T029 [US1] Create the seed generator `src/data/orders.seed.ts`: generate exactly 100 `Order`
       records (ids 1–100), each referencing a valid seeded `customerId` and 1 or more valid seeded
       `productId`s, generated after `users.seed.ts`/`products.seed.ts`/`customers.seed.ts` so every
       reference resolves (FR-002, FR-003).
-- [ ] T030 [P] [US1] Write CRUD lifecycle tests in `tests/orders.test.ts`: same pattern as T012, plus a
+- [x] T030 [P] [US1] Write CRUD lifecycle tests in `tests/orders.test.ts`: same pattern as T012, plus a
       create using a valid seeded `customerId`/`productId` and asserting the response's `total` is the
       server-computed value, not any client-supplied value.
 
@@ -198,27 +198,27 @@ seed data. This is the MVP.
 enum/email/reference values, out-of-bounds, null, empty, unexpected fields) to each resource's write
 endpoints and confirm every one is rejected structurally, with no side effects.
 
-- [ ] T031 [P] [US2] Add validation-rejection tests to `tests/users.test.ts`: missing required field
+- [x] T031 [P] [US2] Add validation-rejection tests to `tests/users.test.ts`: missing required field
       (`name`/`email`/`role`), wrong type (`role` as a number), invalid email format, invalid `role`
       enum value (FR-017), `null` in a required field, empty string for `name`, and an unexpected extra
       field — each asserting `400`/`422` with the standard error envelope and no record created;
       immutable-`id` test (a `PUT`/`PATCH` body containing an `id` field never changes the record's
       actual id, FR-014); a `PUT` sent with a partial body (missing a field full replacement requires)
       → `400`/`422` (Edge Cases).
-- [ ] T032 [P] [US2] Add validation-rejection tests to `tests/products.test.ts`: missing required field,
+- [x] T032 [P] [US2] Add validation-rejection tests to `tests/products.test.ts`: missing required field,
       wrong type, `price <= 0`, `stock < 0`, invalid `category` enum value (FR-019), empty `name`, and
       an unexpected extra field; immutable-`id` test; `PUT`-with-partial-body rejection test.
-- [ ] T033 [P] [US2] Add validation-rejection tests to `tests/customers.test.ts`: missing required
+- [x] T033 [P] [US2] Add validation-rejection tests to `tests/customers.test.ts`: missing required
       field, invalid email format, an incomplete `address` (missing one required sub-field), `null` in
       a required field, an unexpected extra field, and a `userId` that does not resolve to an existing
       user (→ `400`/`422` naming `userId`, FR-020); immutable-`id` test; `PUT`-with-partial-body
       rejection test.
-- [ ] T034 [P] [US2] Add validation-rejection tests to `tests/orders.test.ts`: missing required field,
+- [x] T034 [P] [US2] Add validation-rejection tests to `tests/orders.test.ts`: missing required field,
       invalid `status` enum value (FR-018), `items[].quantity < 1`, `items: []` (below the 1-entry
       minimum), a non-existent `customerId`, a non-existent `items[].productId` (both FR-015), an
       unexpected extra field, and a client-supplied `total` (must be ignored or rejected, never
       trusted); immutable-`id` test; `PUT`-with-partial-body rejection test.
-- [ ] T035 [US2] Verify each resource's `.strict()` zod schema and service-layer checks
+- [x] T035 [US2] Verify each resource's `.strict()` zod schema and service-layer checks
       (`src/models/user.ts`, `product.ts`, `customer.ts`, `order.ts`, `src/services/user.service.ts`,
       `product.service.ts`, `customer.service.ts`, `order.service.ts`) against every case added in
       T031–T034, and fix any gap found so each resolves to `400`/`422` with a field-identifying
@@ -237,19 +237,19 @@ on invalid input.
 **Independent Test**: Call each single-resource endpoint with the edge-case identifier table and confirm
 each returns the documented `400`/`404` without crashing the server.
 
-- [ ] T036 [P] [US3] Add path-parameter edge-case tests to `tests/users.test.ts` for
+- [x] T036 [P] [US3] Add path-parameter edge-case tests to `tests/users.test.ts` for
       `GET`/`PUT`/`PATCH`/`DELETE /api/v1/users/{id}`: valid-but-nonexistent id → `404`; malformed
       non-numeric id (e.g. `abc`) → `400`; negative id (`-1`) → `400`; zero id (`0`) → `400`; huge id
       (`99999999999999999999`) → `400`; empty segment (`/api/v1/users/`) → `404`, never `500`
       (FR-005/FR-006); plus a double-`DELETE` test (a second `DELETE` on the same id → `404`, not a
       repeated success, Edge Cases).
-- [ ] T037 [P] [US3] Add the same path-parameter edge-case and double-`DELETE` test matrix to
+- [x] T037 [P] [US3] Add the same path-parameter edge-case and double-`DELETE` test matrix to
       `tests/products.test.ts`.
-- [ ] T038 [P] [US3] Add the same path-parameter edge-case and double-`DELETE` test matrix to
+- [x] T038 [P] [US3] Add the same path-parameter edge-case and double-`DELETE` test matrix to
       `tests/customers.test.ts`.
-- [ ] T039 [P] [US3] Add the same path-parameter edge-case and double-`DELETE` test matrix to
+- [x] T039 [P] [US3] Add the same path-parameter edge-case and double-`DELETE` test matrix to
       `tests/orders.test.ts`.
-- [ ] T040 [US3] Verify `src/utils/idParam.ts` and each controller's not-found/double-delete handling
+- [x] T040 [US3] Verify `src/utils/idParam.ts` and each controller's not-found/double-delete handling
       against T036–T039, and fix any gap found so every case resolves to the documented status without
       an unhandled exception (bugfixing against T036–T039's tests, not new functionality).
 
@@ -266,24 +266,24 @@ relevant filter, individually and combined, with correct pagination-envelope met
 **Independent Test**: Request each resource's collection with various combinations of `page`, `limit`,
 `sort`, and the resource's filter parameter, and confirm the returned set and envelope match.
 
-- [ ] T041 [P] [US4] Add `role` filter support to `src/services/user.service.ts`'s `list` method, using
+- [x] T041 [P] [US4] Add `role` filter support to `src/services/user.service.ts`'s `list` method, using
       `applyListQuery`'s filter hook (T006) so only records matching the supplied `role` are returned
       (FR-010).
-- [ ] T042 [P] [US4] Add `category` filter support to `src/services/product.service.ts`'s `list` method.
-- [ ] T043 [P] [US4] Add `country` filter support (matched against `address.country`) to
+- [x] T042 [P] [US4] Add `category` filter support to `src/services/product.service.ts`'s `list` method.
+- [x] T043 [P] [US4] Add `country` filter support (matched against `address.country`) to
       `src/services/customer.service.ts`'s `list` method.
-- [ ] T044 [P] [US4] Add `status` filter support to `src/services/order.service.ts`'s `list` method.
-- [ ] T045 [P] [US4] Add pagination + sorting + `role`-filtering tests to `tests/users.test.ts`:
+- [x] T044 [P] [US4] Add `status` filter support to `src/services/order.service.ts`'s `list` method.
+- [x] T045 [P] [US4] Add pagination + sorting + `role`-filtering tests to `tests/users.test.ts`:
       `page`/`limit` return the correct page with accurate `total`/`totalPages`/`hasNext`/`hasPrevious`
       (FR-007); `page=0` and a negative or non-numeric `limit` → `400` (FR-008); `sort=name` ascending,
       `sort=-name` descending, `sort=notAField` → `400` (FR-009); `role` filter alone and combined with
       pagination/sort, and the same repeated-conflicting-filter-parameter request resolved identically
       on every call (FR-010, Edge Cases).
-- [ ] T046 [P] [US4] Add the equivalent pagination + sorting + `category`-filtering test set to
+- [x] T046 [P] [US4] Add the equivalent pagination + sorting + `category`-filtering test set to
       `tests/products.test.ts`.
-- [ ] T047 [P] [US4] Add the equivalent pagination + sorting + `country`-filtering test set to
+- [x] T047 [P] [US4] Add the equivalent pagination + sorting + `country`-filtering test set to
       `tests/customers.test.ts`.
-- [ ] T048 [P] [US4] Add the equivalent pagination + sorting + `status`-filtering test set to
+- [x] T048 [P] [US4] Add the equivalent pagination + sorting + `status`-filtering test set to
       `tests/orders.test.ts`.
 
 **Checkpoint**: All four user stories are independently functional and tested.
@@ -294,19 +294,19 @@ relevant filter, individually and combined, with correct pagination-envelope met
 
 **Purpose**: Spec-parity and whole-suite verification across all four user stories.
 
-- [ ] T049 [P] Add an `X-Request-ID` presence assertion to one representative test in each of
+- [x] T049 [P] Add an `X-Request-ID` presence assertion to one representative test in each of
       `tests/users.test.ts`, `tests/products.test.ts`, `tests/customers.test.ts`, and
       `tests/orders.test.ts`, confirming FR-016 holds for this spec's endpoints too.
-- [ ] T050 [P] Merge `contracts/core-crud-resources.openapi.yaml`'s `tags`, `paths`, and
+- [x] T050 [P] Merge `contracts/core-crud-resources.openapi.yaml`'s `tags`, `paths`, and
       `components.schemas`/`components.parameters` into the root `openapi.yaml`, so `/docs`,
       `/openapi.json`, and `/openapi.yaml` document exactly the endpoints this spec implements
       (constitution: Quality Gates & Spec Parity).
-- [ ] T051 Run `npm test` and confirm the full suite — Spec 001's existing tests plus this spec's
+- [x] T051 Run `npm test` and confirm the full suite — Spec 001's existing tests plus this spec's
       `tests/users.test.ts`, `products.test.ts`, `customers.test.ts`, `orders.test.ts` — passes.
-- [ ] T052 Execute the manual validation scenarios in
+- [x] T052 Execute the manual validation scenarios in
       `specs/002-core-crud-resources/quickstart.md` against a running `npm run dev` server and confirm
       every expected status code and behavior.
-- [ ] T053 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 24 new
+- [x] T053 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 24 new
       operations (6 each for users/products/customers/orders) correctly, with no schema errors.
 
 ---
