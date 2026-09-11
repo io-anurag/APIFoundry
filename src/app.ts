@@ -17,6 +17,7 @@ import { commentRouter } from "./routes/comment.routes";
 import { reviewRouter } from "./routes/review.routes";
 import { paymentRouter } from "./routes/payment.routes";
 import { searchRouter } from "./routes/search.routes";
+import { statusCodeRouter } from "./routes/statusCode.routes";
 import { openapiRouter } from "./openapi";
 import { markReady } from "./services/health.service";
 
@@ -46,6 +47,7 @@ apiRouter.use(commentRouter);
 apiRouter.use(reviewRouter);
 apiRouter.use(paymentRouter);
 apiRouter.use(searchRouter);
+apiRouter.use(statusCodeRouter);
 app.use(config.apiPrefix, apiRouter);
 
 // This spec has no async bootstrap work, so the app is "ready" as soon as its request pipeline

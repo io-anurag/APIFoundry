@@ -26,6 +26,8 @@ tags:
     description: Parent-child navigation across users, posts, products, and orders.
   - name: Search
     description: Cross-resource free-text search.
+  - name: Status Codes
+    description: Deterministic, self-contained demonstrations of every documented HTTP status code.
 
 paths:
   /health:
@@ -1146,6 +1148,147 @@ paths:
                           $ref: "#/components/schemas/SearchResult"
         "400":
           $ref: "#/components/responses/ValidationError"
+
+  # ---------------------------------------------------------------------------------------------
+  # Status Code Playground
+  # ---------------------------------------------------------------------------------------------
+  /api/v1/status/{code}:
+    parameters:
+      - $ref: "#/components/parameters/StatusCodeParam"
+    get:
+      tags: [Status Codes]
+      summary: Demonstrate a specific HTTP status code
+      description: >
+        Returns the exact status, headers, and body shape for one of the 24 documented codes. A `code`
+        value that is malformed, out of the 100-599 range, or well-formed but not one of the 24
+        documented codes always returns 400 (never the demonstrated code itself).
+      operationId: demonstrateStatusCode
+      responses:
+        "200":
+          description: Demonstrates 200 OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatusDemoSuccess" }
+        "201":
+          description: Demonstrates 201 Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatusDemoSuccess" }
+        "202":
+          description: Demonstrates 202 Accepted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatusDemoSuccess" }
+        "204":
+          description: Demonstrates 204 No Content (no response body)
+        "301":
+          description: Demonstrates 301 Moved Permanently
+          headers:
+            Location: { schema: { type: string }, description: "Points at this endpoint's own /api/v1/status/200" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatusDemoRedirect" }
+        "302":
+          description: Demonstrates 302 Found
+          headers:
+            Location: { schema: { type: string }, description: "Points at this endpoint's own /api/v1/status/200" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatusDemoRedirect" }
+        "304":
+          description: Demonstrates 304 Not Modified (no response body)
+        "400":
+          description: >
+            Malformed `code` (VALIDATION_ERROR), `code` outside 100-599 (VALIDATION_ERROR), or `code`
+            well-formed but not one of the 24 documented codes (UNSUPPORTED_STATUS_CODE). Also
+            demonstrates 400 Bad Request itself when `code=400`.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Demonstrates 401 Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Demonstrates 403 Forbidden
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: Demonstrates 404 Not Found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "405":
+          description: Demonstrates 405 Method Not Allowed
+          headers:
+            Allow: { schema: { type: string }, description: "GET — this endpoint's own real allowed method" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "406":
+          description: Demonstrates 406 Not Acceptable
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "408":
+          description: Demonstrates 408 Request Timeout
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: Demonstrates 409 Conflict
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "410":
+          description: Demonstrates 410 Gone
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "415":
+          description: Demonstrates 415 Unsupported Media Type
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422":
+          description: Demonstrates 422 Unprocessable Entity
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "429":
+          description: Demonstrates 429 Too Many Requests
+          headers:
+            Retry-After: { schema: { type: string }, description: "Fixed demonstration value (60); no real rate-limit state is tracked" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "500":
+          description: Demonstrates 500 Internal Server Error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "501":
+          description: Demonstrates 501 Not Implemented
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "502":
+          description: Demonstrates 502 Bad Gateway
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: Demonstrates 503 Service Unavailable
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "504":
+          description: Demonstrates 504 Gateway Timeout
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
 components:
   parameters:
     PageParam:
@@ -1245,6 +1388,17 @@ components:
         type: integer
         minimum: 1
         maximum: 5
+    StatusCodeParam:
+      name: code
+      in: path
+      required: true
+      description: >
+        Must be a strict positive integer with no leading zero and no surrounding whitespace, in the
+        range 100-599, and one of the 24 documented codes — anything else returns 400.
+      schema:
+        type: integer
+        minimum: 100
+        maximum: 599
 
   schemas:
     UserRole:
@@ -1583,6 +1737,23 @@ components:
             - type: integer
         label: { type: string }
         snippet: { type: string }
+
+    StatusDemoSuccess:
+      type: object
+      required: [status, name, message]
+      properties:
+        status: { type: integer, example: 200 }
+        name: { type: string, example: "OK" }
+        message: { type: string }
+
+    StatusDemoRedirect:
+      type: object
+      required: [status, name, message, location]
+      properties:
+        status: { type: integer, example: 301 }
+        name: { type: string, example: "Moved Permanently" }
+        message: { type: string }
+        location: { type: string, example: "/api/v1/status/200" }
   responses:
     NotFound:
       description: The requested route does not exist
