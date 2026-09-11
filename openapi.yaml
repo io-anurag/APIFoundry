@@ -20,6 +20,12 @@ tags:
     description: Health, liveness/readiness, version and instance info — outside the versioned API prefix (except /api/v1/info).
   - name: Core Resources
     description: Full CRUD for the four primary resources — users, products, orders, customers.
+  - name: Catalog
+    description: Read-only catalog resources — categories, posts, comments, reviews, payments.
+  - name: Nested Resources
+    description: Parent-child navigation across users, posts, products, and orders.
+  - name: Search
+    description: Cross-resource free-text search.
 
 paths:
   /health:
@@ -594,6 +600,552 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  # ---------------------------------------------------------------------------------------------
+  # Top-level read-only collections
+  # ---------------------------------------------------------------------------------------------
+  /api/v1/categories:
+    get:
+      tags: [Catalog]
+      summary: List categories
+      operationId: listCategories
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SortParam"
+      responses:
+        "200":
+          description: Paginated list of categories
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/v1/categories/{slug}:
+    parameters:
+      - $ref: "#/components/parameters/CategorySlugParam"
+    get:
+      tags: [Catalog]
+      summary: Get a category by slug
+      operationId: getCategoryBySlug
+      responses:
+        "200":
+          description: The requested category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/posts:
+    get:
+      tags: [Catalog]
+      summary: List posts
+      operationId: listPosts
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SortParam"
+        - name: userId
+          in: query
+          required: false
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Paginated list of posts
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/v1/posts/{id}:
+    parameters:
+      - $ref: "#/components/parameters/PostIdParam"
+    get:
+      tags: [Catalog]
+      summary: Get a post by id
+      operationId: getPostById
+      responses:
+        "200":
+          description: The requested post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/comments:
+    get:
+      tags: [Catalog]
+      summary: List comments
+      operationId: listComments
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SortParam"
+        - name: postId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Paginated list of comments
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Comment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/v1/comments/{id}:
+    parameters:
+      - $ref: "#/components/parameters/CommentIdParam"
+    get:
+      tags: [Catalog]
+      summary: Get a comment by id
+      operationId: getCommentById
+      responses:
+        "200":
+          description: The requested comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/reviews:
+    get:
+      tags: [Catalog]
+      summary: List reviews
+      operationId: listReviews
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SortParam"
+        - name: productId
+          in: query
+          required: false
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Paginated list of reviews
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Review"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/v1/reviews/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ReviewIdParam"
+    get:
+      tags: [Catalog]
+      summary: Get a review by id
+      operationId: getReviewById
+      responses:
+        "200":
+          description: The requested review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/reviews/by-rating/{rating}:
+    parameters:
+      - $ref: "#/components/parameters/RatingParam"
+    get:
+      tags: [Catalog]
+      summary: List reviews with a given rating
+      operationId: listReviewsByRating
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of reviews matching the rating
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Review"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/v1/payments:
+    get:
+      tags: [Catalog]
+      summary: List payments
+      operationId: listPayments
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SortParam"
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/PaymentStatus"
+      responses:
+        "200":
+          description: Paginated list of payments
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Payment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/v1/payments/{id}:
+    parameters:
+      - $ref: "#/components/parameters/PaymentIdParam"
+    get:
+      tags: [Catalog]
+      summary: Get a payment by id
+      operationId: getPaymentById
+      responses:
+        "200":
+          description: The requested payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/payments/by-date/{date}:
+    parameters:
+      - $ref: "#/components/parameters/DateParam"
+    get:
+      tags: [Catalog]
+      summary: List payments processed on a given calendar date
+      operationId: listPaymentsByDate
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of payments processed on that date
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Payment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  # ---------------------------------------------------------------------------------------------
+  # Nested / derived routes
+  # ---------------------------------------------------------------------------------------------
+  /api/v1/users/{id}/orders:
+    parameters:
+      - $ref: "#/components/parameters/UserIdParam"
+    get:
+      tags: [Nested Resources]
+      summary: List orders placed by customers linked to a user
+      operationId: listOrdersForUser
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of the user's orders (possibly empty)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/users/{id}/posts:
+    parameters:
+      - $ref: "#/components/parameters/UserIdParam"
+    get:
+      tags: [Nested Resources]
+      summary: List posts authored by a user
+      operationId: listPostsForUser
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of the user's posts (possibly empty)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags: [Nested Resources]
+      summary: Create a post authored by a user
+      operationId: createPostForUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostCreate"
+      responses:
+        "201":
+          description: Created post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/v1/posts/{id}/comments:
+    parameters:
+      - $ref: "#/components/parameters/PostIdParam"
+    get:
+      tags: [Nested Resources]
+      summary: List comments on a post
+      operationId: listCommentsForPost
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of the post's comments (possibly empty)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Comment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags: [Nested Resources]
+      summary: Create a comment on a post
+      operationId: createCommentForPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentCreate"
+      responses:
+        "201":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/v1/products/{id}/reviews:
+    parameters:
+      - $ref: "#/components/parameters/ProductIdParam"
+    get:
+      tags: [Nested Resources]
+      summary: List reviews for a product
+      operationId: listReviewsForProduct
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of the product's reviews (possibly empty)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Review"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/products/{id}/category:
+    parameters:
+      - $ref: "#/components/parameters/ProductIdParam"
+    get:
+      tags: [Nested Resources]
+      summary: Get the category record for a product
+      operationId: getCategoryForProduct
+      responses:
+        "200":
+          description: The product's category record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/orders/{id}/products:
+    parameters:
+      - $ref: "#/components/parameters/OrderIdParam"
+    get:
+      tags: [Nested Resources]
+      summary: List the distinct products referenced by an order's line items
+      operationId: listProductsForOrder
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of the order's distinct products
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ---------------------------------------------------------------------------------------------
+  # Search
+  # ---------------------------------------------------------------------------------------------
+  /api/v1/search:
+    get:
+      tags: [Search]
+      summary: Cross-resource free-text search
+      operationId: search
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Free-text search term. Required and non-empty.
+          schema:
+            type: string
+            minLength: 1
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated, combined set of matches across resources (possibly empty)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Pagination"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/SearchResult"
+        "400":
+          $ref: "#/components/responses/ValidationError"
 components:
   parameters:
     PageParam:
@@ -644,6 +1196,55 @@ components:
       required: true
       schema:
         type: integer
+
+    CategorySlugParam:
+      name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+    PostIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CommentIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    ReviewIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    PaymentIdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    DateParam:
+      name: date
+      in: path
+      required: true
+      schema:
+        type: string
+        format: date
+    RatingParam:
+      name: rating
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 5
 
   schemas:
     UserRole:
@@ -894,6 +1495,94 @@ components:
             hasPrevious:
               type: boolean
 
+    PaymentStatus:
+      type: string
+      enum: [pending, completed, failed, refunded]
+
+    SearchResourceType:
+      type: string
+      enum: [user, customer, product, category, post, comment, review]
+
+    Category:
+      type: object
+      required: [id, name, description, createdAt]
+      properties:
+        id: { type: string, description: URL-safe slug identifier }
+        name: { type: string }
+        description: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    Post:
+      type: object
+      required: [id, userId, title, body, publishedAt, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: integer }
+        title: { type: string }
+        body: { type: string }
+        publishedAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    PostCreate:
+      type: object
+      required: [title, body]
+      additionalProperties: false
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        body: { type: string, minLength: 1, maxLength: 5000 }
+
+    Comment:
+      type: object
+      required: [id, postId, userId, body, createdAt]
+      properties:
+        id: { type: integer }
+        postId: { type: string, format: uuid }
+        userId: { type: integer }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CommentCreate:
+      type: object
+      required: [userId, body]
+      additionalProperties: false
+      properties:
+        userId: { type: integer }
+        body: { type: string, minLength: 1, maxLength: 1000 }
+
+    Review:
+      type: object
+      required: [id, productId, userId, rating, body, createdAt]
+      properties:
+        id: { type: integer }
+        productId: { type: integer }
+        userId: { type: integer }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    Payment:
+      type: object
+      required: [id, orderId, amount, status, processedAt, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        orderId: { type: integer }
+        amount: { type: number, minimum: 0 }
+        status: { $ref: "#/components/schemas/PaymentStatus" }
+        processedAt: { type: string, format: date }
+        createdAt: { type: string, format: date-time }
+
+    SearchResult:
+      type: object
+      required: [resourceType, id, label]
+      properties:
+        resourceType: { $ref: "#/components/schemas/SearchResourceType" }
+        id:
+          oneOf:
+            - type: string
+            - type: integer
+        label: { type: string }
+        snippet: { type: string }
   responses:
     NotFound:
       description: The requested route does not exist

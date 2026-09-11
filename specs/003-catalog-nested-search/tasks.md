@@ -33,7 +33,7 @@ Single project (per plan.md): `src/`, `tests/` at repository root, extending the
 
 **Purpose**: Feature-specific groundwork shared by every later phase.
 
-- [ ] T001 [P] Add `PAYMENT_STATUSES = ["pending", "completed", "failed", "refunded"] as const` and
+- [X] T001 [P] Add `PAYMENT_STATUSES = ["pending", "completed", "failed", "refunded"] as const` and
       export a `PaymentStatus` type from `src/models/enums.ts` (data-model.md, Clarifications).
 
 ---
@@ -44,24 +44,24 @@ Single project (per plan.md): `src/`, `tests/` at repository root, extending the
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 [P] Implement a string-keyed in-memory store factory `src/data/keyedStore.ts`:
+- [X] T002 [P] Implement a string-keyed in-memory store factory `src/data/keyedStore.ts`:
       `createKeyedStore<T extends { id: string }>()` returning `{ list(): T[], get(id): T | undefined,
       create(record: T): T, replace(id, build): T | undefined, patch(id, partial): T | undefined,
       remove(id): boolean, reset(records: T[]): void }` — the same shape as `src/data/inMemoryStore.ts`
       (unchanged, reused for Comment/Review) except `create` takes a fully-formed record instead of an
       id-builder callback, since the caller assigns the id itself (slug or UUID) before storing
       (research.md).
-- [ ] T003 [P] Implement `src/utils/slugParam.ts`: parse a category `:slug` path segment against
+- [X] T003 [P] Implement `src/utils/slugParam.ts`: parse a category `:slug` path segment against
       `^[a-z0-9]+(-[a-z0-9]+)*$`, throwing `HttpError(400, "VALIDATION_ERROR", ...)` on a non-matching
       or empty segment; never handles the not-found case (FR-006).
-- [ ] T004 [P] Implement `src/utils/uuidParam.ts`: parse a post/payment `:id` path segment against a
+- [X] T004 [P] Implement `src/utils/uuidParam.ts`: parse a post/payment `:id` path segment against a
       standard UUID format (8-4-4-4-12 hex groups), throwing `HttpError(400, "VALIDATION_ERROR", ...)`
       on a malformed or empty segment; never handles the not-found case (FR-006).
-- [ ] T005 [P] Implement `src/utils/dateParam.ts`: parse a `:date` path segment matching `YYYY-MM-DD`
+- [X] T005 [P] Implement `src/utils/dateParam.ts`: parse a `:date` path segment matching `YYYY-MM-DD`
       AND representing a real calendar date (round-trip through `Date` to catch e.g. `2026-13-01` or
       `2026-02-30`), throwing `HttpError(400, "VALIDATION_ERROR", ...)` on format or calendar failure
       (FR-007).
-- [ ] T006 [P] Implement `src/utils/ratingParam.ts`: parse a `:rating` path segment as an integer from 1
+- [X] T006 [P] Implement `src/utils/ratingParam.ts`: parse a `:rating` path segment as an integer from 1
       to 5 inclusive, throwing `HttpError(400, "VALIDATION_ERROR", ...)` otherwise (FR-008).
 
 **Checkpoint**: Foundation ready — user story implementation can now begin.
@@ -79,135 +79,135 @@ any of these URLs returns `405`.
 
 ### Categories
 
-- [ ] T007 [P] [US1] Create the Category model in `src/models/category.ts`: `Category` type — `id`
+- [X] T007 [P] [US1] Create the Category model in `src/models/category.ts`: `Category` type — `id`
       (string slug, server-assigned at seed time, immutable), `name` (string, 1–100 chars), `description`
       (string, 0–500 chars, defaults to `""`), `createdAt` (ISO 8601 string, server-assigned). No write
       schema — this resource has no write path (data-model.md).
-- [ ] T008 [US1] Implement `src/services/category.service.ts`: `listCategories(rawQuery)` via
+- [X] T008 [US1] Implement `src/services/category.service.ts`: `listCategories(rawQuery)` via
       `applyListQuery` with `allowedSortFields: ["id", "name", "createdAt"]`; `getCategoryBySlug(slug)`
       throwing `HttpError(404, "RESOURCE_NOT_FOUND", ...)` on a miss.
-- [ ] T009 [US1] Implement `src/controllers/category.controller.ts`: `listCategories`,
+- [X] T009 [US1] Implement `src/controllers/category.controller.ts`: `listCategories`,
       `getCategoryBySlug` handlers; parse `:slug` via `src/utils/slugParam.ts` (T003).
-- [ ] T010 [US1] Implement `src/routes/category.routes.ts` mounting `GET /api/v1/categories`,
+- [X] T010 [US1] Implement `src/routes/category.routes.ts` mounting `GET /api/v1/categories`,
       `GET /api/v1/categories/:slug`, with `.all()` → `methodNotAllowedHandler` on both paths; mount
       `categoryRouter` on the existing `apiRouter` in `src/app.ts`.
-- [ ] T011 [US1] Create the deterministic seed generator `src/data/categories.seed.ts`: seed the 10
+- [X] T011 [US1] Create the deterministic seed generator `src/data/categories.seed.ts`: seed the 10
       `PRODUCT_CATEGORIES` values from `src/models/enums.ts` as Category records first (guaranteeing
       `products/:id/category` always resolves), then at least 10 additional catalog-only category
       records not referenced by any seeded product (e.g. `seasonal`, `clearance`, `featured`,
       `bestsellers`, ...) — at least 20 total, each `id` derived from its `name` via a small hand-written
       `slugify()` helper, populated into the T002 store (FR-002, research.md).
-- [ ] T012 [P] [US1] Write `tests/categories.test.ts`: `GET /api/v1/categories` →
+- [X] T012 [P] [US1] Write `tests/categories.test.ts`: `GET /api/v1/categories` →
       `pagination.total >= 20`; `GET /api/v1/categories/{slug}` for a known seeded slug → `200`;
       unknown-but-well-formed slug → `404`; malformed slug (e.g. uppercase or underscore) → `400`;
       `POST`/`PUT`/`PATCH`/`DELETE` on `/api/v1/categories` and `/api/v1/categories/{slug}` → `405`.
 
 ### Posts
 
-- [ ] T013 [P] [US1] Create the Post model in `src/models/post.ts`: `Post` type — `id` (string UUID,
+- [X] T013 [P] [US1] Create the Post model in `src/models/post.ts`: `Post` type — `id` (string UUID,
       server-assigned, immutable), `userId` (integer, references an existing `User.id`), `title`
       (string, 1–200 chars), `body` (string, 1–5000 chars), `publishedAt`/`createdAt`/`updatedAt` (ISO
       8601 string, server-assigned). No write schema yet — `PostCreate` is added in User Story 2
       (data-model.md).
-- [ ] T014 [US1] Implement `src/services/post.service.ts`: `listPosts(rawQuery)` via `applyListQuery`
+- [X] T014 [US1] Implement `src/services/post.service.ts`: `listPosts(rawQuery)` via `applyListQuery`
       with `allowedSortFields: ["id", "userId", "publishedAt", "createdAt"]` and an optional `userId`
       filter; `getPostById(id)` throwing `HttpError(404, "RESOURCE_NOT_FOUND", ...)` on a miss.
-- [ ] T015 [US1] Implement `src/controllers/post.controller.ts`: `listPosts`, `getPostById` handlers;
+- [X] T015 [US1] Implement `src/controllers/post.controller.ts`: `listPosts`, `getPostById` handlers;
       parse `:id` via `src/utils/uuidParam.ts` (T004).
-- [ ] T016 [US1] Implement `src/routes/post.routes.ts` mounting `GET /api/v1/posts`,
+- [X] T016 [US1] Implement `src/routes/post.routes.ts` mounting `GET /api/v1/posts`,
       `GET /api/v1/posts/:id`, with `.all()` → `methodNotAllowedHandler` on both paths; mount
       `postRouter` on `apiRouter` in `src/app.ts`.
-- [ ] T017 [US1] Create the seed generator `src/data/posts.seed.ts`: generate at least 100 `Post`
+- [X] T017 [US1] Create the seed generator `src/data/posts.seed.ts`: generate at least 100 `Post`
       records, `id` via `crypto.randomUUID()`, `userId` cycling deterministically through the seeded
       users (so every seeded user authors at least one post where the count allows), index-derived
       `title`/`body`, populated into the T002 store; generated after `users.seed.ts` so every `userId`
       resolves (FR-002, FR-003).
-- [ ] T018 [P] [US1] Write `tests/posts.test.ts`: `GET /api/v1/posts` → `pagination.total >= 100`;
+- [X] T018 [P] [US1] Write `tests/posts.test.ts`: `GET /api/v1/posts` → `pagination.total >= 100`;
       `GET /api/v1/posts/{id}` for a known seeded id → `200`; well-formed-but-unknown UUID → `404`;
       malformed UUID → `400`; `POST`/`PUT`/`PATCH`/`DELETE` on `/api/v1/posts` and
       `/api/v1/posts/{id}` → `405`.
 
 ### Comments
 
-- [ ] T019 [P] [US1] Create the Comment model in `src/models/comment.ts`: `Comment` type — `id`
+- [X] T019 [P] [US1] Create the Comment model in `src/models/comment.ts`: `Comment` type — `id`
       (integer, server-assigned, immutable), `postId` (string UUID, references an existing `Post.id`),
       `userId` (integer, references an existing `User.id`), `body` (string, 1–1000 chars), `createdAt`
       (ISO 8601 string, server-assigned). No write schema yet — `CommentCreate` is added in User Story 2
       (data-model.md).
-- [ ] T020 [US1] Implement `src/services/comment.service.ts`: `listComments(rawQuery)` via
+- [X] T020 [US1] Implement `src/services/comment.service.ts`: `listComments(rawQuery)` via
       `applyListQuery` with `allowedSortFields: ["id", "postId", "userId", "createdAt"]` and an
       optional `postId` filter; `getCommentById(id)` throwing `HttpError(404, "RESOURCE_NOT_FOUND",
       ...)` on a miss; backed by the existing numeric `createInMemoryStore<Comment>()` (T003 from Spec
       002, unchanged).
-- [ ] T021 [US1] Implement `src/controllers/comment.controller.ts`: `listComments`, `getCommentById`
+- [X] T021 [US1] Implement `src/controllers/comment.controller.ts`: `listComments`, `getCommentById`
       handlers; parse `:id` via the existing `src/utils/idParam.ts`.
-- [ ] T022 [US1] Implement `src/routes/comment.routes.ts` mounting `GET /api/v1/comments`,
+- [X] T022 [US1] Implement `src/routes/comment.routes.ts` mounting `GET /api/v1/comments`,
       `GET /api/v1/comments/:id`, with `.all()` → `methodNotAllowedHandler` on both paths; mount
       `commentRouter` on `apiRouter` in `src/app.ts`.
-- [ ] T023 [US1] Create the seed generator `src/data/comments.seed.ts`: generate at least 200 `Comment`
+- [X] T023 [US1] Create the seed generator `src/data/comments.seed.ts`: generate at least 200 `Comment`
       records, numeric ids via the store's auto-increment, `postId`/`userId` cycling deterministically
       through seeded posts/users, index-derived `body`; generated after `posts.seed.ts` and
       `users.seed.ts` so every reference resolves (FR-002, FR-003).
-- [ ] T024 [P] [US1] Write `tests/comments.test.ts`: `GET /api/v1/comments` →
+- [X] T024 [P] [US1] Write `tests/comments.test.ts`: `GET /api/v1/comments` →
       `pagination.total >= 200`; `GET /api/v1/comments/{id}` for a known seeded id → `200`;
       valid-but-nonexistent numeric id → `404`; malformed/negative/zero/huge id → `400`;
       `POST`/`PUT`/`PATCH`/`DELETE` on `/api/v1/comments` and `/api/v1/comments/{id}` → `405`.
 
 ### Reviews
 
-- [ ] T025 [P] [US1] Create the Review model in `src/models/review.ts`: `Review` type — `id` (integer,
+- [X] T025 [P] [US1] Create the Review model in `src/models/review.ts`: `Review` type — `id` (integer,
       server-assigned, immutable), `productId` (integer, references an existing `Product.id`), `userId`
       (integer, references an existing `User.id`), `rating` (integer, 1–5 inclusive), `body` (string,
       0–1000 chars, defaults to `""`), `createdAt` (ISO 8601 string, server-assigned). No write schema —
       this resource has no write path in this feature (data-model.md, Clarifications).
-- [ ] T026 [US1] Implement `src/services/review.service.ts`: `listReviews(rawQuery)` via
+- [X] T026 [US1] Implement `src/services/review.service.ts`: `listReviews(rawQuery)` via
       `applyListQuery` with `allowedSortFields: ["id", "productId", "rating", "createdAt"]` and an
       optional `productId` filter; `getReviewById(id)` throwing `HttpError(404, "RESOURCE_NOT_FOUND",
       ...)` on a miss.
-- [ ] T027 [US1] Implement `src/controllers/review.controller.ts`: `listReviews`, `getReviewById`
+- [X] T027 [US1] Implement `src/controllers/review.controller.ts`: `listReviews`, `getReviewById`
       handlers; parse `:id` via the existing `src/utils/idParam.ts`.
-- [ ] T028 [US1] Implement `src/routes/review.routes.ts` mounting `GET /api/v1/reviews`,
+- [X] T028 [US1] Implement `src/routes/review.routes.ts` mounting `GET /api/v1/reviews`,
       `GET /api/v1/reviews/:id`, with `.all()` → `methodNotAllowedHandler` on both paths; mount
       `reviewRouter` on `apiRouter` in `src/app.ts`.
-- [ ] T029 [US1] Create the seed generator `src/data/reviews.seed.ts`: generate at least 100 `Review`
+- [X] T029 [US1] Create the seed generator `src/data/reviews.seed.ts`: generate at least 100 `Review`
       records across a representative subset of seeded products, `rating` cycling deterministically
       through 1–5 (so every rating value has seed data), `userId` cycling through seeded users;
       generated after `products.seed.ts` and `users.seed.ts` (FR-002, FR-003).
-- [ ] T030 [P] [US1] Write `tests/reviews.test.ts`: `GET /api/v1/reviews` →
+- [X] T030 [P] [US1] Write `tests/reviews.test.ts`: `GET /api/v1/reviews` →
       `pagination.total >= 100`; `GET /api/v1/reviews/{id}` for a known seeded id → `200`;
       valid-but-nonexistent numeric id → `404`; malformed/negative/zero/huge id → `400`;
       `POST`/`PUT`/`PATCH`/`DELETE` on `/api/v1/reviews` and `/api/v1/reviews/{id}` → `405`.
 
 ### Payments
 
-- [ ] T031 [P] [US1] Create the Payment model in `src/models/payment.ts`: `Payment` type — `id`
+- [X] T031 [P] [US1] Create the Payment model in `src/models/payment.ts`: `Payment` type — `id`
       (string UUID, server-assigned, immutable), `orderId` (integer, references an existing
       `Order.id`), `amount` (number, >= 0), `status` (one of `pending`, `completed`, `failed`,
       `refunded` — from `src/models/enums.ts`'s `PAYMENT_STATUSES`, T001), `processedAt` (string,
       calendar date `YYYY-MM-DD`), `createdAt` (ISO 8601 string, server-assigned). No write schema —
       this resource has no write path in this feature (data-model.md, Clarifications).
-- [ ] T032 [US1] Implement `src/services/payment.service.ts`: `listPayments(rawQuery)` via
+- [X] T032 [US1] Implement `src/services/payment.service.ts`: `listPayments(rawQuery)` via
       `applyListQuery` with `allowedSortFields: ["id", "orderId", "status", "processedAt",
       "createdAt"]` and an optional `status` filter; `getPaymentById(id)` throwing
       `HttpError(404, "RESOURCE_NOT_FOUND", ...)` on a miss.
-- [ ] T033 [US1] Implement `src/controllers/payment.controller.ts`: `listPayments`, `getPaymentById`
+- [X] T033 [US1] Implement `src/controllers/payment.controller.ts`: `listPayments`, `getPaymentById`
       handlers; parse `:id` via `src/utils/uuidParam.ts` (T004).
-- [ ] T034 [US1] Implement `src/routes/payment.routes.ts` mounting `GET /api/v1/payments`,
+- [X] T034 [US1] Implement `src/routes/payment.routes.ts` mounting `GET /api/v1/payments`,
       `GET /api/v1/payments/:id`, with `.all()` → `methodNotAllowedHandler` on both paths; mount
       `paymentRouter` on `apiRouter` in `src/app.ts`.
-- [ ] T035 [US1] Create the seed generator `src/data/payments.seed.ts`: generate exactly one `Payment`
+- [X] T035 [US1] Create the seed generator `src/data/payments.seed.ts`: generate exactly one `Payment`
       per seeded order (`orderId` = each order's id, `amount` = that order's `total`), `id` via
       `crypto.randomUUID()`, `status` cycling deterministically through all four `PAYMENT_STATUSES`
       values, `processedAt` a deterministic spread of calendar dates; generated after `orders.seed.ts`
       (FR-002, FR-003).
-- [ ] T036 [P] [US1] Write `tests/payments.test.ts`: `GET /api/v1/payments` →
+- [X] T036 [P] [US1] Write `tests/payments.test.ts`: `GET /api/v1/payments` →
       `pagination.total` equal to the seeded order count; `GET /api/v1/payments/{id}` for a known
       seeded id → `200`; well-formed-but-unknown UUID → `404`; malformed UUID → `400`;
       `POST`/`PUT`/`PATCH`/`DELETE` on `/api/v1/payments` and `/api/v1/payments/{id}` → `405`.
 
 ### Wiring
 
-- [ ] T037 [US1] Extend `tests/helpers/resetStores.ts` to also call `seedCategories()`,
+- [X] T037 [US1] Extend `tests/helpers/resetStores.ts` to also call `seedCategories()`,
       `seedPosts()`, `seedComments()`, `seedReviews()`, `seedPayments()` after the existing four calls,
       in dependency order (categories independent; posts needs users; comments needs posts and users;
       reviews needs products and users; payments needs orders) — depends on T011, T017, T023, T029,
@@ -231,95 +231,95 @@ returns `404` on every nested route.
 
 ### Users → Orders
 
-- [ ] T038 [US2] Add `listOrdersForUser(userId, rawQuery)` to `src/services/order.service.ts`:
+- [X] T038 [US2] Add `listOrdersForUser(userId, rawQuery)` to `src/services/order.service.ts`:
       validate the user exists via the user store, throwing `HttpError(404, "RESOURCE_NOT_FOUND",
       ...)` first if not; then resolve customers whose `userId` matches, then orders whose
       `customerId` is among those customers, returned via `applyListQuery` (empty paginated set, not
       `404`, if the user has no linked customers/orders) (FR-009, FR-015).
-- [ ] T039 [US2] Add a `getOrdersForUser` handler to `src/controllers/order.controller.ts`
+- [X] T039 [US2] Add a `getOrdersForUser` handler to `src/controllers/order.controller.ts`
       (parsing `:id` via the existing `idParam.ts`) and mount `GET /api/v1/users/:id/orders` in
       `src/routes/order.routes.ts`.
 
 ### Orders → Products
 
-- [ ] T040 [US2] Add `listProductsForOrder(orderId, rawQuery)` to `src/services/order.service.ts`:
+- [X] T040 [US2] Add `listProductsForOrder(orderId, rawQuery)` to `src/services/order.service.ts`:
       validate the order exists first (`404` if not), then return the distinct products referenced by
       `order.items[].productId` via the product store, via `applyListQuery` (FR-014, FR-015).
-- [ ] T041 [US2] Add a `getProductsForOrder` handler to `src/controllers/order.controller.ts` and
+- [X] T041 [US2] Add a `getProductsForOrder` handler to `src/controllers/order.controller.ts` and
       mount `GET /api/v1/orders/:id/products` in `src/routes/order.routes.ts`.
 
 ### Users → Posts
 
-- [ ] T042 [P] [US2] Add `PostCreate` to `src/models/post.ts`: a `.strict()` zod schema — `title`
+- [X] T042 [P] [US2] Add `PostCreate` to `src/models/post.ts`: a `.strict()` zod schema — `title`
       (string, 1–200 chars, required), `body` (string, 1–5000 chars, required); no `userId` field, so
       it can never be accepted from the request body (data-model.md, FR-018).
-- [ ] T043 [US2] Add `listPostsForUser(userId, rawQuery)` and `createPostForUser(userId, rawBody)` to
+- [X] T043 [US2] Add `listPostsForUser(userId, rawQuery)` and `createPostForUser(userId, rawBody)` to
       `src/services/post.service.ts`: both validate the user exists first (`404` if not); create
       parses the body against `PostCreate` (T042), sets `userId` from the URL parameter, generates
       `id` via `crypto.randomUUID()`, and sets `publishedAt`/`createdAt`/`updatedAt` (FR-010, FR-015,
       FR-018).
-- [ ] T044 [US2] Add `listPostsForUser`/`createPostForUser` handlers to
+- [X] T044 [US2] Add `listPostsForUser`/`createPostForUser` handlers to
       `src/controllers/post.controller.ts` (parsing the user `:id` via the existing `idParam.ts`) and
       mount `GET`/`POST /api/v1/users/:id/posts` in `src/routes/post.routes.ts`.
 
 ### Posts → Comments
 
-- [ ] T045 [P] [US2] Add `CommentCreate` to `src/models/comment.ts`: a `.strict()` zod schema —
+- [X] T045 [P] [US2] Add `CommentCreate` to `src/models/comment.ts`: a `.strict()` zod schema —
       `userId` (integer, required), `body` (string, 1–1000 chars, required); no `postId` field, so it
       can never be accepted from the request body (data-model.md, FR-018).
-- [ ] T046 [US2] Add `listCommentsForPost(postId, rawQuery)` and `createCommentForPost(postId,
+- [X] T046 [US2] Add `listCommentsForPost(postId, rawQuery)` and `createCommentForPost(postId,
       rawBody)` to `src/services/comment.service.ts`: both validate the post exists first (`404` if
       not); create parses the body against `CommentCreate` (T045), validates `userId` resolves against
       the user store — rejecting with `HttpError(400, "VALIDATION_ERROR", ...)` naming `userId` if it
       is missing or unknown — sets `postId` from the URL parameter, and generates a numeric id via the
       existing `createInMemoryStore` (FR-011, FR-015, FR-018).
-- [ ] T047 [US2] Add `listCommentsForPost`/`createCommentForPost` handlers to
+- [X] T047 [US2] Add `listCommentsForPost`/`createCommentForPost` handlers to
       `src/controllers/comment.controller.ts` (parsing the post `:id` via `src/utils/uuidParam.ts`,
       T004) and mount `GET`/`POST /api/v1/posts/:id/comments` in `src/routes/comment.routes.ts`.
 
 ### Products → Reviews
 
-- [ ] T048 [US2] Add `listReviewsForProduct(productId, rawQuery)` to
+- [X] T048 [US2] Add `listReviewsForProduct(productId, rawQuery)` to
       `src/services/review.service.ts`: validate the product exists first (`404` if not), then return
       its reviews via `applyListQuery` (FR-012, FR-015).
-- [ ] T049 [US2] Add a `listReviewsForProduct` handler to `src/controllers/review.controller.ts`
+- [X] T049 [US2] Add a `listReviewsForProduct` handler to `src/controllers/review.controller.ts`
       (parsing the product `:id` via the existing `idParam.ts`) and mount
       `GET /api/v1/products/:id/reviews` in `src/routes/review.routes.ts`.
 
 ### Products → Category
 
-- [ ] T050 [US2] Add `getCategoryForProduct(productId)` to `src/services/category.service.ts`:
+- [X] T050 [US2] Add `getCategoryForProduct(productId)` to `src/services/category.service.ts`:
       validate the product exists first (`404` if not), look up its `category` string, and return the
       matching Category record (`404` in the defensive case it does not resolve, though the T011 seed
       guarantees it always does) (FR-013, FR-015).
-- [ ] T051 [US2] Add a `getCategoryForProduct` handler to `src/controllers/category.controller.ts`
+- [X] T051 [US2] Add a `getCategoryForProduct` handler to `src/controllers/category.controller.ts`
       (parsing the product `:id` via the existing `idParam.ts`) and mount
       `GET /api/v1/products/:id/category` in `src/routes/category.routes.ts`.
 
 ### Tests
 
-- [ ] T052 [P] [US2] Add nested-route tests to `tests/orders.test.ts`: `GET /api/v1/users/{id}/orders`
+- [X] T052 [P] [US2] Add nested-route tests to `tests/orders.test.ts`: `GET /api/v1/users/{id}/orders`
       for a known user with linked orders → `200` with exactly the matching orders; a user with no
       linked customers/orders → `200` + empty `data`; nonexistent user id → `404`;
       `GET /api/v1/orders/{id}/products` for a known order → `200` with its distinct products;
       nonexistent order id → `404`.
-- [ ] T053 [P] [US2] Add nested-route tests to `tests/posts.test.ts`: `GET /api/v1/users/{id}/posts`
+- [X] T053 [P] [US2] Add nested-route tests to `tests/posts.test.ts`: `GET /api/v1/users/{id}/posts`
       for a known user → `200` with exactly that user's posts; nonexistent user → `404`; a user with no
       posts → `200` + empty `data`; `POST /api/v1/users/{id}/posts` with a valid body → `201`, the new
       post appears in both `GET /api/v1/posts` and the nested listing immediately (SC-003); an invalid
       body (missing `title`/`body`, unexpected field) → `400`/`422`; a `userId` supplied in the body is
       ignored in favor of the URL's user id; nonexistent user → `404` on the `POST` too.
-- [ ] T054 [P] [US2] Add nested-route tests to `tests/comments.test.ts`:
+- [X] T054 [P] [US2] Add nested-route tests to `tests/comments.test.ts`:
       `GET /api/v1/posts/{id}/comments` for a known post → `200` with exactly that post's comments;
       nonexistent post → `404`; a post with no comments → `200` + empty `data`;
       `POST /api/v1/posts/{id}/comments` with a valid body → `201`, appears in both listings
       immediately; missing/invalid `userId` (including one that does not resolve to an existing user)
       → `400`/`422`; a `postId` supplied in the body is ignored in favor of the URL's post id;
       nonexistent post → `404` on the `POST` too.
-- [ ] T055 [P] [US2] Add nested-route tests to `tests/reviews.test.ts`:
+- [X] T055 [P] [US2] Add nested-route tests to `tests/reviews.test.ts`:
       `GET /api/v1/products/{id}/reviews` for a known product → `200` with exactly that product's
       reviews; nonexistent product → `404`; a product with no reviews → `200` + empty `data`.
-- [ ] T056 [P] [US2] Add nested-route tests to `tests/categories.test.ts`:
+- [X] T056 [P] [US2] Add nested-route tests to `tests/categories.test.ts`:
       `GET /api/v1/products/{id}/category` for a known product → `200` with the matching Category
       record; nonexistent product → `404`.
 
@@ -338,28 +338,28 @@ covered in User Story 1.
 **Independent Test**: Call the slug/UUID/date/enum-keyed endpoints with valid, missing, malformed, and
 empty identifiers and confirm each returns the correct `200`/`400`/`404` outcome.
 
-- [ ] T057 [US3] Add `listPaymentsByDate(date, rawQuery)` to `src/services/payment.service.ts`:
+- [X] T057 [US3] Add `listPaymentsByDate(date, rawQuery)` to `src/services/payment.service.ts`:
       filters payments where `processedAt === date`, returned via `applyListQuery` (FR-007).
-- [ ] T058 [US3] Add a `listPaymentsByDate` handler to `src/controllers/payment.controller.ts`
+- [X] T058 [US3] Add a `listPaymentsByDate` handler to `src/controllers/payment.controller.ts`
       (parsing `:date` via `src/utils/dateParam.ts`, T005) and mount
       `GET /api/v1/payments/by-date/:date` in `src/routes/payment.routes.ts`.
-- [ ] T059 [US3] Add `listReviewsByRating(rating, rawQuery)` to `src/services/review.service.ts`:
+- [X] T059 [US3] Add `listReviewsByRating(rating, rawQuery)` to `src/services/review.service.ts`:
       filters reviews where `rating` equals the given value, returned via `applyListQuery` (FR-008).
-- [ ] T060 [US3] Add a `listReviewsByRating` handler to `src/controllers/review.controller.ts`
+- [X] T060 [US3] Add a `listReviewsByRating` handler to `src/controllers/review.controller.ts`
       (parsing `:rating` via `src/utils/ratingParam.ts`, T006) and mount
       `GET /api/v1/reviews/by-rating/:rating` in `src/routes/review.routes.ts`.
-- [ ] T061 [P] [US3] Add to `tests/payments.test.ts`: `GET /api/v1/payments/by-date/{date}` for a date
+- [X] T061 [P] [US3] Add to `tests/payments.test.ts`: `GET /api/v1/payments/by-date/{date}` for a date
       with seeded payments → `200` with only matching records; a date with none → `200` + empty
       `data`; malformed format (`not-a-date`) → `400`; invalid calendar date (`2026-13-01`,
       `2026-02-30`) → `400`; plus additional UUID-format edge cases on the top-level payment id
       (wrong-length string, missing hyphens, non-hex characters, empty segment) → `400`.
-- [ ] T062 [P] [US3] Add to `tests/reviews.test.ts`: `GET /api/v1/reviews/by-rating/{rating}` for each
+- [X] T062 [P] [US3] Add to `tests/reviews.test.ts`: `GET /api/v1/reviews/by-rating/{rating}` for each
       of ratings 1–5 → `200` with only matching records; `0`, `6`, `3.5`, and `abc` → `400`.
-- [ ] T063 [P] [US3] Add additional slug-format edge-case tests to `tests/categories.test.ts`:
+- [X] T063 [P] [US3] Add additional slug-format edge-case tests to `tests/categories.test.ts`:
       uppercase letters, underscores, a leading/trailing hyphen, and a double hyphen → `400`; an empty
       slug segment → `404` (falls through to the app-level not-found handler, consistent with Spec
       002's trailing-slash convention), never `500`.
-- [ ] T064 [P] [US3] Add additional UUID-format edge-case tests to `tests/posts.test.ts`: wrong-length
+- [X] T064 [P] [US3] Add additional UUID-format edge-case tests to `tests/posts.test.ts`: wrong-length
       string, missing hyphens, non-hex characters, and empty segment → `400`, never `500`.
 
 **Checkpoint**: User Stories 1–3 all work — every identifier format this spec introduces is fully
@@ -376,19 +376,19 @@ products, categories, posts, comments, and reviews, and handles every documented
 empty, missing, no-match, special characters, long string, case variant) and confirm each returns the
 documented status and shape.
 
-- [ ] T065 [P] [US4] Create `src/models/searchResult.ts`: `SearchResult` type — `resourceType` (enum
+- [X] T065 [P] [US4] Create `src/models/searchResult.ts`: `SearchResult` type — `resourceType` (enum
       `user` \| `customer` \| `product` \| `category` \| `post` \| `comment` \| `review`), `id` (string
       or integer), `label` (string), `snippet` (string, optional) (data-model.md).
-- [ ] T066 [US4] Implement `src/services/search.service.ts`: `search(rawQuery)` — throws
+- [X] T066 [US4] Implement `src/services/search.service.ts`: `search(rawQuery)` — throws
       `HttpError(400, "VALIDATION_ERROR", ...)` naming `q` as required when `q` is missing or an empty
       string (FR-021); otherwise scans the user/customer/product/category/post/comment/review stores,
       matches `q` case-insensitively as a substring against each resource's name/title/description-style
       field(s), builds `SearchResult` entries (T065), and paginates the combined array via
       `applyListQuery` (`page`/`limit` only — no `sort`) (FR-020, FR-022, FR-023).
-- [ ] T067 [US4] Implement `src/controllers/search.controller.ts` (`search` handler) and
+- [X] T067 [US4] Implement `src/controllers/search.controller.ts` (`search` handler) and
       `src/routes/search.routes.ts` mounting `GET /api/v1/search` with `.all()` →
       `methodNotAllowedHandler`; mount `searchRouter` on `apiRouter` in `src/app.ts`.
-- [ ] T068 [P] [US4] Write `tests/search.test.ts`: a term matching one or more resources → `200` with
+- [X] T068 [P] [US4] Write `tests/search.test.ts`: a term matching one or more resources → `200` with
       each hit's `resourceType` set correctly; missing `q` → `400`; empty `q` (`?q=`) → `400`; a term
       with no matches → `200` + empty `data` (not `404`); special characters (e.g. `%$#`) and an
       excessively long string → `200`, never a crash; a term differing only in case from a known match
@@ -402,20 +402,20 @@ documented status and shape.
 
 **Purpose**: Spec-parity and whole-suite verification across all four user stories.
 
-- [ ] T069 [P] Merge `contracts/catalog-nested-search.openapi.yaml`'s `tags`, `paths`, and
+- [X] T069 [P] Merge `contracts/catalog-nested-search.openapi.yaml`'s `tags`, `paths`, and
       `components.schemas`/`components.parameters` into the root `openapi.yaml`, so `/docs`,
       `/openapi.json`, and `/openapi.yaml` document exactly the endpoints this spec implements
       (constitution: Quality Gates & Spec Parity).
-- [ ] T070 [P] Add an `X-Request-ID` presence assertion to one representative test in each of
+- [X] T070 [P] Add an `X-Request-ID` presence assertion to one representative test in each of
       `tests/categories.test.ts`, `tests/posts.test.ts`, `tests/comments.test.ts`,
       `tests/reviews.test.ts`, `tests/payments.test.ts`, and `tests/search.test.ts`, confirming FR-025
       holds for this spec's endpoints too.
-- [ ] T071 Run `npm test` and confirm the full suite — Specs 001/002's existing tests plus this
+- [X] T071 Run `npm test` and confirm the full suite — Specs 001/002's existing tests plus this
       spec's new and extended test files — passes.
-- [ ] T072 Execute the manual validation scenarios in
+- [X] T072 Execute the manual validation scenarios in
       `specs/003-catalog-nested-search/quickstart.md` against a running `npm run dev` server and
       confirm every expected status code and behavior.
-- [ ] T073 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 21 new
+- [X] T073 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 21 new
       operations correctly, with no schema errors.
 
 ---

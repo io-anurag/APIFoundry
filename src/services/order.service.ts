@@ -1,7 +1,9 @@
 import { orderStore } from "../data/orders.seed";
 import { customerStore } from "../data/customers.seed";
 import { productStore } from "../data/products.seed";
+import { userStore } from "../data/users.seed";
 import { orderCreateSchema, orderPatchSchema, type Order, type OrderLineItem } from "../models/order";
+import type { Product } from "../models/product";
 import { HttpError } from "../utils/httpError";
 import { parseListQuery, lastQueryValue } from "../models/listQuery";
 import { applyListQuery, type ListQueryResult } from "./listQuery.service";
@@ -106,4 +108,46 @@ export function deleteOrder(id: number): void {
   if (!orderStore.remove(id)) {
     throw new HttpError(404, "RESOURCE_NOT_FOUND", `Order ${id} not found.`);
   }
+}
+
+/**
+ * Resolves a user's orders via the Customer.userId -> Order.customerId join established in Spec 002
+ * (users/:id/orders, FR-009). Returns an empty paginated set, not 404, when the user exists but has
+ * no linked customers/orders (FR-015).
+ */
+export function listOrdersForUser(
+  userId: number,
+  rawQuery: Record<string, unknown>
+): ListQueryResult<Order> & { page: number; limit: number } {
+  if (!userStore.get(userId)) {
+    throw new HttpError(404, "RESOURCE_NOT_FOUND", `User ${userId} not found.`);
+  }
+
+  const linkedCustomerIds = new Set(
+    customerStore.list().filter((customer) => customer.userId === userId).map((customer) => customer.id)
+  );
+
+  const query = parseListQuery(rawQuery, { allowedSortFields: ALLOWED_SORT_FIELDS });
+  const { data, total } = applyListQuery(orderStore.list(), query, {
+    filters: [(order: Order) => linkedCustomerIds.has(order.customerId)],
+  });
+  return { data, total, page: query.page, limit: query.limit };
+}
+
+/**
+ * Returns the distinct products referenced by an order's line items (orders/:id/products, FR-014).
+ */
+export function listProductsForOrder(
+  orderId: number,
+  rawQuery: Record<string, unknown>
+): ListQueryResult<Product> & { page: number; limit: number } {
+  const order = orderStore.get(orderId);
+  if (!order) throw new HttpError(404, "RESOURCE_NOT_FOUND", `Order ${orderId} not found.`);
+
+  const distinctProductIds = new Set(order.items.map((item) => item.productId));
+  const products = productStore.list().filter((product) => distinctProductIds.has(product.id));
+
+  const query = parseListQuery(rawQuery, { allowedSortFields: ["id", "name", "price", "stock", "category", "createdAt"] });
+  const { data, total } = applyListQuery(products, query);
+  return { data, total, page: query.page, limit: query.limit };
 }
