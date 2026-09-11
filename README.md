@@ -6,7 +6,7 @@
 [![Vitest](https://img.shields.io/badge/Vitest-testing-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
 [![ESLint](https://img.shields.io/badge/ESLint-enabled-4B32C3?logo=eslint&logoColor=white)](https://eslint.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/io-anurag/APIFoundry/actions/workflows/ci.yml/badge.svg)](https://github.com/io-anurag/APIFoundry/actions/workflows/ci.yml)
+[![CI](https://github.com/io-anurag/APIFoundry/.github/workflows/ci.yml/badge.svg)](https://github.com/io-anurag/APIFoundry/.github/workflows/ci.yml)
 [![stars - APIFoundry](https://img.shields.io/github/stars/io-anurag/APIFoundry?style=social)](https://github.com/io-anurag/APIFoundry)
 [![forks - APIFoundry](https://img.shields.io/github/forks/io-anurag/APIFoundry?style=social)](https://github.com/io-anurag/APIFoundry)
 [![GitHub tag](https://img.shields.io/github/tag/io-anurag/APIFoundry?include_prereleases=&sort=semver&color=blue)](https://github.com/io-anurag/APIFoundry/releases/)
@@ -96,27 +96,27 @@ optionally link to a user account via `userId`.
 
 ### Catalog, nested resources & search (Spec 003)
 
-| Method | Path                             | Description                                                            |
-| ------ | -------------------------------- | ------------------------------------------------------------------------------ |
-| GET    | `/categories`                    | Paginated list                                                                  |
-| GET    | `/categories/{slug}`             | Get one by slug                                                                 |
-| GET    | `/posts`                         | Paginated list                                                                  |
-| GET    | `/posts/{id}`                    | Get one by UUID                                                                 |
-| GET    | `/comments`                      | Paginated list                                                                  |
-| GET    | `/comments/{id}`                 | Get one by id                                                                   |
-| GET    | `/reviews`                       | Paginated list                                                                  |
-| GET    | `/reviews/{id}`                  | Get one by id                                                                   |
-| GET    | `/reviews/by-rating/{rating}`    | Reviews with a given rating (1-5)                                               |
-| GET    | `/payments`                      | Paginated list                                                                  |
-| GET    | `/payments/{id}`                 | Get one by UUID                                                                 |
-| GET    | `/payments/by-date/{date}`       | Payments processed on a given calendar date                                    |
-| GET    | `/users/{id}/orders`             | Orders placed by customers linked to that user                                 |
-| GET/POST | `/users/{id}/posts`             | List / author a post as that user                                              |
-| GET/POST | `/posts/{id}/comments`          | List / add a comment on that post                                              |
-| GET    | `/products/{id}/reviews`         | Reviews for that product                                                        |
-| GET    | `/products/{id}/category`        | The Category record matching that product's `category`                         |
-| GET    | `/orders/{id}/products`          | Distinct products referenced by that order's line items                        |
-| GET    | `/search?q=`                     | Cross-resource free-text search (users, customers, products, categories, posts, comments, reviews) |
+| Method   | Path                          | Description                                                                                        |
+| -------- | ----------------------------- | -------------------------------------------------------------------------------------------------- |
+| GET      | `/categories`                 | Paginated list                                                                                     |
+| GET      | `/categories/{slug}`          | Get one by slug                                                                                    |
+| GET      | `/posts`                      | Paginated list                                                                                     |
+| GET      | `/posts/{id}`                 | Get one by UUID                                                                                    |
+| GET      | `/comments`                   | Paginated list                                                                                     |
+| GET      | `/comments/{id}`              | Get one by id                                                                                      |
+| GET      | `/reviews`                    | Paginated list                                                                                     |
+| GET      | `/reviews/{id}`               | Get one by id                                                                                      |
+| GET      | `/reviews/by-rating/{rating}` | Reviews with a given rating (1-5)                                                                  |
+| GET      | `/payments`                   | Paginated list                                                                                     |
+| GET      | `/payments/{id}`              | Get one by UUID                                                                                    |
+| GET      | `/payments/by-date/{date}`    | Payments processed on a given calendar date                                                        |
+| GET      | `/users/{id}/orders`          | Orders placed by customers linked to that user                                                     |
+| GET/POST | `/users/{id}/posts`           | List / author a post as that user                                                                  |
+| GET/POST | `/posts/{id}/comments`        | List / add a comment on that post                                                                  |
+| GET      | `/products/{id}/reviews`      | Reviews for that product                                                                           |
+| GET      | `/products/{id}/category`     | The Category record matching that product's `category`                                             |
+| GET      | `/orders/{id}/products`       | Distinct products referenced by that order's line items                                            |
+| GET      | `/search?q=`                  | Cross-resource free-text search (users, customers, products, categories, posts, comments, reviews) |
 
 These five top-level resources are read-only (`POST`/`PUT`/`PATCH`/`DELETE` return `405`) except the two
 nested `POST` routes above. Seed data: ≥20 categories, ≥100 posts, ≥200 comments, ≥100 reviews, one
@@ -124,25 +124,25 @@ payment per seeded order.
 
 ### Status Code Playground (Spec 004)
 
-| Method | Path                | Description                                                                    |
-| ------ | ------------------- | -------------------------------------------------------------------------------------- |
-| GET    | `/status/{code}`    | Deterministically demonstrates one of 24 documented HTTP status codes (200, 201, 202, 204, 301, 302, 304, 400, 401, 403, 404, 405, 406, 408, 409, 410, 415, 422, 429, 500, 501, 502, 503, 504) — correct status line, semantic headers (`Location` on redirects, `Allow` on 405, `Retry-After` on 429), and body shape per code. A `code` value that is malformed, outside the 100-599 range, or well-formed but undocumented always returns `400`. |
+| Method | Path             | Description                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------ | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/status/{code}` | Deterministically demonstrates one of 24 documented HTTP status codes (200, 201, 202, 204, 301, 302, 304, 400, 401, 403, 404, 405, 406, 408, 409, 410, 415, 422, 429, 500, 501, 502, 503, 504) — correct status line, semantic headers (`Location` on redirects, `Allow` on 405, `Retry-After` on 429), and body shape per code. A `code` value that is malformed, outside the 100-599 range, or well-formed but undocumented always returns `400`. |
 
 ### JWT Authentication, Roles & Scopes (Spec 005)
 
 `/auth/*` endpoints are top-level (not under `{API_PREFIX}`), matching CLAUDE.md's own path spelling.
 
-| Method | Path                        | Auth                | Description                                                                                     |
-| ------ | --------------------------- | -------------------- | ------------------------------------------------------------------------------------------------ |
-| POST   | `/auth/login`               | none                  | Log in with a demo account; returns an access/refresh token pair                                  |
-| POST   | `/auth/logout`              | Bearer (access)       | Revokes the caller's session; idempotent — a second logout with the same token still returns `200` |
-| POST   | `/auth/refresh`             | none (refresh token is the credential) | Exchanges a valid, current refresh token for a new access/refresh pair (single-use rotation)       |
-| GET    | `/auth/me`                  | Bearer (access)       | Returns the authenticated identity's `sub`/`role`/`scopes`                                        |
-| POST   | `/auth/token`               | none (test convenience) | Issues a token directly for a chosen `role`/`scopes`/`kind` (`valid`, `expired`, `invalid`, `revoked`), without logging in |
-| GET    | `/auth/token-info`          | Bearer (any token)    | Decodes and diagnoses any token's validity state — including expired/invalid/revoked ones; never gated by the enforcing auth check |
-| GET    | `{API_PREFIX}/protected`    | Bearer, role `admin`  | Demonstrates `401` (no/invalid token) vs `403` (valid token, wrong role) vs `200`                  |
-| GET    | `{API_PREFIX}/role/{role}`  | Bearer, matching role | `200` only when the caller's token role matches `{role}`; `400` if `{role}` isn't one of the four documented roles |
-| GET    | `{API_PREFIX}/scope/{scope}` | Bearer, matching scope (or `admin`) | `200` only when the caller's token carries `{scope}` (or the `admin` scope); `403`/`INSUFFICIENT_SCOPE` otherwise |
+| Method | Path                         | Auth                                   | Description                                                                                                                        |
+| ------ | ---------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/auth/login`                | none                                   | Log in with a demo account; returns an access/refresh token pair                                                                   |
+| POST   | `/auth/logout`               | Bearer (access)                        | Revokes the caller's session; idempotent — a second logout with the same token still returns `200`                                 |
+| POST   | `/auth/refresh`              | none (refresh token is the credential) | Exchanges a valid, current refresh token for a new access/refresh pair (single-use rotation)                                       |
+| GET    | `/auth/me`                   | Bearer (access)                        | Returns the authenticated identity's `sub`/`role`/`scopes`                                                                         |
+| POST   | `/auth/token`                | none (test convenience)                | Issues a token directly for a chosen `role`/`scopes`/`kind` (`valid`, `expired`, `invalid`, `revoked`), without logging in         |
+| GET    | `/auth/token-info`           | Bearer (any token)                     | Decodes and diagnoses any token's validity state — including expired/invalid/revoked ones; never gated by the enforcing auth check |
+| GET    | `{API_PREFIX}/protected`     | Bearer, role `admin`                   | Demonstrates `401` (no/invalid token) vs `403` (valid token, wrong role) vs `200`                                                  |
+| GET    | `{API_PREFIX}/role/{role}`   | Bearer, matching role                  | `200` only when the caller's token role matches `{role}`; `400` if `{role}` isn't one of the four documented roles                 |
+| GET    | `{API_PREFIX}/scope/{scope}` | Bearer, matching scope (or `admin`)    | `200` only when the caller's token carries `{scope}` (or the `admin` scope); `403`/`INSUFFICIENT_SCOPE` otherwise                  |
 
 Roles: `user`, `admin`, `manager`, `readonly`. Scopes: `users:read`, `users:write`, `products:read`,
 `products:write`, `orders:read`, `orders:write`, `admin` (the `admin` scope satisfies every scope check).
@@ -150,12 +150,12 @@ Roles: `user`, `admin`, `manager`, `readonly`. Scopes: `users:read`, `users:writ
 Demo login accounts (feature-owned, independent of the `users` CRUD resource — see
 [specs/005-jwt-auth-roles-scopes/data-model.md](specs/005-jwt-auth-roles-scopes/data-model.md)):
 
-| Username         | Password          | Role       |
-| ---------------- | ----------------- | ---------- |
-| `demo.user`      | `user-pass-1`     | `user`     |
-| `demo.admin`     | `admin-pass-1`    | `admin`    |
-| `demo.manager`   | `manager-pass-1`  | `manager`  |
-| `demo.readonly`  | `readonly-pass-1` | `readonly` |
+| Username        | Password          | Role       |
+| --------------- | ----------------- | ---------- |
+| `demo.user`     | `user-pass-1`     | `user`     |
+| `demo.admin`    | `admin-pass-1`    | `admin`    |
+| `demo.manager`  | `manager-pass-1`  | `manager`  |
+| `demo.readonly` | `readonly-pass-1` | `readonly` |
 
 ## Response shapes
 
