@@ -23,6 +23,11 @@ Specs implemented so far:
   on (config, cross-cutting middleware, health/version/info, OpenAPI + Swagger UI skeleton).
 - **002 — Core CRUD Resources**: full CRUD for `users`, `products`, `customers`, `orders`, backed by
   deterministic seed data, with pagination/sorting/filtering and comprehensive input validation.
+- **003 — Read-Only Catalog & Nested Resources + Search**: read-only `categories`, `posts`, `comments`,
+  `reviews`, `payments`, six nested/derived routes connecting them to the Spec 002 resources, and
+  cross-resource `GET /api/v1/search`.
+- **004 — Status Code Playground**: `GET /api/v1/status/{code}` deterministically reproduces the exact
+  status, headers, and body for every documented HTTP status code.
 
 Auth, HTTP testing utilities, resilience simulation, and the rest of the surface are tracked in
 [ROADMAP.md](ROADMAP.md).
@@ -86,6 +91,40 @@ Seed data at startup: 50 users, 50 products, 60 customers, 100 orders — determ
 across restarts. Orders reference an existing `customerId` and `items[].productId`; customers may
 optionally link to a user account via `userId`.
 
+### Catalog, nested resources & search (Spec 003)
+
+| Method | Path                             | Description                                                            |
+| ------ | -------------------------------- | ------------------------------------------------------------------------------ |
+| GET    | `/categories`                    | Paginated list                                                                  |
+| GET    | `/categories/{slug}`             | Get one by slug                                                                 |
+| GET    | `/posts`                         | Paginated list                                                                  |
+| GET    | `/posts/{id}`                    | Get one by UUID                                                                 |
+| GET    | `/comments`                      | Paginated list                                                                  |
+| GET    | `/comments/{id}`                 | Get one by id                                                                   |
+| GET    | `/reviews`                       | Paginated list                                                                  |
+| GET    | `/reviews/{id}`                  | Get one by id                                                                   |
+| GET    | `/reviews/by-rating/{rating}`    | Reviews with a given rating (1-5)                                               |
+| GET    | `/payments`                      | Paginated list                                                                  |
+| GET    | `/payments/{id}`                 | Get one by UUID                                                                 |
+| GET    | `/payments/by-date/{date}`       | Payments processed on a given calendar date                                    |
+| GET    | `/users/{id}/orders`             | Orders placed by customers linked to that user                                 |
+| GET/POST | `/users/{id}/posts`             | List / author a post as that user                                              |
+| GET/POST | `/posts/{id}/comments`          | List / add a comment on that post                                              |
+| GET    | `/products/{id}/reviews`         | Reviews for that product                                                        |
+| GET    | `/products/{id}/category`        | The Category record matching that product's `category`                         |
+| GET    | `/orders/{id}/products`          | Distinct products referenced by that order's line items                        |
+| GET    | `/search?q=`                     | Cross-resource free-text search (users, customers, products, categories, posts, comments, reviews) |
+
+These five top-level resources are read-only (`POST`/`PUT`/`PATCH`/`DELETE` return `405`) except the two
+nested `POST` routes above. Seed data: ≥20 categories, ≥100 posts, ≥200 comments, ≥100 reviews, one
+payment per seeded order.
+
+### Status Code Playground (Spec 004)
+
+| Method | Path                | Description                                                                    |
+| ------ | ------------------- | -------------------------------------------------------------------------------------- |
+| GET    | `/status/{code}`    | Deterministically demonstrates one of 24 documented HTTP status codes (200, 201, 202, 204, 301, 302, 304, 400, 401, 403, 404, 405, 406, 408, 409, 410, 415, 422, 429, 500, 501, 502, 503, 504) — correct status line, semantic headers (`Location` on redirects, `Allow` on 405, `Retry-After` on 429), and body shape per code. A `code` value that is malformed, outside the 100-599 range, or well-formed but undocumented always returns `400`. |
+
 ## Response shapes
 
 Every response (success or error) carries an `X-Request-ID` header. Every error response uses the shared
@@ -124,6 +163,10 @@ Every list response uses the shared pagination envelope:
   contract, and quickstart for the foundation layer.
 - [specs/002-core-crud-resources/](specs/002-core-crud-resources/) — spec, plan, data model, OpenAPI
   contract, and quickstart for the CRUD resources.
+- [specs/003-catalog-nested-search/](specs/003-catalog-nested-search/) — spec, plan, data model, OpenAPI
+  contract, and quickstart for the catalog, nested resources, and search.
+- [specs/004-status-code-playground/](specs/004-status-code-playground/) — spec, plan, data model,
+  OpenAPI contract, and quickstart for the status code playground.
 
 ## License
 
