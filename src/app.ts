@@ -7,6 +7,10 @@ import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
 import { healthRouter } from "./routes/health.routes";
 import { versionRouter } from "./routes/version.routes";
 import { infoRouter } from "./routes/info.routes";
+import { userRouter } from "./routes/user.routes";
+import { productRouter } from "./routes/product.routes";
+import { customerRouter } from "./routes/customer.routes";
+import { orderRouter } from "./routes/order.routes";
 import { openapiRouter } from "./openapi";
 import { markReady } from "./services/health.service";
 
@@ -26,6 +30,10 @@ app.use(openapiRouter);
 // Versioned resource/feature endpoints.
 const apiRouter = Router();
 apiRouter.use(infoRouter);
+apiRouter.use(userRouter);
+apiRouter.use(productRouter);
+apiRouter.use(customerRouter);
+apiRouter.use(orderRouter);
 app.use(config.apiPrefix, apiRouter);
 
 // This spec has no async bootstrap work, so the app is "ready" as soon as its request pipeline
