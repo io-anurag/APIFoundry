@@ -7,6 +7,7 @@ import { seedPosts } from "../../src/data/posts.seed";
 import { seedComments } from "../../src/data/comments.seed";
 import { seedReviews } from "../../src/data/reviews.seed";
 import { seedPayments } from "../../src/data/payments.seed";
+import { sessionStore } from "../../src/data/session.store";
 
 /**
  * Restores every in-memory store to its deterministic seeded state. Call from `beforeEach` in every
@@ -25,4 +26,5 @@ export function resetStores(): void {
   seedComments();
   seedReviews();
   seedPayments();
+  sessionStore.reset([]);
 }

@@ -1,6 +1,17 @@
 export const USER_ROLES = ["user", "admin", "manager", "readonly"] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 
+export const SCOPES = [
+  "users:read",
+  "users:write",
+  "products:read",
+  "products:write",
+  "orders:read",
+  "orders:write",
+  "admin",
+] as const;
+export type Scope = (typeof SCOPES)[number];
+
 export const USER_STATUSES = ["active", "inactive"] as const;
 export type UserStatus = (typeof USER_STATUSES)[number];
 

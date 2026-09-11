@@ -4,6 +4,7 @@ import { requestId } from "./middleware/requestId";
 import { requestLogger } from "./middleware/requestLogger";
 import { corsMiddleware } from "./middleware/cors";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
+import { authRouter } from "./routes/auth.routes";
 import { healthRouter } from "./routes/health.routes";
 import { versionRouter } from "./routes/version.routes";
 import { infoRouter } from "./routes/info.routes";
@@ -18,6 +19,9 @@ import { reviewRouter } from "./routes/review.routes";
 import { paymentRouter } from "./routes/payment.routes";
 import { searchRouter } from "./routes/search.routes";
 import { statusCodeRouter } from "./routes/statusCode.routes";
+import { protectedRouter } from "./routes/protected.routes";
+import { roleRouter } from "./routes/role.routes";
+import { scopeRouter } from "./routes/scope.routes";
 import { openapiRouter } from "./openapi";
 import { markReady } from "./services/health.service";
 
@@ -32,6 +36,7 @@ app.use(express.json());
 // Meta endpoints live outside the versioned API prefix.
 app.use(healthRouter);
 app.use(versionRouter);
+app.use(authRouter);
 app.use(openapiRouter);
 
 // Versioned resource/feature endpoints.
@@ -48,6 +53,9 @@ apiRouter.use(reviewRouter);
 apiRouter.use(paymentRouter);
 apiRouter.use(searchRouter);
 apiRouter.use(statusCodeRouter);
+apiRouter.use(protectedRouter);
+apiRouter.use(roleRouter);
+apiRouter.use(scopeRouter);
 app.use(config.apiPrefix, apiRouter);
 
 // This spec has no async bootstrap work, so the app is "ready" as soon as its request pipeline
