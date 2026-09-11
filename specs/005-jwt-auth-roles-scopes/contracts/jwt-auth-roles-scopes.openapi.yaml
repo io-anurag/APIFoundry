@@ -1,0 +1,329 @@
+# Phase 1 design artifact for Spec 005 (JWT Authentication, Roles & Scopes). At implementation time,
+# every path/schema/securityScheme below is merged into the project's single root openapi.yaml
+# (constitution: one document, always in sync with the implementation) — this fragment is not served
+# on its own.
+
+tags:
+  - name: Auth
+    description: JWT session lifecycle (login/logout/refresh/me) and test-convenience token issuance/inspection.
+  - name: Access Control Demos
+    description: Dedicated endpoints demonstrating 401-vs-403, role enforcement, and scope enforcement.
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in with a demo account, receiving an access/refresh token pair
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+      responses:
+        "200":
+          description: Authenticated
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenPairResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke the caller's current session (idempotent for an already-revoked token)
+      operationId: logout
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Session revoked (or already was)
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Exchange a valid, current refresh token for a new access/refresh pair (single-use rotation)
+      operationId: refresh
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RefreshRequest" }
+      responses:
+        "200":
+          description: Rotated
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenPairResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Return the authenticated identity
+      operationId: getMe
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Current identity
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MeResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /auth/token:
+    post:
+      tags: [Auth]
+      summary: Issue a token directly for a given role/scopes/kind, without logging in (test convenience; unauthenticated by design)
+      operationId: issueToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TokenIssueRequest" }
+      responses:
+        "200":
+          description: Issued
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenIssueResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+
+  /auth/token-info:
+    get:
+      tags: [Auth]
+      summary: Decode and diagnose any token's validity state, including expired/invalid/revoked ones
+      description: >
+        Unlike every other authenticated endpoint here, this one is never gated by the enforcing auth
+        middleware — its entire purpose is to report on tokens that middleware would reject. Returns
+        `400` only when the token cannot be structurally decoded at all; otherwise always `200` with a
+        computed `state`.
+      operationId: getTokenInfo
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Decoded (state may be anything but a structural-decode failure)
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenInfoResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+
+  /api/v1/protected:
+    get:
+      tags: [Access Control Demos]
+      summary: Demonstrates 401 (unauthenticated) vs 403 (authenticated, wrong role) vs 200
+      operationId: getProtected
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Granted (caller holds the required role)
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProtectedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/v1/role/{role}:
+    get:
+      tags: [Access Control Demos]
+      summary: Demonstrates role enforcement — 200 only when the caller's token role matches {role}
+      operationId: getRoleDemo
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: role
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/Role" }
+      responses:
+        "200":
+          description: Caller's token role matches the path role
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RoleDemoResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/v1/scope/{scope}:
+    get:
+      tags: [Access Control Demos]
+      summary: Demonstrates scope enforcement — 200 when the caller's token carries {scope} (or admin)
+      operationId: getScopeDemo
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: scope
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/Scope" }
+      responses:
+        "200":
+          description: Caller's token carries the required scope (or admin)
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScopeDemoResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403":
+          description: Authenticated but missing the required scope
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Role:
+      type: string
+      enum: [user, admin, manager, readonly]
+
+    Scope:
+      type: string
+      enum:
+        [
+          "users:read",
+          "users:write",
+          "products:read",
+          "products:write",
+          "orders:read",
+          "orders:write",
+          "admin",
+        ]
+
+    TokenKind:
+      type: string
+      enum: [valid, expired, invalid, revoked]
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      additionalProperties: false
+      properties:
+        username: { type: string, minLength: 1 }
+        password: { type: string, minLength: 1 }
+
+    TokenPairResponse:
+      type: object
+      required: [accessToken, refreshToken, tokenType, expiresIn]
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        tokenType: { type: string, example: "Bearer" }
+        expiresIn: { type: integer, description: "Access token lifetime in seconds" }
+
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      additionalProperties: false
+      properties:
+        refreshToken: { type: string, minLength: 1 }
+
+    MeResponse:
+      type: object
+      required: [sub, role, scopes]
+      properties:
+        sub: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        scopes:
+          type: array
+          items: { $ref: "#/components/schemas/Scope" }
+
+    TokenIssueRequest:
+      type: object
+      required: [role, scopes, kind]
+      additionalProperties: false
+      properties:
+        role: { $ref: "#/components/schemas/Role" }
+        scopes:
+          type: array
+          items: { $ref: "#/components/schemas/Scope" }
+        kind: { $ref: "#/components/schemas/TokenKind" }
+
+    TokenIssueResponse:
+      type: object
+      required: [accessToken, tokenType, kind]
+      properties:
+        accessToken: { type: string }
+        tokenType: { type: string, example: "Bearer" }
+        kind: { $ref: "#/components/schemas/TokenKind" }
+
+    TokenInfoResponse:
+      type: object
+      required: [state, claims]
+      properties:
+        state:
+          type: string
+          enum:
+            [
+              valid,
+              expired,
+              invalid-signature,
+              wrong-issuer,
+              wrong-audience,
+              wrong-token-type,
+              revoked,
+            ]
+        claims:
+          type: object
+          description: The token's decoded payload (present even when state is not "valid")
+          additionalProperties: true
+
+    ProtectedResponse:
+      type: object
+      required: [granted, role]
+      properties:
+        granted: { type: boolean, example: true }
+        role: { $ref: "#/components/schemas/Role" }
+
+    RoleDemoResponse:
+      type: object
+      required: [role, granted]
+      properties:
+        role: { $ref: "#/components/schemas/Role" }
+        granted: { type: boolean, example: true }
+
+    ScopeDemoResponse:
+      type: object
+      required: [scope, granted]
+      properties:
+        scope: { $ref: "#/components/schemas/Scope" }
+        granted: { type: boolean, example: true }
+
+  responses:
+    Unauthorized:
+      description: Missing, malformed, expired, invalid, or revoked token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Forbidden:
+      description: Authenticated but missing the required role
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
