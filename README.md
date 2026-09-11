@@ -28,9 +28,12 @@ Specs implemented so far:
   cross-resource `GET /api/v1/search`.
 - **004 — Status Code Playground**: `GET /api/v1/status/{code}` deterministically reproduces the exact
   status, headers, and body for every documented HTTP status code.
+- **005 — JWT Authentication, Roles & Scopes**: login/logout/refresh/me session lifecycle, test-only
+  convenience token issuance (`valid`/`expired`/`invalid`/`revoked`) and inspection, and dedicated demo
+  endpoints proving 401-vs-403, per-role, and per-scope enforcement.
 
-Auth, HTTP testing utilities, resilience simulation, and the rest of the surface are tracked in
-[ROADMAP.md](ROADMAP.md).
+API key/Basic auth, HTTP testing utilities, resilience simulation, and the rest of the surface are
+tracked in [ROADMAP.md](ROADMAP.md).
 
 ## Tech stack
 
@@ -125,6 +128,35 @@ payment per seeded order.
 | ------ | ------------------- | -------------------------------------------------------------------------------------- |
 | GET    | `/status/{code}`    | Deterministically demonstrates one of 24 documented HTTP status codes (200, 201, 202, 204, 301, 302, 304, 400, 401, 403, 404, 405, 406, 408, 409, 410, 415, 422, 429, 500, 501, 502, 503, 504) — correct status line, semantic headers (`Location` on redirects, `Allow` on 405, `Retry-After` on 429), and body shape per code. A `code` value that is malformed, outside the 100-599 range, or well-formed but undocumented always returns `400`. |
 
+### JWT Authentication, Roles & Scopes (Spec 005)
+
+`/auth/*` endpoints are top-level (not under `{API_PREFIX}`), matching CLAUDE.md's own path spelling.
+
+| Method | Path                        | Auth                | Description                                                                                     |
+| ------ | --------------------------- | -------------------- | ------------------------------------------------------------------------------------------------ |
+| POST   | `/auth/login`               | none                  | Log in with a demo account; returns an access/refresh token pair                                  |
+| POST   | `/auth/logout`              | Bearer (access)       | Revokes the caller's session; idempotent — a second logout with the same token still returns `200` |
+| POST   | `/auth/refresh`             | none (refresh token is the credential) | Exchanges a valid, current refresh token for a new access/refresh pair (single-use rotation)       |
+| GET    | `/auth/me`                  | Bearer (access)       | Returns the authenticated identity's `sub`/`role`/`scopes`                                        |
+| POST   | `/auth/token`               | none (test convenience) | Issues a token directly for a chosen `role`/`scopes`/`kind` (`valid`, `expired`, `invalid`, `revoked`), without logging in |
+| GET    | `/auth/token-info`          | Bearer (any token)    | Decodes and diagnoses any token's validity state — including expired/invalid/revoked ones; never gated by the enforcing auth check |
+| GET    | `{API_PREFIX}/protected`    | Bearer, role `admin`  | Demonstrates `401` (no/invalid token) vs `403` (valid token, wrong role) vs `200`                  |
+| GET    | `{API_PREFIX}/role/{role}`  | Bearer, matching role | `200` only when the caller's token role matches `{role}`; `400` if `{role}` isn't one of the four documented roles |
+| GET    | `{API_PREFIX}/scope/{scope}` | Bearer, matching scope (or `admin`) | `200` only when the caller's token carries `{scope}` (or the `admin` scope); `403`/`INSUFFICIENT_SCOPE` otherwise |
+
+Roles: `user`, `admin`, `manager`, `readonly`. Scopes: `users:read`, `users:write`, `products:read`,
+`products:write`, `orders:read`, `orders:write`, `admin` (the `admin` scope satisfies every scope check).
+
+Demo login accounts (feature-owned, independent of the `users` CRUD resource — see
+[specs/005-jwt-auth-roles-scopes/data-model.md](specs/005-jwt-auth-roles-scopes/data-model.md)):
+
+| Username         | Password          | Role       |
+| ---------------- | ----------------- | ---------- |
+| `demo.user`      | `user-pass-1`     | `user`     |
+| `demo.admin`     | `admin-pass-1`    | `admin`    |
+| `demo.manager`   | `manager-pass-1`  | `manager`  |
+| `demo.readonly`  | `readonly-pass-1` | `readonly` |
+
 ## Response shapes
 
 Every response (success or error) carries an `X-Request-ID` header. Every error response uses the shared
@@ -167,6 +199,8 @@ Every list response uses the shared pagination envelope:
   contract, and quickstart for the catalog, nested resources, and search.
 - [specs/004-status-code-playground/](specs/004-status-code-playground/) — spec, plan, data model,
   OpenAPI contract, and quickstart for the status code playground.
+- [specs/005-jwt-auth-roles-scopes/](specs/005-jwt-auth-roles-scopes/) — spec, plan, data model,
+  OpenAPI contract, and quickstart for JWT auth, roles, and scopes.
 
 ## License
 
