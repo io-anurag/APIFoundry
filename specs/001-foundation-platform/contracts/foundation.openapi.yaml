@@ -1,0 +1,207 @@
+# Phase 1 contract fragment for Spec 001 — Foundation, Config & Health.
+#
+# This is the seed of the project's single `openapi.yaml` (constitution: one document, always in
+# sync with the implementation). It documents only what this spec implements. Every later spec adds
+# its own paths/schemas to the same top-level document instead of creating a second file.
+
+openapi: 3.0.3
+info:
+  title: APIFoundry
+  version: "0.1.0"
+  description: >
+    General-purpose mock API server used as a testing target for functional, negative, automation,
+    contract, and performance/load testing. This foundation slice provides configuration, health,
+    version/info, and the shared error/pagination envelopes every other endpoint reuses.
+
+servers:
+  - url: /
+
+tags:
+  - name: Meta
+    description: Health, liveness/readiness, version and instance info — outside the versioned API prefix (except /api/v1/info).
+
+paths:
+  /health:
+    get:
+      tags: [Meta]
+      summary: Combined health status
+      operationId: getHealth
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /health/live:
+    get:
+      tags: [Meta]
+      summary: Liveness probe
+      operationId: getHealthLive
+      security: []
+      responses:
+        "200":
+          description: Process is running
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /health/ready:
+    get:
+      tags: [Meta]
+      summary: Readiness probe
+      operationId: getHealthReady
+      security: []
+      responses:
+        "200":
+          description: Service is ready to serve traffic
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        "503":
+          description: Service has started but is not yet ready to serve traffic
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /version:
+    get:
+      tags: [Meta]
+      summary: Application version
+      operationId: getVersion
+      security: []
+      responses:
+        "200":
+          description: Version information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VersionInfo"
+
+  /api/v1/info:
+    get:
+      tags: [Meta]
+      summary: Running instance information
+      operationId: getApiInfo
+      security: []
+      responses:
+        "200":
+          description: Instance information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiInfo"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status, uptimeSeconds, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [ok, not-ready]
+        uptimeSeconds:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+
+    VersionInfo:
+      type: object
+      required: [version, nodeEnv]
+      properties:
+        version:
+          type: string
+        nodeEnv:
+          type: string
+
+    ApiInfo:
+      type: object
+      required: [name, version, environment, apiPrefix, uptimeSeconds]
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        environment:
+          type: string
+        apiPrefix:
+          type: string
+        uptimeSeconds:
+          type: number
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, details, requestId]
+          properties:
+            code:
+              type: string
+              example: RESOURCE_NOT_FOUND
+            message:
+              type: string
+            details:
+              type: object
+            requestId:
+              type: string
+              format: uuid
+
+    Pagination:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items: {}
+        pagination:
+          type: object
+          required: [page, limit, total, totalPages, hasNext, hasPrevious]
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+            hasNext:
+              type: boolean
+            hasPrevious:
+              type: boolean
+
+  responses:
+    NotFound:
+      description: The requested route does not exist
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    MethodNotAllowed:
+      description: The HTTP method is not supported on this route
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ValidationError:
+      description: The request failed validation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  headers:
+    X-Request-ID:
+      description: Unique identifier for this request, echoed on every response and in every error body.
+      schema:
+        type: string
+        format: uuid
