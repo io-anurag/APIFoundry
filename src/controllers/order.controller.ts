@@ -32,3 +32,21 @@ export function deleteOrder(req: Request, res: Response): void {
   orderService.deleteOrder(id);
   res.status(204).send();
 }
+
+export function getOrdersForUser(req: Request, res: Response): void {
+  const userId = parseIdParam(req.params.id, "user");
+  const { data, page, limit, total } = orderService.listOrdersForUser(
+    userId,
+    req.query as unknown as Record<string, unknown>
+  );
+  res.status(200).json(buildPaginationEnvelope(data, page, limit, total));
+}
+
+export function getProductsForOrder(req: Request, res: Response): void {
+  const orderId = parseIdParam(req.params.id, "order");
+  const { data, page, limit, total } = orderService.listProductsForOrder(
+    orderId,
+    req.query as unknown as Record<string, unknown>
+  );
+  res.status(200).json(buildPaginationEnvelope(data, page, limit, total));
+}

@@ -11,6 +11,12 @@ import { userRouter } from "./routes/user.routes";
 import { productRouter } from "./routes/product.routes";
 import { customerRouter } from "./routes/customer.routes";
 import { orderRouter } from "./routes/order.routes";
+import { categoryRouter } from "./routes/category.routes";
+import { postRouter } from "./routes/post.routes";
+import { commentRouter } from "./routes/comment.routes";
+import { reviewRouter } from "./routes/review.routes";
+import { paymentRouter } from "./routes/payment.routes";
+import { searchRouter } from "./routes/search.routes";
 import { openapiRouter } from "./openapi";
 import { markReady } from "./services/health.service";
 
@@ -34,6 +40,12 @@ apiRouter.use(userRouter);
 apiRouter.use(productRouter);
 apiRouter.use(customerRouter);
 apiRouter.use(orderRouter);
+apiRouter.use(categoryRouter);
+apiRouter.use(postRouter);
+apiRouter.use(commentRouter);
+apiRouter.use(reviewRouter);
+apiRouter.use(paymentRouter);
+apiRouter.use(searchRouter);
 app.use(config.apiPrefix, apiRouter);
 
 // This spec has no async bootstrap work, so the app is "ready" as soon as its request pipeline

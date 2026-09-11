@@ -187,4 +187,40 @@ describe("Orders resource", () => {
       expect(first.body.data).toEqual(second.body.data);
     });
   });
+
+  describe("Nested route: users/:id/orders (User Story 2)", () => {
+    it("lists orders for a user linked via customer.userId", async () => {
+      // Seed customer 3 is linked to user 3 (customers.seed.ts: every third customer, i % 3 === 0).
+      const res = await request(app).get(`${config.apiPrefix}/users/3/orders`);
+      expect(res.status).toBe(200);
+      for (const order of res.body.data) {
+        expect(order.customerId).toBe(3);
+      }
+    });
+
+    it("returns 404 for a nonexistent user", async () => {
+      const res = await request(app).get(`${config.apiPrefix}/users/999999/orders`);
+      expect(res.status).toBe(404);
+    });
+
+    it("returns 200 with empty data for a user with no linked customers/orders", async () => {
+      // User ids not divisible by 3 (and <= 60) have no linked customer (customers.seed.ts).
+      const res = await request(app).get(`${config.apiPrefix}/users/2/orders`);
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual([]);
+    });
+  });
+
+  describe("Nested route: orders/:id/products (User Story 2)", () => {
+    it("lists the distinct products referenced by an existing order", async () => {
+      const res = await request(app).get(`${BASE}/1/products`);
+      expect(res.status).toBe(200);
+      expect(res.body.data.length).toBeGreaterThan(0);
+    });
+
+    it("returns 404 for a nonexistent order", async () => {
+      const res = await request(app).get(`${BASE}/999999/products`);
+      expect(res.status).toBe(404);
+    });
+  });
 });

@@ -1,5 +1,17 @@
 # APIFoundry
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20_LTS-green?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.x-6BA539?logo=openapiinitiative&logoColor=white)](https://www.openapis.org/)
+[![Vitest](https://img.shields.io/badge/Vitest-testing-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![ESLint](https://img.shields.io/badge/ESLint-enabled-4B32C3?logo=eslint&logoColor=white)](https://eslint.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/io-anurag/APIFoundry/actions/workflows/ci.yml/badge.svg)](https://github.com/io-anurag/APIFoundry/actions/workflows/ci.yml)
+[![stars - APIFoundry](https://img.shields.io/github/stars/io-anurag/APIFoundry?style=social)](https://github.com/io-anurag/APIFoundry)
+[![forks - APIFoundry](https://img.shields.io/github/forks/io-anurag/APIFoundry?style=social)](https://github.com/io-anurag/APIFoundry)
+[![GitHub tag](https://img.shields.io/github/tag/io-anurag/APIFoundry?include_prereleases=&sort=semver&color=blue)](https://github.com/io-anurag/APIFoundry/releases/)
+[![issues - APIFoundry](https://img.shields.io/github/issues/io-anurag/APIFoundry)](https://github.com/io-anurag/APIFoundry/issues)
+
 A general-purpose **mock API server** built as a testing playground: a target for API functional
 testing, negative testing, automation testing, contract testing, API scenario generation, and
 performance/load testing (e.g. with k6). It exposes a wide diversity of realistic HTTP patterns, auth
@@ -45,30 +57,30 @@ npm test
 
 ### Meta (Spec 001)
 
-| Method | Path | Description |
-|---|---|---|
-| GET | `/health` | Combined health status |
-| GET | `/health/live` | Liveness probe (always `ok` while the process runs) |
-| GET | `/health/ready` | Readiness probe (`503` until startup completes) |
-| GET | `/version` | Application version and environment |
-| GET | `{API_PREFIX}/info` (default `/api/v1/info`) | Running instance info (name, version, environment, apiPrefix, uptime) |
-| GET | `/openapi.json` | OpenAPI document as JSON |
-| GET | `/openapi.yaml` | OpenAPI document as YAML |
-| GET | `/docs` | Swagger UI |
+| Method | Path                                         | Description                                                           |
+| ------ | -------------------------------------------- | --------------------------------------------------------------------- |
+| GET    | `/health`                                    | Combined health status                                                |
+| GET    | `/health/live`                               | Liveness probe (always `ok` while the process runs)                   |
+| GET    | `/health/ready`                              | Readiness probe (`503` until startup completes)                       |
+| GET    | `/version`                                   | Application version and environment                                   |
+| GET    | `{API_PREFIX}/info` (default `/api/v1/info`) | Running instance info (name, version, environment, apiPrefix, uptime) |
+| GET    | `/openapi.json`                              | OpenAPI document as JSON                                              |
+| GET    | `/openapi.yaml`                              | OpenAPI document as YAML                                              |
+| GET    | `/docs`                                      | Swagger UI                                                            |
 
 ### Core resources (Spec 002)
 
 Each of the four resources below supports the full set of operations under `{API_PREFIX}` (default
 `/api/v1`):
 
-| Method | Path | Description |
-|---|---|---|
-| GET | `/users`, `/products`, `/customers`, `/orders` | Paginated list — `page`, `limit`, `sort` (`field` or `-field`), plus one filter per resource (`role`, `category`, `country`, `status`) |
-| GET | `/users/{id}`, `/products/{id}`, `/customers/{id}`, `/orders/{id}` | Get one by id |
-| POST | `/users`, `/products`, `/customers`, `/orders` | Create |
-| PUT | `/users/{id}`, `/products/{id}`, `/customers/{id}`, `/orders/{id}` | Full replace |
-| PATCH | `/users/{id}`, `/products/{id}`, `/customers/{id}`, `/orders/{id}` | Partial update |
-| DELETE | `/users/{id}`, `/products/{id}`, `/customers/{id}`, `/orders/{id}` | Delete |
+| Method | Path                                                               | Description                                                                                                                            |
+| ------ | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/users`, `/products`, `/customers`, `/orders`                     | Paginated list — `page`, `limit`, `sort` (`field` or `-field`), plus one filter per resource (`role`, `category`, `country`, `status`) |
+| GET    | `/users/{id}`, `/products/{id}`, `/customers/{id}`, `/orders/{id}` | Get one by id                                                                                                                          |
+| POST   | `/users`, `/products`, `/customers`, `/orders`                     | Create                                                                                                                                 |
+| PUT    | `/users/{id}`, `/products/{id}`, `/customers/{id}`, `/orders/{id}` | Full replace                                                                                                                           |
+| PATCH  | `/users/{id}`, `/products/{id}`, `/customers/{id}`, `/orders/{id}` | Partial update                                                                                                                         |
+| DELETE | `/users/{id}`, `/products/{id}`, `/customers/{id}`, `/orders/{id}` | Delete                                                                                                                                 |
 
 Seed data at startup: 50 users, 50 products, 60 customers, 100 orders — deterministic and reproducible
 across restarts. Orders reference an existing `customerId` and `items[].productId`; customers may
@@ -80,13 +92,30 @@ Every response (success or error) carries an `X-Request-ID` header. Every error 
 envelope:
 
 ```json
-{ "error": { "code": "RESOURCE_NOT_FOUND", "message": "...", "details": {}, "requestId": "..." } }
+{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "...",
+    "details": {},
+    "requestId": "..."
+  }
+}
 ```
 
 Every list response uses the shared pagination envelope:
 
 ```json
-{ "data": [], "pagination": { "page": 1, "limit": 20, "total": 100, "totalPages": 5, "hasNext": true, "hasPrevious": false } }
+{
+  "data": [],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 100,
+    "totalPages": 5,
+    "hasNext": true,
+    "hasPrevious": false
+  }
+}
 ```
 
 ## Spec documentation
@@ -95,3 +124,7 @@ Every list response uses the shared pagination envelope:
   contract, and quickstart for the foundation layer.
 - [specs/002-core-crud-resources/](specs/002-core-crud-resources/) — spec, plan, data model, OpenAPI
   contract, and quickstart for the CRUD resources.
+
+## License
+
+Released under the [MIT License](LICENSE) by [@io-anurag](https://github.com/io-anurag).

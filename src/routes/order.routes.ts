@@ -14,3 +14,9 @@ orderRouter.put("/orders/:id", orderController.replaceOrder);
 orderRouter.patch("/orders/:id", orderController.patchOrder);
 orderRouter.delete("/orders/:id", orderController.deleteOrder);
 orderRouter.all("/orders/:id", methodNotAllowedHandler);
+
+orderRouter.get("/users/:id/orders", orderController.getOrdersForUser);
+orderRouter.all("/users/:id/orders", methodNotAllowedHandler);
+
+orderRouter.get("/orders/:id/products", orderController.getProductsForOrder);
+orderRouter.all("/orders/:id/products", methodNotAllowedHandler);
