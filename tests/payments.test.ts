@@ -50,12 +50,11 @@ describe("Payments resource", () => {
       expect(errRes.body.error.requestId).toBe(errRes.headers["x-request-id"]);
     });
 
-    it("returns 405 for write methods on the collection and single-record URLs", async () => {
+    it("returns 405 for unsupported write methods on the collection and single-record URLs", async () => {
+      // POST /payments is a supported write (idempotent creation, Spec 008) — covered separately
+      // in tests/paymentsIdempotency.test.ts — so only PUT/PATCH/DELETE remain unsupported here.
       const list = await request(app).get(`${BASE}?limit=1`);
       const id = list.body.data[0].id;
-
-      const postRes = await request(app).post(BASE).send({});
-      expect(postRes.status).toBe(405);
 
       const putRes = await request(app).put(`${BASE}/${id}`).send({});
       expect(putRes.status).toBe(405);

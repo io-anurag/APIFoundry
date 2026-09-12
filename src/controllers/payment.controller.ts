@@ -3,6 +3,8 @@ import { parseUuidParam } from "../utils/uuidParam";
 import { parseDateParam } from "../utils/dateParam";
 import { buildPaginationEnvelope } from "../models/paginationEnvelope";
 import * as paymentService from "../services/payment.service";
+import { createPaymentRequestSchema } from "../models/paymentRequests";
+import { HttpError } from "../utils/httpError";
 
 /**
  * Handles `GET /payments`: lists payments via `paymentService.listPayments`, applying the
@@ -43,4 +45,22 @@ export function listPaymentsByDate(req: Request, res: Response): void {
     req.query as unknown as Record<string, unknown>
   );
   res.status(200).json(buildPaginationEnvelope(data, page, limit, total));
+}
+
+/**
+ * Handles `POST /payments`: requires an `Idempotency-Key` header, validates the request body,
+ * and creates (or replays) a payment via `paymentService.createPaymentIdempotently`, responding
+ * with whichever status code that returns (`201` new, `200` replayed).
+ * @param req - Express request; reads the `Idempotency-Key` header and the JSON body.
+ * @param res - Express response.
+ */
+export function postPayment(req: Request, res: Response): void {
+  const idempotencyKey = req.header("Idempotency-Key");
+  if (!idempotencyKey) {
+    throw new HttpError(400, "VALIDATION_ERROR", "Idempotency-Key header is required.");
+  }
+
+  const body = createPaymentRequestSchema.parse(req.body);
+  const { statusCode, payment } = paymentService.createPaymentIdempotently(idempotencyKey, body);
+  res.status(statusCode).json(payment);
 }

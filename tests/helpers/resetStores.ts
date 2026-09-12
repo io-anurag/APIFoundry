@@ -9,6 +9,10 @@ import { seedReviews } from "../../src/data/reviews.seed";
 import { seedPayments } from "../../src/data/payments.seed";
 import { sessionStore } from "../../src/data/session.store";
 import { apiKeyStore } from "../../src/data/apiKey.store";
+import { rateLimitStore } from "../../src/data/rateLimit.store";
+import { resetSeededRandom } from "../../src/utils/seededRandom";
+import { idempotencyStore } from "../../src/data/idempotency.store";
+import { cacheResourceStore } from "../../src/data/cacheResource.store";
 
 /**
  * Restores every in-memory store to its deterministic seeded state. Call from `beforeEach` in every
@@ -29,4 +33,8 @@ export function resetStores(): void {
   seedPayments();
   sessionStore.reset([]);
   apiKeyStore.reset([]);
+  rateLimitStore.reset([]);
+  resetSeededRandom();
+  idempotencyStore.reset([]);
+  cacheResourceStore.reset();
 }
