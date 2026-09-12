@@ -41,3 +41,26 @@ export function parseStatusCodeParam(raw: string): number {
 
   return code;
 }
+
+/**
+ * Optional-query-parameter companion to `parseStatusCodeParam`, for `GET /api/v1/test?status=`
+ * (Spec 010). Returns `undefined` when `raw` is `undefined` (the caller omitted `status`
+ * entirely); otherwise delegates to `parseStatusCodeParam` for the same strict-integer / range /
+ * documented-code validation a required path parameter already gets.
+ *
+ * @param raw - The raw `?status=` query value (`undefined`, a string, or, per Express's
+ *   query-parsing rules, an array or nested object).
+ * @returns The validated status code, or `undefined` if omitted.
+ */
+export function parseOptionalStatusCodeParam(raw: unknown): number | undefined {
+  if (raw === undefined) return undefined;
+
+  if (typeof raw !== "string") {
+    throw new HttpError(400, "VALIDATION_ERROR", `Invalid 'status' value: must be a single string value.`, {
+      field: "status",
+      value: raw,
+    });
+  }
+
+  return parseStatusCodeParam(raw);
+}

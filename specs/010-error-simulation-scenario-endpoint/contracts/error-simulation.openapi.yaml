@@ -1,0 +1,249 @@
+# Phase 1 design artifact for Spec 010 (Error Simulation & Generic Scenario Endpoint). At
+# implementation time, every path/schema/response below is merged into the project's single root
+# openapi.yaml (constitution: one document, always in sync with the implementation) — this
+# fragment is not served on its own.
+#
+# References to Error, ValidationError, NotFound, Unauthorized, Forbidden, RateLimited, Conflict,
+# StatusDemoSuccess, StatusDemoRedirect, and X-Request-ID assume the root document (seeded by Spec
+# 001, extended by Specs 004/005/006/008) already defines them. This fragment adds three new
+# reusable responses (ServerError, ServiceUnavailable, RequestTimeout) to components/responses for
+# future specs to reuse rather than duplicate, and one new schema (TestScenarioResult) for the
+# scenario endpoint's plain-success body.
+#
+# No allOf/oneOf/anyOf combinators are used anywhere below, consistent with every prior spec's
+# OpenAPI fragment in this project.
+
+tags:
+  - name: Error Simulation
+    description: >
+      Deterministic, dedicated demonstrations of nine standard failure modes, plus one configurable
+      endpoint (the primary k6 hook) that composes the same outcomes — and optional delay,
+      oversized-payload, and probabilistic-failure behavior — behind a single `scenario` query
+      parameter.
+
+paths:
+  /errors/validation:
+    get:
+      tags: [Error Simulation]
+      summary: Deterministic 400 Bad Request demo
+      operationId: getErrorsValidation
+      security: []
+      responses:
+        "400": { $ref: "#/components/responses/ValidationError" }
+
+  /errors/not-found:
+    get:
+      tags: [Error Simulation]
+      summary: Deterministic 404 Not Found demo
+      operationId: getErrorsNotFound
+      security: []
+      responses:
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /errors/conflict:
+    get:
+      tags: [Error Simulation]
+      summary: Deterministic 409 Conflict demo
+      operationId: getErrorsConflict
+      security: []
+      responses:
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /errors/unauthorized:
+    get:
+      tags: [Error Simulation]
+      summary: Deterministic 401 Unauthorized demo (ignores any credentials supplied)
+      operationId: getErrorsUnauthorized
+      security: []
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /errors/forbidden:
+    get:
+      tags: [Error Simulation]
+      summary: Deterministic 403 Forbidden demo (ignores any credentials supplied)
+      operationId: getErrorsForbidden
+      security: []
+      responses:
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /errors/rate-limit:
+    get:
+      tags: [Error Simulation]
+      summary: Deterministic 429 Too Many Requests demo (does not touch the real /rate-limit counters)
+      operationId: getErrorsRateLimit
+      security: []
+      responses:
+        "429": { $ref: "#/components/responses/RateLimited" }
+
+  /errors/server-error:
+    get:
+      tags: [Error Simulation]
+      summary: Deterministic 500 Internal Server Error demo
+      operationId: getErrorsServerError
+      security: []
+      responses:
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /errors/service-unavailable:
+    get:
+      tags: [Error Simulation]
+      summary: Deterministic 503 Service Unavailable demo
+      operationId: getErrorsServiceUnavailable
+      security: []
+      responses:
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+
+  /errors/timeout:
+    get:
+      tags: [Error Simulation]
+      summary: Deterministic 408 Request Timeout demo (responds immediately; does not hold the connection open)
+      operationId: getErrorsTimeout
+      security: []
+      responses:
+        "408": { $ref: "#/components/responses/RequestTimeout" }
+
+  /api/v1/test:
+    get:
+      tags: [Error Simulation]
+      summary: Generic, composable test-scenario endpoint — the primary k6 hook
+      description: >
+        Dispatches on `scenario`, reproducing each `/errors/*` outcome (plus `success`, `delayed`,
+        and `large-response`) behind one endpoint. `status` lets a caller reach any code documented
+        by `GET /api/v1/status/{code}` directly (including body-less and redirect codes) when no
+        conflicting named scenario is given. `delay` (only meaningful for `scenario=delayed`) and
+        `failureRate` (only meaningful for `scenario` in `server-error`, `service-unavailable`,
+        `rate-limit`, `timeout`) compose optional timing/probabilistic behavior on top.
+      operationId: getTestScenario
+      security: []
+      parameters:
+        - name: scenario
+          in: query
+          required: false
+          description: Defaults to "success" when omitted.
+          schema:
+            type: string
+            enum:
+              [
+                success,
+                validation-error,
+                unauthorized,
+                forbidden,
+                not-found,
+                conflict,
+                rate-limit,
+                server-error,
+                service-unavailable,
+                timeout,
+                delayed,
+                large-response,
+              ]
+        - name: status
+          in: query
+          required: false
+          description: >
+            Any status code documented by GET /api/v1/status/{code}. Rejected with 400 if it
+            conflicts with a scenario that already has its own fixed status.
+          schema: { type: integer, minimum: 100, maximum: 599 }
+        - name: delay
+          in: query
+          required: false
+          description: Milliseconds to wait before responding; only meaningful for scenario=delayed.
+          schema: { type: integer, minimum: 0 }
+        - name: failureRate
+          in: query
+          required: false
+          description: >
+            Decimal in [0, 1]; only meaningful for the four failure-representing scenarios.
+            Defaults to 1 (always fail) when omitted, so a bare scenario matches its dedicated
+            /errors/* counterpart exactly.
+          schema: { type: number, minimum: 0, maximum: 1 }
+      responses:
+        "200":
+          description: >
+            Reached via: scenario=success or absent with status omitted or 200 (name/message
+            included, matching GET /api/v1/status/200's own body); a failure-representing scenario
+            that rolled a simulated success (scenario+status only, no name/message);
+            scenario=delayed (scenario/status/delayMs); scenario=large-response (bare {size, data},
+            no scenario/status wrapper — its exact byte size must match Spec 007's "large" preset,
+            FR-010); or scenario=success with a status override resolving to a 2xx code documented
+            by GET /api/v1/status/{code} other than 200/204 (name/message included, matching that
+            endpoint's own body for the code)
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TestScenarioResult" }
+        "204":
+          description: status=204 accepted as a success-scenario override (no response body)
+        "301":
+          description: status=301 accepted as a success-scenario override
+          headers:
+            Location: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatusDemoRedirect" }
+        "302":
+          description: status=302 accepted as a success-scenario override
+          headers:
+            Location: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatusDemoRedirect" }
+        "304":
+          description: status=304 accepted as a success-scenario override (no response body)
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "408": { $ref: "#/components/responses/RequestTimeout" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+        "500": { $ref: "#/components/responses/ServerError" }
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+
+components:
+  responses:
+    ServerError:
+      description: Demonstrates 500 Internal Server Error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    ServiceUnavailable:
+      description: Demonstrates 503 Service Unavailable
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    RequestTimeout:
+      description: Demonstrates 408 Request Timeout (responds immediately; no connection is actually held open)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    TestScenarioResult:
+      type: object
+      description: >
+        All fields are optional and vary by how the 200 was reached — see the /api/v1/test 200
+        response description for the exact per-case field set.
+      properties:
+        scenario:
+          type: string
+          example: success
+        status:
+          type: integer
+          example: 200
+        name:
+          type: string
+          description: Present only for scenario=success (or absent), matching GET /api/v1/status/{code}'s own body
+        message:
+          type: string
+        delayMs:
+          type: integer
+          description: Present only when scenario=delayed
+        size:
+          type: integer
+          description: Present only when scenario=large-response
+        data:
+          type: string
+          description: Present only when scenario=large-response
