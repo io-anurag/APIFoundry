@@ -163,10 +163,12 @@ paths:
           description: >
             Reached via: scenario=success or absent with status omitted or 200 (name/message
             included, matching GET /api/v1/status/200's own body); a failure-representing scenario
-            that rolled a simulated success (scenario+status only, no name/message); scenario=delayed
-            (adds delayMs); scenario=large-response (adds size/data); or scenario=success with a
-            status override resolving to a 2xx code documented by GET /api/v1/status/{code} other
-            than 200/204 (name/message included, matching that endpoint's own body for the code)
+            that rolled a simulated success (scenario+status only, no name/message);
+            scenario=delayed (scenario/status/delayMs); scenario=large-response (bare {size, data},
+            no scenario/status wrapper — its exact byte size must match Spec 007's "large" preset,
+            FR-010); or scenario=success with a status override resolving to a 2xx code documented
+            by GET /api/v1/status/{code} other than 200/204 (name/message included, matching that
+            endpoint's own body for the code)
           headers:
             X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
           content:

@@ -259,9 +259,10 @@ time) versus `failureRate=1` (expect `500` every time).
 - **FR-016**: None of this feature's endpoints MUST perform an external network call, and each MUST
   remain lightweight (no unbounded memory allocation, no expensive computation) except for the
   deliberate, bounded delay/payload-size behavior each scenario exists to demonstrate.
-- **FR-017**: This feature's behavior MUST be fully documented in the OpenAPI specification once
-  Spec 012 assembles it, including every scenario name, every optional query parameter, and every
-  possible response status/error code.
+- **FR-017**: This feature's behavior MUST be fully documented in the project's OpenAPI
+  specification, including every scenario name, every optional query parameter, and every possible
+  response status/error code — Spec 012 is responsible only for final cross-spec verification/
+  route-discovery, not first assembly.
 
 ### Key Entities
 
@@ -321,9 +322,9 @@ time) versus `failureRate=1` (expect `500` every time).
   non-delay endpoints.
 - **`failureRate` only applies to failure-representing scenarios**: `server-error`,
   `service-unavailable`, `rate-limit`, and `timeout` are the outcomes meaningful to make
-  probabilistic (mirroring Spec 008's `/flaky`); `success`, `validation-error`, `not-found`,
-  `conflict`, `delayed`, and `large-response` represent fixed request shapes or fixed behaviors and
-  stay deterministic regardless of `failureRate`.
+  probabilistic (mirroring Spec 008's `/flaky`); `success`, `validation-error`, `unauthorized`,
+  `forbidden`, `not-found`, `conflict`, `delayed`, and `large-response` represent fixed request
+  shapes or fixed behaviors and stay deterministic regardless of `failureRate`.
 - **`status` is an escape hatch layered on top of `scenario`**, not a second independent dispatch
   mechanism: it is only consulted when no conflicting named scenario is given, letting a caller reach
   any status-code-playground value through this endpoint without this spec re-deriving a body shape
