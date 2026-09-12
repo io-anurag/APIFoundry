@@ -1,0 +1,215 @@
+# Phase 1 design artifact for Spec 008 (Resilience Simulation). At implementation time, every
+# path/schema/response below is merged into the project's single root openapi.yaml (constitution:
+# one document, always in sync with the implementation) — this fragment is not served on its own.
+# References to Error, Payment, PaymentStatus, ValidationError, NotFound, and X-Request-ID assume
+# the root document (seeded by Spec 001, extended by Spec 003) already defines them. This fragment
+# adds two new reusable responses (RateLimited, Conflict) to components/responses for future specs
+# to reuse rather than duplicate.
+#
+# No allOf/oneOf/anyOf combinators are used anywhere below, consistent with every prior spec's
+# OpenAPI fragment in this project.
+
+tags:
+  - name: Resilience Simulation
+    description: >
+      Endpoints that simulate unreliable backends in a reproducible way — rate limiting, flaky
+      failures, idempotent writes, and conditional-request caching.
+
+paths:
+  /rate-limit:
+    get:
+      tags: [Resilience Simulation]
+      summary: Per-caller rate-limit demo; 429 + Retry-After once the configured threshold is exceeded
+      operationId: getRateLimit
+      security: []
+      responses:
+        "200":
+          description: Under the threshold
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RateLimitStatus" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+
+  /flaky:
+    get:
+      tags: [Resilience Simulation]
+      summary: Simulates a flaky dependency; fails at approximately the requested rate with a reproducible, seeded outcome
+      operationId: getFlaky
+      security: []
+      parameters:
+        - name: failureRate
+          in: query
+          required: false
+          description: Decimal in [0, 1]; defaults to the configured FAILURE_RATE when omitted
+          schema: { type: number, minimum: 0, maximum: 1 }
+      responses:
+        "200":
+          description: Simulated success
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlakyResult" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "500":
+          description: Simulated failure (server error)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "502":
+          description: Simulated failure (bad gateway)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: Simulated failure (service unavailable)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "504":
+          description: Simulated failure (gateway timeout)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/v1/payments:
+    post:
+      tags: [Resilience Simulation]
+      summary: Creates a payment, honoring Idempotency-Key for safe retries
+      operationId: createPayment
+      security: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, minLength: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreatePaymentRequest" }
+      responses:
+        "201":
+          description: New payment created for a fresh Idempotency-Key
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Payment" }
+        "200":
+          description: Identical retry of a previously-used Idempotency-Key — original result replayed
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Payment" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /cache/resource:
+    get:
+      tags: [Resilience Simulation]
+      summary: Returns a cacheable demo resource with ETag/Last-Modified, honoring conditional headers
+      operationId: getCacheResource
+      security: []
+      parameters:
+        - name: If-None-Match
+          in: header
+          required: false
+          schema: { type: string }
+        - name: If-Modified-Since
+          in: header
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: Full resource (no matching conditional header)
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+            ETag: { schema: { type: string } }
+            Last-Modified: { schema: { type: string } }
+            Cache-Control: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CacheResource" }
+        "304":
+          description: Not modified — conditional header matched the current validator
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+            ETag: { schema: { type: string } }
+    put:
+      tags: [Resilience Simulation]
+      summary: Updates the cache-demo resource's content, reissuing ETag/Last-Modified
+      operationId: putCacheResource
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CacheResourceUpdateRequest" }
+      responses:
+        "200":
+          description: Updated resource, with new validators
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+            ETag: { schema: { type: string } }
+            Last-Modified: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CacheResource" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+
+components:
+  schemas:
+    RateLimitStatus:
+      type: object
+      required: [remaining, limit]
+      properties:
+        remaining: { type: integer, minimum: 0 }
+        limit: { type: integer, minimum: 1 }
+
+    FlakyResult:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+
+    CreatePaymentRequest:
+      type: object
+      required: [orderId, amount, status]
+      additionalProperties: false
+      properties:
+        orderId: { type: integer }
+        amount: { type: number, minimum: 0 }
+        status: { $ref: "#/components/schemas/PaymentStatus" }
+
+    CacheResource:
+      type: object
+      required: [content, version, updatedAt]
+      properties:
+        content: {}
+        version: { type: integer, minimum: 1 }
+        updatedAt: { type: string, format: date-time }
+
+    CacheResourceUpdateRequest:
+      type: object
+      required: [content]
+      additionalProperties: false
+      properties:
+        content: {}
+
+  responses:
+    RateLimited:
+      description: Rate-limit threshold exceeded for this caller within the current window
+      headers:
+        Retry-After: { schema: { type: integer, minimum: 0 }, description: "Seconds until the caller's window resets" }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Conflict:
+      description: The same Idempotency-Key was reused with a different request body
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
