@@ -1,0 +1,75 @@
+# Phase 1 design artifact for Spec 011 (Admin & Reset). At implementation time, every
+# path/schema/securityScheme below is merged into the project's single root openapi.yaml
+# (constitution: one document, always in sync with the implementation) — this fragment is not
+# served on its own.
+#
+# References to Unauthorized and Forbidden assume the root document (seeded by Spec 001, extended by
+# Specs 005/006) already defines them. This fragment adds one new security scheme
+# (adminTokenAuth) and one new schema (AdminResetResult); no existing component is redefined.
+#
+# No allOf/oneOf/anyOf combinators are used anywhere below, consistent with every prior spec's
+# OpenAPI fragment in this project (and this project's own saved convention against them).
+
+tags:
+  - name: Admin
+    description: >
+      Admin-token-gated operational endpoints that restore the mock server's mutable state back to
+      its deterministic seed configuration, without a process restart — split into a data-plane
+      reset and an auth-plane reset so a caller can restore one domain independently of the other.
+
+paths:
+  /admin/reset:
+    post:
+      tags: [Admin]
+      summary: Restore every CRUD/read-oriented resource, the rate limiter, the idempotency store, the cache-demo resource, and uploaded files to their seeded state
+      operationId: postAdminReset
+      security:
+        - adminTokenAuth: []
+      responses:
+        "200":
+          description: Data-plane state has been restored to its seeded configuration
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminResetResult" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /admin/auth/reset:
+    post:
+      tags: [Admin]
+      summary: Restore issued JWT session/refresh-token records and issued/revoked API keys to their initial state
+      operationId: postAdminAuthReset
+      security:
+        - adminTokenAuth: []
+      responses:
+        "200":
+          description: Auth-plane state has been restored to its initial configuration
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminResetResult" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+components:
+  securitySchemes:
+    adminTokenAuth:
+      type: apiKey
+      in: header
+      name: X-Admin-Token
+      description: >
+        Shared admin secret (configured via the ADMIN_TOKEN environment variable) required to call
+        any /admin/* endpoint. Missing or empty → 401. Present but not matching → 403.
+
+  schemas:
+    AdminResetResult:
+      type: object
+      required: [message, domain, requestId]
+      properties:
+        message:
+          type: string
+          example: Data reset to seed state
+        domain:
+          type: string
+          enum: [data, auth]
+        requestId:
+          type: string
