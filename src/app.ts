@@ -31,6 +31,7 @@ import { adminRouter } from "./routes/admin.routes";
 import { healthRouter } from "./routes/health.routes";
 import { versionRouter } from "./routes/version.routes";
 import { infoRouter } from "./routes/info.routes";
+import { routesRouter } from "./routes/routes.routes";
 import { userRouter } from "./routes/user.routes";
 import { productRouter } from "./routes/product.routes";
 import { customerRouter } from "./routes/customer.routes";
@@ -79,6 +80,7 @@ app.use(openapiRouter);
 // Versioned resource/feature endpoints.
 const apiRouter = Router();
 apiRouter.use(infoRouter);
+apiRouter.use(routesRouter);
 apiRouter.use(userRouter);
 apiRouter.use(productRouter);
 apiRouter.use(customerRouter);

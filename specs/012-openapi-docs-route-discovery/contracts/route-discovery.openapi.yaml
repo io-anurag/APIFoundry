@@ -1,0 +1,71 @@
+# Phase 1 design artifact for Spec 012 (OpenAPI, Swagger UI & Route Discovery). At implementation
+# time, the path/schema below is merged into the project's single root openapi.yaml (constitution:
+# one document, always in sync with the implementation) — this fragment is not served on its own.
+#
+# `/openapi.json`, `/openapi.yaml`, and `/docs` themselves need no new fragment: they already exist
+# (Spec 001, src/openapi/index.ts) and already serve the root document as-is. This fragment adds
+# only the one new operation and its two new schemas.
+#
+# No allOf/oneOf/anyOf combinators are used anywhere below, consistent with every prior spec's
+# OpenAPI fragment in this project (and this project's own saved convention against them) — see
+# specs/012-openapi-docs-route-discovery/research.md Decision 2.
+
+tags:
+  - name: Meta
+    description: Health, liveness/readiness, version, instance info, and route discovery — outside the versioned API prefix except /api/v1/info and /api/v1/routes.
+
+paths:
+  /api/v1/routes:
+    get:
+      tags: [Meta]
+      summary: List every implemented route with its method, path, description, and auth requirement
+      operationId: getRoutes
+      security: []
+      responses:
+        "200":
+          description: Every implemented route
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RoutesListResponse" }
+
+components:
+  schemas:
+    AuthRequirement:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [none, jwt, apiKey, basic, adminToken]
+        detail:
+          type: string
+          description: >
+            Present only when a route requires more than a successfully authenticated caller
+            under the given type — e.g. "role: admin", "scope: orders:write", or a note that the
+            requirement is determined by a path parameter.
+          example: "role: admin"
+
+    RouteInfo:
+      type: object
+      required: [method, path, description, auth]
+      properties:
+        method:
+          type: string
+          enum: [GET, POST, PUT, PATCH, DELETE]
+        path:
+          type: string
+          example: "/api/v1/users/{id}"
+        description:
+          type: string
+          example: "Get, replace, partially update, or delete a single user by id"
+        auth:
+          $ref: "#/components/schemas/AuthRequirement"
+
+    RoutesListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/RouteInfo"
