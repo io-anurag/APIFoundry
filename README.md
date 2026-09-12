@@ -280,6 +280,10 @@ Every list response uses the shared pagination envelope:
   contract, and quickstart for API key and Basic Auth.
 - [specs/007-http-testing-utilities/](specs/007-http-testing-utilities/) — spec, plan, data model,
   OpenAPI contract, and quickstart for the HTTP testing utilities.
+- [specs/008-resilience-simulation/](specs/008-resilience-simulation/) — spec, plan, data model,
+  OpenAPI contract, and quickstart for rate limiting, flaky failures, idempotent payments, and caching.
+- [specs/009-files-api/](specs/009-files-api/) — spec, plan, data model, OpenAPI contract, and
+  quickstart for the file upload/download/list/delete API.
 
 ## License
 
