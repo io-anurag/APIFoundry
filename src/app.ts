@@ -5,6 +5,8 @@ import { requestLogger } from "./middleware/requestLogger";
 import { corsMiddleware } from "./middleware/cors";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
 import { authRouter } from "./routes/auth.routes";
+import { apiKeyRouter } from "./routes/apiKey.routes";
+import { basicAuthRouter } from "./routes/basicAuth.routes";
 import { healthRouter } from "./routes/health.routes";
 import { versionRouter } from "./routes/version.routes";
 import { infoRouter } from "./routes/info.routes";
@@ -37,6 +39,8 @@ app.use(express.json());
 app.use(healthRouter);
 app.use(versionRouter);
 app.use(authRouter);
+app.use(apiKeyRouter);
+app.use(basicAuthRouter);
 app.use(openapiRouter);
 
 // Versioned resource/feature endpoints.
