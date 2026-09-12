@@ -39,7 +39,7 @@ Single project (per plan.md): `src/`, `tests/` at repository root, extending the
 
 **Purpose**: The one new dependency this feature needs.
 
-- [ ] T001 Add `bytes` and `@types/bytes` to `package.json` (dependencies and devDependencies
+- [X] T001 Add `bytes` and `@types/bytes` to `package.json` (dependencies and devDependencies
       respectively) and run `npm install` (research.md Decision 1 — already an indirect
       dependency of `body-parser`/Express; added explicitly to convert `config.maxPayloadSize`'s
       string form, e.g. `"10mb"`, into a byte count for the `GET /payload?size=` bound check).
@@ -56,20 +56,20 @@ on.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 Create `src/middleware/rawBody.ts` (depends on T001): augment Express via
+- [X] T002 Create `src/middleware/rawBody.ts` (depends on T001): augment Express via
       `declare global { namespace Express { interface Request { rawBody?: Buffer } } }`; export
       `captureRawBody(req: Request, _res: Response, buf: Buffer): void` — sets `req.rawBody =
       buf` (research.md Decision 2 — a `body-parser`/`express.json()` `verify` callback used to
       capture the exact raw request-body bytes before JSON parsing, so `POST /payload`'s
       `contentLength` never depends on re-serializing the parsed body).
-- [ ] T003 Update `src/app.ts` (depends on T002): change `app.use(express.json())` to
+- [X] T003 Update `src/app.ts` (depends on T002): change `app.use(express.json())` to
       `app.use(express.json({ limit: config.maxPayloadSize, verify: captureRawBody }))`, importing
       `captureRawBody` from `./middleware/rawBody` (research.md Decision 1 — this is the first
       time `MAX_PAYLOAD_SIZE` is actually enforced anywhere in the app; every existing Spec
       002-006 endpoint's behavior for requests within the true intended limit is unchanged, only
       requests that were already over the *intended* limit and previously slipped through
       Express's undocumented 100kb default now correctly fail).
-- [ ] T004 Update `src/middleware/errorHandler.ts` (depends on T003): add a new branch, placed
+- [X] T004 Update `src/middleware/errorHandler.ts` (depends on T003): add a new branch, placed
       alongside the existing `isJsonParseError` check, structurally identical to it —
       `isPayloadTooLargeError(err)` returns true when `err instanceof Error && (err as { type?:
       string }).type === "entity.too.large"`; on a match, respond `413` via
@@ -95,27 +95,27 @@ quickstart.md Scenario 1.
 
 ### Implementation for User Story 1
 
-- [ ] T005 [P] [US1] Create `src/utils/delayMsParam.ts`: `parseDelayMsParam(raw: unknown, maxMs:
+- [X] T005 [P] [US1] Create `src/utils/delayMsParam.ts`: `parseDelayMsParam(raw: unknown, maxMs:
       number): number` — following the existing `idParam.ts`/`statusCodeParam.ts` parse-or-throw
       style: `raw` must match `^\d+$` (rejects non-numeric, negative, decimal, empty, and
       whitespace-padded values in one shot); the parsed integer must be `<= maxMs`; either failure
       throws `HttpError(400, "VALIDATION_ERROR", ...)` (FR-002, FR-003).
-- [ ] T006 [US1] Create `src/services/delay.service.ts` (depends on T005): `resolveDelayMs(req:
+- [X] T006 [US1] Create `src/services/delay.service.ts` (depends on T005): `resolveDelayMs(req:
       Request): number` — reads `req.params.ms ?? req.query.ms` and passes it to
       `parseDelayMsParam(value, config.maxDelayMs)`, returning the validated delay.
-- [ ] T007 [US1] Create `src/controllers/delay.controller.ts` (depends on T006): `getDelay(req,
+- [X] T007 [US1] Create `src/controllers/delay.controller.ts` (depends on T006): `getDelay(req,
       res)` — a **non-`async`** function (research.md Decision 4): calls `const ms =
       delayService.resolveDelayMs(req)` synchronously (any `HttpError` propagates normally through
       Express's synchronous dispatch), then `setTimeout(() => res.status(200).json({ delayMs: ms
       }), ms)` and returns — no `await`, no promise in the request-handling path.
-- [ ] T008 [US1] Create `src/routes/delay.routes.ts` (depends on T007): `export const delayRouter
+- [X] T008 [US1] Create `src/routes/delay.routes.ts` (depends on T007): `export const delayRouter
       = Router({ strict: true });` mount `GET /delay/:ms` and `GET /delay` both to
       `delayController.getDelay`; `methodNotAllowedHandler` for each path (following the existing
       `user.routes.ts`-style convention of registering every real method before the catch-all).
-- [ ] T009 [US1] Wire `delayRouter` into `src/app.ts` (depends on T008): mount it top-level
+- [X] T009 [US1] Wire `delayRouter` into `src/app.ts` (depends on T008): mount it top-level
       (alongside `authRouter`/`apiKeyRouter`/`basicAuthRouter`), matching CLAUDE.md's `/delay`
       path spelling (no `/api/v1` prefix).
-- [ ] T010 [P] [US1] Create `tests/delay.test.ts` (depends on T009) covering spec.md User Story
+- [X] T010 [P] [US1] Create `tests/delay.test.ts` (depends on T009) covering spec.md User Story
       1's acceptance scenarios 1-5: `GET /delay/50` → `200` with `{ delayMs: 50 }` no sooner than
       50ms elapsed; `GET /delay?ms=50` → identical behavior; `GET /delay/0` → `200` immediately;
       `GET /delay/{value greater than config.maxDelayMs}` → `400` returned near-instantly (assert
@@ -138,20 +138,20 @@ Scenario 2.
 
 ### Implementation for User Story 2
 
-- [ ] T011 [P] [US2] Create `src/data/payloadPresets.catalog.ts`: `export const
+- [X] T011 [P] [US2] Create `src/data/payloadPresets.catalog.ts`: `export const
       PAYLOAD_SIZE_PRESETS = ["small", "medium", "large"] as const;` and `export type
       PayloadSizePreset = (typeof PAYLOAD_SIZE_PRESETS)[number];`; `export const
       PAYLOAD_SIZE_PRESET_BYTES: Record<PayloadSizePreset, number> = { small: 1_024, medium:
       102_400, large: 1_048_576 };` — the exact byte values confirmed in spec.md's Clarifications
       session (data-model.md).
-- [ ] T012 [P] [US2] Create `src/utils/payloadPresetParam.ts` (depends on T011):
+- [X] T012 [P] [US2] Create `src/utils/payloadPresetParam.ts` (depends on T011):
       `parsePayloadPresetParam(raw: string): PayloadSizePreset` — throws `HttpError(400,
       "VALIDATION_ERROR", ...)` when `raw` is not exactly one of `PAYLOAD_SIZE_PRESETS` (FR-006).
-- [ ] T013 [P] [US2] Create `src/utils/payloadSizeParam.ts`: `parsePayloadSizeParam(raw: unknown,
+- [X] T013 [P] [US2] Create `src/utils/payloadSizeParam.ts`: `parsePayloadSizeParam(raw: unknown,
       maxBytes: number): number` — `raw` must match `^\d+$` (rejects non-numeric, negative,
       decimal, empty values in one shot); the parsed integer must be `<= maxBytes`; either failure
       throws `HttpError(400, "VALIDATION_ERROR", ...)` (FR-005, FR-006).
-- [ ] T014 [US2] Create `src/services/payload.service.ts` (depends on T011, T012, T013):
+- [X] T014 [US2] Create `src/services/payload.service.ts` (depends on T011, T012, T013):
       `generatePayload(targetBytes: number): { size: number; data: string }` — builds `{ size:
       targetBytes, data: "" }`, computes `shellBytes = Buffer.byteLength(JSON.stringify(shell),
       "utf8")`, `fillerLength = Math.max(0, targetBytes - shellBytes)`, returns `{ size:
@@ -162,11 +162,11 @@ Scenario 2.
       `generatePayload`. `getPayloadBySize(rawSize: unknown)` — parses via
       `parsePayloadSizeParam(rawSize, bytes(config.maxPayloadSize))` (using the new `bytes`
       dependency from T001), calls `generatePayload`.
-- [ ] T015 [US2] Create `src/controllers/payload.controller.ts` (depends on T014):
+- [X] T015 [US2] Create `src/controllers/payload.controller.ts` (depends on T014):
       `getPayloadByPreset(req, res)` → `res.status(200).json(payloadService
       .getPayloadByPreset(req.params.preset))`; `getPayloadBySize(req, res)` → `res.status(200)
       .json(payloadService.getPayloadBySize(req.query.size))`.
-- [ ] T016 [US2] Create `src/routes/payload.routes.ts` (depends on T015): `export const
+- [X] T016 [US2] Create `src/routes/payload.routes.ts` (depends on T015): `export const
       payloadRouter = Router({ strict: true });` mount `GET /payload/:preset` →
       `payloadController.getPayloadByPreset` with its own `methodNotAllowedHandler` immediately
       after (this path is only ever touched by this story, so its catch-all is complete here);
@@ -175,10 +175,10 @@ Scenario 2.
       needs to add `POST /payload` to this same exact path before the catch-all can be registered
       (adding it now would incorrectly reject that later `POST`, mirroring `user.routes.ts`'s
       convention of registering every real method on a path before its one catch-all).
-- [ ] T017 [US2] Wire `payloadRouter` into `src/app.ts` (depends on T016): mount it top-level
+- [X] T017 [US2] Wire `payloadRouter` into `src/app.ts` (depends on T016): mount it top-level
       (alongside `delayRouter`), matching CLAUDE.md's `/payload` path spelling (no `/api/v1`
       prefix).
-- [ ] T018 [P] [US2] Create `tests/payload.test.ts` (depends on T017) covering spec.md User Story
+- [X] T018 [P] [US2] Create `tests/payload.test.ts` (depends on T017) covering spec.md User Story
       2's acceptance scenarios 1-5: `GET /payload/small` → `200` with a response body whose byte
       length is exactly `1024`; `GET /payload/medium` → exactly `102400`; `GET /payload/large` →
       exactly `1048576`; `GET /payload?size=2048` → exactly `2048` bytes; `GET
@@ -206,19 +206,19 @@ See quickstart.md Scenario 3.
 
 ### Implementation for User Story 3
 
-- [ ] T019 [US3] Extend `src/services/payload.service.ts` (depends on T014, T002) with
+- [X] T019 [US3] Extend `src/services/payload.service.ts` (depends on T014, T002) with
       `echoPayload(req: Request): { received: true; contentLength: number }` — returns `{
       received: true, contentLength: req.rawBody?.length ?? 0 }` (research.md Decision 2; `?? 0`
       covers a genuinely empty body, confirmed by direct testing to leave `req.rawBody`
       `undefined` rather than a zero-length buffer).
-- [ ] T020 [US3] Extend `src/controllers/payload.controller.ts` (depends on T019, T015) with
+- [X] T020 [US3] Extend `src/controllers/payload.controller.ts` (depends on T019, T015) with
       `postPayload(req, res)` → `res.status(200).json(payloadService.echoPayload(req))`.
-- [ ] T021 [US3] Extend `src/routes/payload.routes.ts` (depends on T020, T016) with `POST
+- [X] T021 [US3] Extend `src/routes/payload.routes.ts` (depends on T020, T016) with `POST
       /payload` → `payloadController.postPayload`, inserted **before** the path's catch-all;
       immediately after it, add `payloadRouter.all("/payload", methodNotAllowedHandler)` — this is
       the first point both `GET` and `POST` exist on `/payload`, so this is where the catch-all
       for the exact `/payload` path finally belongs.
-- [ ] T022 [P] [US3] Extend `tests/payload.test.ts` (depends on T018) with spec.md User Story 3's
+- [X] T022 [P] [US3] Extend `tests/payload.test.ts` (depends on T018) with spec.md User Story 3's
       acceptance scenarios 1-5 and Edge Cases: a small JSON object body → `200` with
       `contentLength` equal to the exact byte length of the request body sent; a large JSON body
       within the configured maximum → `200` with the correct `contentLength`; a deeply nested
@@ -243,7 +243,7 @@ See quickstart.md Scenario 4.
 
 ### Implementation for User Story 4
 
-- [ ] T023 [P] [US4] Create `src/data/contentTypeDemos.catalog.ts`: `export const CONTENT_TYPES =
+- [X] T023 [P] [US4] Create `src/data/contentTypeDemos.catalog.ts`: `export const CONTENT_TYPES =
       ["json", "text", "html", "xml"] as const;` and `export type ContentType = (typeof
       CONTENT_TYPES)[number];`; `export const CONTENT_TYPE_DEMOS: Record<ContentType, { mediaType:
       string; buildBody: () => string | object }>` — `json` → `mediaType: "application/json"`,
@@ -252,31 +252,31 @@ See quickstart.md Scenario 4.
       fixed, well-formed HTML document string; `xml` → `mediaType: "application/xml"`,
       `buildBody` returns a fixed, well-formed XML document string (data-model.md; research.md
       Decision 9 — plain template-literal strings, no XML/HTML library).
-- [ ] T024 [P] [US4] Create `src/utils/contentTypeParam.ts` (depends on T023):
+- [X] T024 [P] [US4] Create `src/utils/contentTypeParam.ts` (depends on T023):
       `parseContentTypeParam(raw: string): ContentType` — throws `HttpError(400,
       "VALIDATION_ERROR", ...)` when `raw` is not exactly one of `CONTENT_TYPES` (FR-011).
-- [ ] T025 [US4] Create `src/services/content.service.ts` (depends on T023, T024):
+- [X] T025 [US4] Create `src/services/content.service.ts` (depends on T023, T024):
       `getContentDemo(rawType: string): { type: ContentType; mediaType: string; body: string |
       object }` — parses via `parseContentTypeParam`, looks up `CONTENT_TYPE_DEMOS`, calls
       `buildBody()`. `validateContentType(req: Request, rawType: string): ContentType` — parses
       `rawType` via `parseContentTypeParam`, then throws `HttpError(415,
       "UNSUPPORTED_MEDIA_TYPE", ...)` unless `req.is(CONTENT_TYPE_DEMOS[type].mediaType)` is
       truthy (research.md Decision 8 — Express's built-in content-type matcher; FR-012).
-- [ ] T026 [US4] Create `src/controllers/content.controller.ts` (depends on T025): `getContent(req,
+- [X] T026 [US4] Create `src/controllers/content.controller.ts` (depends on T025): `getContent(req,
       res)` → looks up the demo via `contentService.getContentDemo(req.params.type)`, then
       `res.type(demo.mediaType).send(typeof demo.body === "string" ? demo.body :
       JSON.stringify(demo.body))` for `text`/`html`/`xml`, or `res.status(200).json(demo.body)`
       for `json` (so the `Content-Type` and body shape are both correct per FR-010).
       `postContent(req, res)` → `const type = contentService.validateContentType(req,
       req.params.type); res.status(200).json({ accepted: true, type })`.
-- [ ] T027 [US4] Create `src/routes/content.routes.ts` (depends on T026): `export const
+- [X] T027 [US4] Create `src/routes/content.routes.ts` (depends on T026): `export const
       contentRouter = Router({ strict: true });` mount `GET /content/:type` →
       `contentController.getContent` and `POST /content/:type` →
       `contentController.postContent`, then `methodNotAllowedHandler` (both methods exist on this
       path from the start, so the catch-all is complete in this one task).
-- [ ] T028 [US4] Wire `contentRouter` into `src/app.ts` (depends on T027): mount it top-level,
+- [X] T028 [US4] Wire `contentRouter` into `src/app.ts` (depends on T027): mount it top-level,
       matching CLAUDE.md's `/content` path spelling (no `/api/v1` prefix).
-- [ ] T029 [P] [US4] Create `tests/content.test.ts` (depends on T028) covering spec.md User Story
+- [X] T029 [P] [US4] Create `tests/content.test.ts` (depends on T028) covering spec.md User Story
       4's acceptance scenarios 1-7: `GET /content/json` → `200`, `Content-Type:
       application/json`, valid JSON body; `GET /content/text` → `200`, `Content-Type: text/plain`;
       `GET /content/html` → `200`, `Content-Type: text/html`; `GET /content/xml` → `200`,
@@ -298,19 +298,19 @@ includes the ordinary ones and excludes the sensitive ones. See quickstart.md Sc
 
 ### Implementation for User Story 5
 
-- [ ] T030 [P] [US5] Create `src/services/headers.service.ts`: `const SENSITIVE_HEADER_NAMES =
+- [X] T030 [P] [US5] Create `src/services/headers.service.ts`: `const SENSITIVE_HEADER_NAMES =
       ["authorization", "cookie", "x-api-key"] as const;` (Node.js already lowercases incoming
       header names, so a direct lowercase match suffices); `getSafeHeaders(req: Request):
       Record<string, string | string[]>` — returns every entry of `req.headers` whose key is
       **not** in `SENSITIVE_HEADER_NAMES` (data-model.md, FR-013).
-- [ ] T031 [US5] Create `src/controllers/headers.controller.ts` (depends on T030): `getHeaders(req,
+- [X] T031 [US5] Create `src/controllers/headers.controller.ts` (depends on T030): `getHeaders(req,
       res)` → `res.status(200).json({ headers: headersService.getSafeHeaders(req) })`.
-- [ ] T032 [US5] Create `src/routes/headers.routes.ts` (depends on T031): `export const
+- [X] T032 [US5] Create `src/routes/headers.routes.ts` (depends on T031): `export const
       headersRouter = Router({ strict: true });` mount `GET /headers` →
       `headersController.getHeaders`; `methodNotAllowedHandler` for other methods.
-- [ ] T033 [US5] Wire `headersRouter` into `src/app.ts` (depends on T032): mount it top-level,
+- [X] T033 [US5] Wire `headersRouter` into `src/app.ts` (depends on T032): mount it top-level,
       matching CLAUDE.md's `/headers` path spelling (no `/api/v1` prefix).
-- [ ] T034 [P] [US5] Create `tests/headers.test.ts` (depends on T033) covering spec.md User Story
+- [X] T034 [P] [US5] Create `tests/headers.test.ts` (depends on T033) covering spec.md User Story
       5's acceptance scenarios 1-3: a request with several ordinary custom headers → `200` with
       those headers and values present exactly as sent; a request including `Authorization`,
       `Cookie`, and `X-API-Key` → `200` with none of those three keys anywhere in the response
@@ -331,15 +331,15 @@ readable, clear one, and confirm only it disappears. See quickstart.md Scenario 
 
 ### Implementation for User Story 6
 
-- [ ] T035 [P] [US6] Create `src/utils/cookieHeader.ts`: `parseCookieHeader(header: string |
+- [X] T035 [P] [US6] Create `src/utils/cookieHeader.ts`: `parseCookieHeader(header: string |
       undefined): Record<string, string>` — returns `{}` if `header` is missing; otherwise splits
       on `"; "`, splits each pair on the first `"="`, and `decodeURIComponent`-decodes each value,
       collecting the results into a plain object; never throws (research.md Decision 6).
-- [ ] T036 [P] [US6] Create `src/models/cookieRequests.ts`: `cookieSetRequestSchema` (zod: `name:
+- [X] T036 [P] [US6] Create `src/models/cookieRequests.ts`: `cookieSetRequestSchema` (zod: `name:
       z.string().min(1)`, `value: z.string()`, `.strict()`) — matches data-model.md's validation
       rules and `contracts/http-testing-utilities.openapi.yaml`'s `CookieSetRequest` schema
       exactly (FR-017).
-- [ ] T037 [US6] Create `src/services/cookies.service.ts` (depends on T035, T036):
+- [X] T037 [US6] Create `src/services/cookies.service.ts` (depends on T035, T036):
       `listCookies(req: Request): Record<string, string>` → `parseCookieHeader(req.headers
       .cookie)`. `setCookie(res: Response, name: string, value: string): void` → `res.cookie(name,
       value)` (Express's own built-in method — no library needed, research.md Decision 6).
@@ -347,21 +347,21 @@ readable, clear one, and confirm only it disappears. See quickstart.md Scenario 
       `parseCookieName(raw: unknown): string` — throws `HttpError(400, "VALIDATION_ERROR", ...)`
       unless `raw` is a non-empty string (used for `DELETE /cookies`'s `?name=` query parameter,
       FR-017).
-- [ ] T038 [US6] Create `src/controllers/cookies.controller.ts` (depends on T037, T036):
+- [X] T038 [US6] Create `src/controllers/cookies.controller.ts` (depends on T037, T036):
       `getCookies(req, res)` → `res.status(200).json({ cookies: cookiesService.listCookies(req)
       })`. `postCookies(req, res)` → `const { name, value } = cookieSetRequestSchema
       .parse(req.body); cookiesService.setCookie(res, name, value); res.status(200).json({ name,
       value })`. `deleteCookies(req, res)` → `const name = cookiesService
       .parseCookieName(req.query.name); cookiesService.clearCookie(res, name); res.status(200)
       .json({ cleared: true, name })`.
-- [ ] T039 [US6] Create `src/routes/cookies.routes.ts` (depends on T038): `export const
+- [X] T039 [US6] Create `src/routes/cookies.routes.ts` (depends on T038): `export const
       cookiesRouter = Router({ strict: true });` mount `GET /cookies` → `getCookies`, `POST
       /cookies` → `postCookies`, `DELETE /cookies` → `deleteCookies`, then
       `methodNotAllowedHandler` (all three methods exist on this path from the start, so the
       catch-all is complete in this one task).
-- [ ] T040 [US6] Wire `cookiesRouter` into `src/app.ts` (depends on T039): mount it top-level,
+- [X] T040 [US6] Wire `cookiesRouter` into `src/app.ts` (depends on T039): mount it top-level,
       matching CLAUDE.md's `/cookies` path spelling (no `/api/v1` prefix).
-- [ ] T041 [P] [US6] Create `tests/cookies.test.ts` (depends on T040) covering spec.md User Story
+- [X] T041 [P] [US6] Create `tests/cookies.test.ts` (depends on T040) covering spec.md User Story
       6's acceptance scenarios 1-5 and Edge Cases: `GET /cookies` with none set → `200` with `{
       cookies: {} }`; `POST /cookies` with `{"name":"a","value":"1"}` → `200` with a `Set-Cookie`
       header for `a=1`; after separately setting two cookies (`a` and `b`) and resending both via
@@ -381,21 +381,21 @@ readable, clear one, and confirm only it disappears. See quickstart.md Scenario 
 
 **Purpose**: Spec-parity and whole-suite verification.
 
-- [ ] T042 [P] Merge `contracts/http-testing-utilities.openapi.yaml`'s `tags`, `paths`,
+- [X] T042 [P] Merge `contracts/http-testing-utilities.openapi.yaml`'s `tags`, `paths`,
       `components.schemas`, and `components.responses` (`PayloadTooLarge`,
       `UnsupportedMediaType`) into the root `openapi.yaml`, reusing the existing
       `Error`/`ValidationError` schemas/responses rather than duplicating them, so `/docs`,
       `/openapi.json`, and `/openapi.yaml` document exactly the 11 operations this spec implements
       (constitution: Quality Gates & Spec Parity). No `allOf`/`oneOf`/`anyOf` combinators.
-- [ ] T043 Run `npm test` and confirm the full suite — Specs 001-006's existing tests plus
+- [X] T043 Run `npm test` and confirm the full suite — Specs 001-006's existing tests plus
       `tests/delay.test.ts`, `tests/payload.test.ts`, `tests/content.test.ts`,
       `tests/headers.test.ts`, and `tests/cookies.test.ts` — passes, including every Spec 002-006
       test that posts a request body (confirming the new global `express.json({ limit, verify
       })` options from Foundational introduced no regression).
-- [ ] T044 Execute the manual validation scenarios in
+- [X] T044 Execute the manual validation scenarios in
       `specs/007-http-testing-utilities/quickstart.md` against a running `npm run dev` server and
       confirm every expected status code, byte count, and header.
-- [ ] T045 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 11
+- [X] T045 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 11
       new endpoints correctly, with no schema errors. Note: `GET /api/v1/routes` is not yet
       implemented in this codebase (Spec 012's deliverable per the roadmap) — verified instead
       that `/openapi.json` lists exactly the 11 documented paths and every `$ref` in them

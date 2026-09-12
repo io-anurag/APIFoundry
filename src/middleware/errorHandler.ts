@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import { buildErrorEnvelope } from "../models/errorEnvelope";
 import { HttpError } from "../utils/httpError";
+import { config } from "../config";
 import { requestIdOf } from "./requestId";
 
 /**
@@ -37,11 +38,24 @@ function isJsonParseError(err: unknown): boolean {
 }
 
 /**
+ * Detects whether a caught error is body-parser's over-limit rejection, as opposed to any other
+ * `Error`. Confirmed by direct testing: body-parser's `PayloadTooLargeError` has `status === 413`
+ * and `type === "entity.too.large"` (research.md Decision 3 for Spec 007).
+ *
+ * @param err - The caught error value to inspect.
+ * @returns `true` if `err` is body-parser's `PayloadTooLargeError` shape.
+ */
+function isPayloadTooLargeError(err: unknown): boolean {
+  return err instanceof Error && (err as Error & { type?: string }).type === "entity.too.large";
+}
+
+/**
  * Express error-handling middleware mounted last in the chain. Converts a caught error into the
  * standard JSON error envelope: an `HttpError` is rendered with its own status/code/details; a
  * `ZodError` becomes a 400 `VALIDATION_ERROR` with flattened field/form errors; a body-parser JSON
- * syntax error (per `isJsonParseError`) becomes a 400 `VALIDATION_ERROR`; anything else is logged
- * via `req.log` and rendered as a 500 `INTERNAL_ERROR`.
+ * syntax error (per `isJsonParseError`) becomes a 400 `VALIDATION_ERROR`; a body-parser over-limit
+ * rejection (per `isPayloadTooLargeError`) becomes a 413 `PAYLOAD_TOO_LARGE`; anything else is
+ * logged via `req.log` and rendered as a 500 `INTERNAL_ERROR`.
  *
  * @param err - The error thrown or passed to `next()` upstream.
  * @param req - The Express request; used for the request id and logging.
@@ -76,6 +90,17 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
       .json(
         buildErrorEnvelope("VALIDATION_ERROR", "Request body is not valid JSON", requestId, {
           reason: (err as Error).message,
+        })
+      );
+    return;
+  }
+
+  if (isPayloadTooLargeError(err)) {
+    res
+      .status(413)
+      .json(
+        buildErrorEnvelope("PAYLOAD_TOO_LARGE", "Request body exceeds the maximum allowed size", requestId, {
+          limit: config.maxPayloadSize,
         })
       );
     return;
