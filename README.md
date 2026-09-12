@@ -1,4 +1,5 @@
-# APIFoundry
+# <img width="280" height="280" alt="APIFoundry" style="max-width: 100%;" src="https://github.com/user-attachments/assets/ab43ac40-e97f-4933-bbc4-8afeffd3b709" />
+
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20_LTS-green?logo=node.js&logoColor=white)](https://nodejs.org/)
