@@ -1,43 +1,13 @@
-import { seedUsers } from "../../src/data/users.seed";
-import { seedProducts } from "../../src/data/products.seed";
-import { seedCustomers } from "../../src/data/customers.seed";
-import { seedOrders } from "../../src/data/orders.seed";
-import { seedCategories } from "../../src/data/categories.seed";
-import { seedPosts } from "../../src/data/posts.seed";
-import { seedComments } from "../../src/data/comments.seed";
-import { seedReviews } from "../../src/data/reviews.seed";
-import { seedPayments } from "../../src/data/payments.seed";
-import { sessionStore } from "../../src/data/session.store";
-import { apiKeyStore } from "../../src/data/apiKey.store";
-import { rateLimitStore } from "../../src/data/rateLimit.store";
-import { resetSeededRandom } from "../../src/utils/seededRandom";
-import { idempotencyStore } from "../../src/data/idempotency.store";
-import { cacheResourceStore } from "../../src/data/cacheResource.store";
-import { fileStore, resetFileSequence } from "../../src/data/files.store";
+import { resetDataStores, resetAuthStores } from "../../src/services/admin.service";
 
 /**
  * Restores every in-memory store to its deterministic seeded state. Call from `beforeEach` in every
  * test file that mutates a store, since Vitest keeps one module registry per test file (state
- * otherwise leaks between `it()` blocks in the same file). Order matters: orders reference customers
- * and products; comments reference posts; posts and reviews reference users; reviews also reference
- * products; payments reference orders — each must be reseeded only after what it references.
+ * otherwise leaks between `it()` blocks in the same file). Delegates to the same
+ * `resetDataStores`/`resetAuthStores` functions the `/admin/reset`/`/admin/auth/reset` endpoints
+ * call (Spec 011), so test-time reset and production admin-reset can never drift apart.
  */
 export function resetStores(): void {
-  seedUsers();
-  seedProducts();
-  seedCustomers();
-  seedOrders();
-  seedCategories();
-  seedPosts();
-  seedComments();
-  seedReviews();
-  seedPayments();
-  sessionStore.reset([]);
-  apiKeyStore.reset([]);
-  rateLimitStore.reset([]);
-  resetSeededRandom();
-  idempotencyStore.reset([]);
-  cacheResourceStore.reset();
-  fileStore.reset([]);
-  resetFileSequence();
+  resetDataStores();
+  resetAuthStores();
 }

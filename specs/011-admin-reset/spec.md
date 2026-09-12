@@ -128,9 +128,11 @@ present afterward.
 - What happens when `POST /admin/reset` is called while another request is concurrently reading or
   writing a resource? The reset MUST leave the store in a consistent state — no partially-reset
   resource collection — rather than a state that mixes seed and stale data.
-- What happens when the admin credential header is present but malformed (e.g. wrong casing, extra
-  whitespace, empty string value)? It MUST be treated as an invalid credential (`403`), not crash the
-  request handler.
+- What happens when the `X-Admin-Token` header is present but its **value** is malformed (e.g. wrong
+  casing or extra whitespace relative to the configured token; an empty string is handled separately
+  as "missing," per FR-002)? It MUST be treated as an invalid credential (`403`), not crash the
+  request handler. (Header **names** are case-insensitive per HTTP and are not a source of ambiguity
+  here — only the credential value itself is compared.)
 - What happens when `ADMIN_TOKEN` is left at its documented example default? The server MUST still
   enforce it like any other configured value — this feature does not special-case the example value,
   it is solely the deployer's responsibility to change it for any non-local use.
@@ -162,7 +164,11 @@ present afterward.
 - **FR-005**: System MUST expose `POST /admin/reset` that, given a valid admin credential, restores
   every CRUD/read-oriented resource collection (users, products, orders, customers, categories, posts,
   comments, reviews, payments, files, and the cache-demo resource) to its original deterministic seed
-  content, discarding every mutation made since server start or the last reset.
+  content, discarding every mutation made since server start or the last reset, and MUST also restore
+  the shared seeded random source that drives Spec 008/010's probabilistic failure behavior
+  (`GET /flaky`, `scenario=*`'s `failureRate`) to its fixed initial state — required by the
+  constitution's Determinism & Reproducibility principle (NON-NEGOTIABLE), so a test suite calling
+  this endpoint between runs gets the exact same sequence of simulated outcomes every time.
 - **FR-006**: System MUST, as part of `POST /admin/reset`, clear the real rate-limiter's counters
   (Spec 008) so the next request to a rate-limited endpoint starts from an unthrottled state.
 - **FR-007**: System MUST, as part of `POST /admin/reset`, clear the idempotency-key store (Spec 008)
@@ -199,7 +205,8 @@ present afterward.
 - **Admin Credential**: The single shared secret (`ADMIN_TOKEN`) a caller must present to authorize
   either reset endpoint; not tied to any specific user, role, or scope from Spec 005/006.
 - **Data Reset Scope**: The set of stateful subsystems `POST /admin/reset` restores — every CRUD/
-  read-oriented resource collection, the rate-limiter's counters, and the idempotency-key store.
+  read-oriented resource collection, the rate-limiter's counters, the idempotency-key store, and the
+  shared seeded random source behind Spec 008/010's probabilistic failure behavior.
 - **Auth Reset Scope**: The set of stateful subsystems `POST /admin/auth/reset` restores — issued JWT
   session/refresh token records, revoked-token records, and issued/revoked API keys.
 

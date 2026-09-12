@@ -9,10 +9,11 @@ description: "Task list template for feature implementation"
 
 **Prerequisites**: [plan.md](plan.md), [spec.md](spec.md), [research.md](research.md), [data-model.md](data-model.md), [contracts/admin-reset.openapi.yaml](contracts/admin-reset.openapi.yaml), [quickstart.md](quickstart.md)
 
-**Tests**: Included. CLAUDE.md's Testing Expectations explicitly requires coverage for admin/reset
-("... auth ... rate limiting ... idempotency ... and error handling"), and the constitution's
-Quality Gates ("new or changed endpoints MUST include corresponding automated test coverage ...
-before being considered done") make test coverage mandatory for this project, not optional.
+**Tests**: Included. The constitution's Quality Gates ("new or changed endpoints MUST include
+corresponding automated test coverage ... before being considered done") make test coverage
+mandatory for this project, not optional; CLAUDE.md's Testing Expectations paragraph names the same
+general categories this feature touches (auth, rate limiting, idempotency, error handling), though
+it does not name "admin/reset" as its own category.
 
 **Organization**: Tasks are grouped by user story (from spec.md) to enable independent
 implementation and testing of each story. `adminAuth` (the credential gate FR-001-FR-004 require)
@@ -114,7 +115,7 @@ quickstart.md Scenario 1.
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Create `src/controllers/admin.controller.ts` (depends on T002, T003): `import type
+- [X] T005 [US1] Create `src/controllers/admin.controller.ts` (depends on T002, T003): `import type
       { Request, Response } from "express"; import { resetDataStores } from
       "../services/admin.service"; import { requestIdOf } from "../middleware/requestId"; import
       type { AdminResetResult } from "../models/adminResetResult";` export `function
@@ -122,18 +123,18 @@ quickstart.md Scenario 1.
       AdminResetResult = { message: "Data reset to seed state", domain: "data", requestId:
       requestIdOf(req) }; res.status(200).json(result); }` — ignores `req.body` entirely (spec.md
       Edge Cases: request body content is never consulted).
-- [ ] T006 [US1] Create `src/routes/admin.routes.ts` (depends on T005, T001): `import { Router }
+- [X] T006 [US1] Create `src/routes/admin.routes.ts` (depends on T005, T001): `import { Router }
       from "express"; import * as adminController from "../controllers/admin.controller"; import {
       adminAuth } from "../middleware/adminAuth"; import { methodNotAllowedHandler } from
       "../middleware/methodNotAllowed"; export const adminRouter = Router({ strict: true });
       adminRouter.post("/admin/reset", adminAuth, adminController.postAdminReset);
       adminRouter.all("/admin/reset", methodNotAllowedHandler);` — `adminAuth` runs before the
       controller, so a rejected request never reaches `resetDataStores()` (FR-004).
-- [ ] T007 [US1] Wire `adminRouter` into `src/app.ts` (depends on T006): `import { adminRouter }
+- [X] T007 [US1] Wire `adminRouter` into `src/app.ts` (depends on T006): `import { adminRouter }
       from "./routes/admin.routes";` and `app.use(adminRouter);` mounted top-level, alongside
       `authRouter`/`apiKeyRouter`/`errorsRouter`/etc. (research.md Decision 4 — CLAUDE.md spells
       `/admin/reset` with no `/api/v1` prefix).
-- [ ] T008 [P] [US1] Create `tests/admin.test.ts` (depends on T007): `POST /admin/reset` with
+- [X] T008 [P] [US1] Create `tests/admin.test.ts` (depends on T007): `POST /admin/reset` with
       `X-Admin-Token: admin-secret` (the default `config.adminToken` in the test environment) →
       `200` with `{ message, domain: "data", requestId }` matching the response's own
       `X-Request-ID` header. Mutate a resource (e.g. `DELETE /api/v1/products/1`), call
@@ -165,16 +166,16 @@ resource mutation made beforehand is untouched (FR-011). See quickstart.md Scena
 
 ### Implementation for User Story 2
 
-- [ ] T009 [US2] Extend `src/controllers/admin.controller.ts` (depends on T005): add `import {
+- [X] T009 [US2] Extend `src/controllers/admin.controller.ts` (depends on T005): add `import {
       resetAuthStores } from "../services/admin.service";` and export `function
       postAdminAuthReset(req: Request, res: Response): void { resetAuthStores(); const result:
       AdminResetResult = { message: "Auth state reset to initial configuration", domain: "auth",
       requestId: requestIdOf(req) }; res.status(200).json(result); }`.
-- [ ] T010 [US2] Extend `src/routes/admin.routes.ts` (depends on T009, T006): add
+- [X] T010 [US2] Extend `src/routes/admin.routes.ts` (depends on T009, T006): add
       `adminRouter.post("/admin/auth/reset", adminAuth, adminController.postAdminAuthReset);
       adminRouter.all("/admin/auth/reset", methodNotAllowedHandler);` — reuses the same
       already-mounted `adminRouter` from T007, so no further `app.ts` change is needed.
-- [ ] T011 [P] [US2] Extend `tests/admin.test.ts` (depends on T010): `POST /admin/auth/reset` with
+- [X] T011 [P] [US2] Extend `tests/admin.test.ts` (depends on T010): `POST /admin/auth/reset` with
       a valid credential → `200` with `{ message, domain: "auth", requestId }`. Issue a session via
       `POST /auth/login` (or `POST /auth/token`) and an API key via `POST /auth/api-key`, revoke one
       of each, call `POST /admin/auth/reset`, then confirm the previously issued
@@ -204,7 +205,7 @@ is still present afterward. See quickstart.md Scenario 3.
 
 ### Tests for User Story 3
 
-- [ ] T012 [US3] Extend `tests/admin.test.ts` (depends on T008, T011): for each of `POST
+- [X] T012 [US3] Extend `tests/admin.test.ts` (depends on T008, T011): for each of `POST
       /admin/reset` and `POST /admin/auth/reset` — no `X-Admin-Token` header → `401`
       `UNAUTHORIZED`; `X-Admin-Token: ""` (empty string) → `401` `UNAUTHORIZED` (treated as missing,
       not a partial match); `X-Admin-Token: wrong-value` → `403` `FORBIDDEN`. For each rejection
@@ -224,19 +225,19 @@ is still present afterward. See quickstart.md Scenario 3.
 
 **Purpose**: Spec-parity and whole-suite verification.
 
-- [ ] T013 [P] Merge `contracts/admin-reset.openapi.yaml`'s `tags`, `paths`,
+- [X] T013 [P] Merge `contracts/admin-reset.openapi.yaml`'s `tags`, `paths`,
       `components.securitySchemes` (`adminTokenAuth`), and `components.schemas`
       (`AdminResetResult`) into the root `openapi.yaml`, reusing the existing
       `Unauthorized`/`Forbidden` response components rather than duplicating them, so `/docs`,
       `/openapi.json`, and `/openapi.yaml` document exactly the 2 operations this spec implements
       (constitution: Quality Gates & Spec Parity). No `allOf`/`oneOf`/`anyOf` combinators (project
       memory: OpenAPI spec must avoid combinators).
-- [ ] T014 Run `npm test` and confirm the full suite — Specs 001-010's existing tests (including
+- [X] T014 Run `npm test` and confirm the full suite — Specs 001-010's existing tests (including
       the refactored `tests/helpers/resetStores.ts` from T004, unchanged in behavior) plus this
       feature's `tests/admin.test.ts` — passes.
-- [ ] T015 Execute the manual validation scenarios in `specs/011-admin-reset/quickstart.md` against
+- [X] T015 Execute the manual validation scenarios in `specs/011-admin-reset/quickstart.md` against
       a running `npm run dev` server and confirm every expected status code and response body.
-- [ ] T016 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 2 new
+- [X] T016 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 2 new
       operations correctly with no schema errors; confirm `/openapi.json` lists exactly
       `/admin/reset` and `/admin/auth/reset`, the `adminTokenAuth` security scheme is present, and
       every `$ref` in them resolves. Note: `GET /api/v1/routes` is not yet implemented in this

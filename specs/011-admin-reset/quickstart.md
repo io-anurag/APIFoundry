@@ -15,8 +15,7 @@ brevity).
 ```bash
 # Mutate a few resources first.
 curl -s -X DELETE http://localhost:3000/api/v1/products/1 -o /dev/null
-curl -s -X POST http://localhost:3000/api/v1/users \
-  -H "Content-Type: application/json" -d '{"name":"Temp","email":"temp@example.com"}' -o /dev/null
+curl -s -X DELETE http://localhost:3000/api/v1/users/5 -o /dev/null
 
 # Drive the rate limiter and record an idempotency key (skip if RATE_LIMIT_ENABLED=false locally).
 curl -s -o /dev/null http://localhost:3000/rate-limit
@@ -27,8 +26,8 @@ curl -s -X POST http://localhost:3000/admin/reset -H "X-Admin-Token: admin-secre
 
 # Confirm every resource is back to its seeded content.
 curl -s http://localhost:3000/api/v1/products/1 | jq '.name'
-curl -s "http://localhost:3000/api/v1/users?search=temp@example.com" | jq '.data | length'
-# Expect: product 1's original seeded name; 0 matching users (the created one is gone)
+curl -s -o /dev/null -w "user 5 -> %{http_code}\n" http://localhost:3000/api/v1/users/5
+# Expect: product 1's original seeded name; user 5 -> 200 (restored, no longer 404)
 ```
 
 **Expected outcome (SC-001, SC-002)**: every CRUD/read-oriented resource, the rate limiter, and the
@@ -38,7 +37,7 @@ idempotency store are back to their original seeded/empty state after one call.
 
 ```bash
 # Issue and revoke an API key.
-KEY=$(curl -s -X POST http://localhost:3000/auth/api-key | jq -r '.key')
+KEY=$(curl -s -X POST http://localhost:3000/auth/api-key | jq -r '.apiKey')
 curl -s -X POST http://localhost:3000/auth/api-key/revoke -H "X-API-Key: $KEY" -o /dev/null
 
 # Mutate a data-plane resource so we can prove this reset leaves it alone.

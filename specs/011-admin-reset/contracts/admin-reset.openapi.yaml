@@ -3,9 +3,12 @@
 # (constitution: one document, always in sync with the implementation) — this fragment is not
 # served on its own.
 #
-# References to Unauthorized and Forbidden assume the root document (seeded by Spec 001, extended by
-# Specs 005/006) already defines them. This fragment adds one new security scheme
-# (adminTokenAuth) and one new schema (AdminResetResult); no existing component is redefined.
+# 401/403 responses reuse only the root document's existing Error schema (seeded by Spec 001), with
+# their own admin-specific descriptions inline — not the shared Unauthorized/Forbidden response
+# components, whose prose ("... token", "... required role") is worded for the JWT/role auth
+# mechanism and would be misleading for this feature's static shared-secret header check. This
+# fragment adds one new security scheme (adminTokenAuth) and one new schema (AdminResetResult); no
+# existing component is redefined.
 #
 # No allOf/oneOf/anyOf combinators are used anywhere below, consistent with every prior spec's
 # OpenAPI fragment in this project (and this project's own saved convention against them).
@@ -31,8 +34,16 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/AdminResetResult" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/Forbidden" }
+        "401":
+          description: Missing or empty X-Admin-Token header
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: X-Admin-Token header present but does not match the configured admin token
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
 
   /admin/auth/reset:
     post:
@@ -47,8 +58,16 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/AdminResetResult" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/Forbidden" }
+        "401":
+          description: Missing or empty X-Admin-Token header
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: X-Admin-Token header present but does not match the configured admin token
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
 
 components:
   securitySchemes:

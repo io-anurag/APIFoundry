@@ -42,9 +42,16 @@ Specs implemented so far:
   (`Idempotency-Key`), and conditional-request caching (`ETag`/`Last-Modified`).
 - **009 — Files API**: bounded, in-memory file upload/download/list/delete, isolated from every other
   feature area.
+- **010 — Error Simulation & Generic Scenario Endpoint**: nine dedicated, deterministic `/errors/*`
+  failure demos plus `GET /api/v1/test` — the primary k6-facing hook that composes the same outcomes
+  (plus `delayed`/`large-response`) behind a single `scenario` query parameter, with an optional
+  `status` escape hatch and a tunable `failureRate`.
+- **011 — Admin & Reset**: `X-Admin-Token`-gated `POST /admin/reset` and `POST /admin/auth/reset`,
+  restoring the mock server's data-plane and auth-plane state to their deterministic seed
+  configuration — independently of each other — without a process restart.
 
-The rest of the surface (error simulation & the generic scenario endpoint, admin/reset, OpenAPI/route
-discovery hardening, and test/k6 hardening) is tracked in [ROADMAP.md](ROADMAP.md).
+The rest of the surface (OpenAPI/route discovery hardening and test/k6 hardening) is tracked in
+[ROADMAP.md](ROADMAP.md).
 
 ## Tech stack
 
@@ -232,6 +239,35 @@ authentication. All content is held in memory only — nothing is written to dis
 | GET    | `/files/{id}` | Downloads a file's exact original bytes with its original `Content-Type` and a safely-encoded `Content-Disposition`; `404` if unknown/deleted, `400` if `{id}` is malformed. |
 | DELETE | `/files/{id}` | Deletes a stored file (`204`); `404` on a repeated delete or unknown id, `400` if `{id}` is malformed.                                            |
 
+### Error Simulation & Generic Scenario Endpoint (Spec 010)
+
+Top-level `/errors/*` (not under `{API_PREFIX}`), plus `{API_PREFIX}/test`. None require
+authentication — `/errors/unauthorized` and `/errors/forbidden` (and their `scenario` equivalents)
+are unconditional simulations that ignore any credentials supplied.
+
+| Method | Path                                                            | Description                                                                                                                                       |
+| ------ | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/errors/validation`, `/errors/not-found`, `/errors/conflict`, `/errors/unauthorized`, `/errors/forbidden`, `/errors/rate-limit`, `/errors/server-error`, `/errors/service-unavailable`, `/errors/timeout` | Nine dedicated endpoints, each always returning one fixed status/error code (`400`/`404`/`409`/`401`/`403`/`429`/`500`/`503`/`408` respectively), regardless of headers, body, or credentials |
+| GET    | `{API_PREFIX}/test?scenario=&status=&delay=&failureRate=`       | The primary k6-facing hook: dispatches to the same nine outcomes above (plus `success`, `delayed`, `large-response`) via `scenario`; an optional `status` reaches any status-code-playground code when no conflicting scenario is set; `delay` (ms, bounded by `MAX_DELAY_MS`) applies to `scenario=delayed`; `failureRate` ([0, 1], default `1`) tunes the four failure-representing scenarios' outcome probability via the same seeded PRNG as `/flaky` |
+
+`scenario=large-response` returns a body matching `GET /payload/large`'s exact byte size. `/errors/rate-limit`
+and `scenario=rate-limit`/`timeout` never touch the real `/rate-limit` counters or actually hold the
+connection open — every outcome here is instantaneous and side-effect-free.
+
+### Admin & Reset (Spec 011)
+
+Top-level (not under `{API_PREFIX}`). Both endpoints require a `X-Admin-Token` header matching
+`ADMIN_TOKEN`: missing/empty → `401`; present but incorrect → `403` (and no reset is performed either
+way).
+
+| Method | Path                 | Description                                                                                                                                           |
+| ------ | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/admin/reset`       | Restores every CRUD/read-oriented resource, the rate limiter, the idempotency store, the cache-demo resource, uploaded files, and the shared seeded PRNG to their seeded state. Never touches auth state. |
+| POST   | `/admin/auth/reset`  | Invalidates every issued JWT session/refresh token and API key, restoring the documented demo credentials to their fresh-start behavior. Never touches resource/data state. |
+
+Both endpoints ignore any request body, are safe to call repeatedly with nothing to reset, and
+respond `200` with `{ message, domain: "data" | "auth", requestId }`.
+
 ## Response shapes
 
 Every response (success or error) carries an `X-Request-ID` header. Every error response uses the shared
@@ -284,6 +320,11 @@ Every list response uses the shared pagination envelope:
   OpenAPI contract, and quickstart for rate limiting, flaky failures, idempotent payments, and caching.
 - [specs/009-files-api/](specs/009-files-api/) — spec, plan, data model, OpenAPI contract, and
   quickstart for the file upload/download/list/delete API.
+- [specs/010-error-simulation-scenario-endpoint/](specs/010-error-simulation-scenario-endpoint/) —
+  spec, plan, data model, OpenAPI contract, and quickstart for error simulation and the generic
+  scenario endpoint.
+- [specs/011-admin-reset/](specs/011-admin-reset/) — spec, plan, data model, OpenAPI contract, and
+  quickstart for admin-gated data/auth reset.
 
 ## License
 

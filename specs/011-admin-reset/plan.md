@@ -32,8 +32,11 @@ comparison against `config.adminToken`), modeled directly on the existing `apiKe
 surface is trivial (one header presence/equality check), so it does not need `zod`.
 
 **Storage**: In-memory only, consistent with the whole project. This feature adds **no** new store;
-it only calls `.reset(...)` on nine existing stores/seed functions plus the shared seeded PRNG's
-`resetSeededRandom()`, exactly as `tests/helpers/resetStores.ts` already does today.
+it only calls `.reset(...)`/reseeds nine existing seed functions plus six additional existing stores
+(`rateLimitStore`, `idempotencyStore`, `cacheResourceStore`, `fileStore`, `sessionStore`,
+`apiKeyStore`) and two utility resets (`resetSeededRandom`, `resetFileSequence`) — see
+data-model.md's Data/Auth Reset Scope tables for the full, authoritative list — exactly as
+`tests/helpers/resetStores.ts` already does today.
 
 **Testing**: Vitest + Supertest — unchanged from Specs 001-010.
 
