@@ -44,7 +44,7 @@ additive and self-contained.
 
 **Purpose**: New dependency this feature requires.
 
-- [ ] T001 Add `multer` (runtime) and `@types/multer` (dev) to `package.json` via
+- [X] T001 Add `multer` (runtime) and `@types/multer` (dev) to `package.json` via
       `npm install multer` and `npm install --save-dev @types/multer` (research.md Decision 1 —
       the one new dependency this feature introduces, for multipart/form-data parsing).
 
@@ -58,13 +58,13 @@ phase is a real blocking prerequisite, not an empty one.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 [P] Create `src/models/file.ts`: `export interface FileRecord { id: string; filename:
+- [X] T002 [P] Create `src/models/file.ts`: `export interface FileRecord { id: string; filename:
       string; contentType: string; size: number; uploadedAt: string; sequence: number; content:
       Buffer; }` and `export interface FileMetadata { id: string; filename: string; contentType:
       string; size: number; uploadedAt: string; }` (data-model.md — `FileRecord` is the internal,
       never-directly-serialized shape; `FileMetadata` is the caller-facing projection that omits
       `content` and `sequence`).
-- [ ] T003 [P] Create `src/data/files.store.ts`: `import { createKeyedStore } from
+- [X] T003 [P] Create `src/data/files.store.ts`: `import { createKeyedStore } from
       "./keyedStore"; import type { FileRecord } from "../models/file"; export const fileStore =
       createKeyedStore<FileRecord>(); let nextSequence = 0; export function nextFileSequence():
       number { nextSequence += 1; return nextSequence; } export function resetFileSequence():
@@ -73,23 +73,23 @@ phase is a real blocking prerequisite, not an empty one.
       Decision 4 — the module-level `nextSequence` counter is the tie-break mechanism for
       deterministic newest-first ordering, since `uploadedAt` alone can collide at millisecond
       resolution).
-- [ ] T004 [P] Add two entries to `envSchema` in `src/config/env.schema.ts`, immediately after
+- [X] T004 [P] Add two entries to `envSchema` in `src/config/env.schema.ts`, immediately after
       `MAX_PAYLOAD_SIZE`: `MAX_FILE_SIZE: z.string().min(1).default("2mb"),` and
       `MAX_STORED_FILES: numeric(z.number().int().positive()).default(50),` (spec.md
       Clarifications — confirmed defaults `2mb` / `50`; research.md Decision 8 — `MAX_FILE_SIZE`
       is a `bytes`-parseable string, matching the existing `MAX_PAYLOAD_SIZE` convention, not a
       raw integer).
-- [ ] T005 Add `maxFileSize: string;` and `maxStoredFiles: number;` to the `ConfigurationProfile`
+- [X] T005 Add `maxFileSize: string;` and `maxStoredFiles: number;` to the `ConfigurationProfile`
       interface and `maxFileSize: parsed.MAX_FILE_SIZE, maxStoredFiles: parsed.MAX_STORED_FILES,`
       to the returned object in `loadConfig`, both in `src/config/index.ts` (depends on T004).
-- [ ] T006 [P] Add `MAX_FILE_SIZE=2mb` and `MAX_STORED_FILES=50` entries to `.env.example`,
+- [X] T006 [P] Add `MAX_FILE_SIZE=2mb` and `MAX_STORED_FILES=50` entries to `.env.example`,
       immediately after `MAX_PAYLOAD_SIZE=10mb`, with comments following the existing style:
       "Maximum size of a single uploaded file for POST /files. Accepts the same size-string
       format as MAX_PAYLOAD_SIZE (e.g. 2mb). Default: 2mb." and "Maximum number of files
       GET/POST /files may hold at once; POST /files returns 409 once reached (no eviction).
       Default: 50." (depends on T004; also add the same two lines to a local `.env` file if one
       exists, so the running dev server picks up the new defaults).
-- [ ] T007 Extend `tests/helpers/resetStores.ts` (depends on T003): import `fileStore,
+- [X] T007 Extend `tests/helpers/resetStores.ts` (depends on T003): import `fileStore,
       resetFileSequence` from `../../src/data/files.store` and add `fileStore.reset([]);
       resetFileSequence();` to `resetStores()`.
 
@@ -111,7 +111,7 @@ Scenario 1.
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Create `src/services/file.service.ts` (depends on T002, T003, T005): export
+- [X] T008 [US1] Create `src/services/file.service.ts` (depends on T002, T003, T005): export
       `toFileMetadata(record: FileRecord): FileMetadata` — returns `{ id: record.id, filename:
       record.filename, contentType: record.contentType, size: record.size, uploadedAt:
       record.uploadedAt }`, omitting `content` and `sequence` (FR-010, data-model.md). Export
@@ -127,13 +127,13 @@ Scenario 1.
       `|| "application/octet-stream"` fallback), call `fileStore.create(record);`, and return
       `toFileMetadata(record)`. A zero-byte `file.buffer` (`length === 0`) is accepted like any
       other — no special-casing needed (FR-005).
-- [ ] T009 [US1] Create `src/controllers/file.controller.ts` (depends on T008): export
+- [X] T009 [US1] Create `src/controllers/file.controller.ts` (depends on T008): export
       `postFile(req: Request, res: Response): void` — `if (!req.file) { throw new
       HttpError(400, "VALIDATION_ERROR", "The 'upload' file field is required."); }` (FR-002 —
       covers both a non-multipart body and a multipart body missing the `upload` field, since
       `multer` leaves `req.file` undefined in both cases); otherwise
       `res.status(201).json(fileService.uploadFile(req.file));`.
-- [ ] T010 [US1] Extend `src/middleware/errorHandler.ts` (no file dependency, but logically part
+- [X] T010 [US1] Extend `src/middleware/errorHandler.ts` (no file dependency, but logically part
       of US1 — the only story whose error paths can produce a `MulterError`): import `MulterError`
       from `"multer"`; add one more `if` block, positioned alongside the existing
       `isJsonParseError`/`isPayloadTooLargeError` checks (before the generic 500 fallback): `if
@@ -143,7 +143,7 @@ Scenario 1.
       err.code })); return; }` (research.md Decision 2 — `LIMIT_FILE_SIZE` maps to `413`
       `FILE_TOO_LARGE` per FR-003; every other `MulterError` code, e.g. `LIMIT_UNEXPECTED_FILE`
       from a wrongly-named field, maps to `400` `VALIDATION_ERROR` per FR-002).
-- [ ] T011 [US1] Create `src/routes/files.routes.ts` (depends on T009, T010): `import { Router }
+- [X] T011 [US1] Create `src/routes/files.routes.ts` (depends on T009, T010): `import { Router }
       from "express"; import multer from "multer"; import bytes from "bytes"; import { config }
       from "../config"; import { methodNotAllowedHandler } from
       "../middleware/methodNotAllowed"; import * as fileController from
@@ -155,11 +155,11 @@ Scenario 1.
       `filesRouter.all("/files", methodNotAllowedHandler);` (the catch-all for `/files` — later
       stories that add more methods on this exact path must insert their route **above** this
       line).
-- [ ] T012 [US1] Wire `filesRouter` into `src/app.ts` (depends on T011): mount it top-level
+- [X] T012 [US1] Wire `filesRouter` into `src/app.ts` (depends on T011): mount it top-level
       (alongside `delayRouter`/`payloadRouter`/.../`cacheRouter` from Specs 007-008), matching
       CLAUDE.md's `/files` path spelling (no `/api/v1` prefix — spec.md Assumptions, research.md
       Decision 8).
-- [ ] T013 [P] [US1] Create `tests/files.test.ts` (depends on T012, T007): import `resetStores`
+- [X] T013 [P] [US1] Create `tests/files.test.ts` (depends on T012, T007): import `resetStores`
       and call it in `beforeEach`. `POST /files` with `.attach("upload", Buffer.from("hello"),
       "hello.txt")` → `201` with a UUID `id`, `filename: "hello.txt"`, a `contentType`, `size:
       5`, and an `uploadedAt` string (FR-001). `.attach("upload", Buffer.alloc(0), "empty.bin")`
@@ -188,7 +188,7 @@ quickstart.md Scenario 2.
 
 ### Implementation for User Story 2
 
-- [ ] T014 [P] [US2] Create `src/utils/contentDisposition.ts`: export
+- [X] T014 [P] [US2] Create `src/utils/contentDisposition.ts`: export
       `buildContentDisposition(filename: string): string` — first strip CR/LF and other C0
       control characters from `filename` (`filename.replace(/[\x00-\x1F\x7F]/g, "")`); build the
       ASCII-safe fallback by escaping any `"`/`\` (`safe.replace(/["\\]/g, "\\$&")`); return
@@ -198,23 +198,23 @@ quickstart.md Scenario 2.
       turn a crafted filename into an unhandled `500`, violating the fail-safe-handling
       principle; the RFC 6266 `filename*=` parameter preserves non-ASCII names for modern
       clients).
-- [ ] T015 [US2] Extend `src/services/file.service.ts` (depends on T008): export
+- [X] T015 [US2] Extend `src/services/file.service.ts` (depends on T008): export
       `getFileRecordById(id: string): FileRecord` — `const record = fileStore.get(id); if
       (!record) throw new HttpError(404, "RESOURCE_NOT_FOUND", \`File ${id} not found.\`); return
       record;` (FR-008 — covers both "never uploaded" and "since deleted," since a deleted
       record is simply absent from the store).
-- [ ] T016 [US2] Extend `src/controllers/file.controller.ts` (depends on T015, T014): export
+- [X] T016 [US2] Extend `src/controllers/file.controller.ts` (depends on T015, T014): export
       `getFileById(req: Request, res: Response): void` — `const id = parseUuidParam(req.params
       .id, "file");` (FR-009 — malformed id → `400`, via the existing shared `parseUuidParam`)
       `const record = fileService.getFileRecordById(id);`
       `res.status(200).set("Content-Disposition", buildContentDisposition(record.filename))
       .type(record.contentType).send(record.content);` (FR-007).
-- [ ] T017 [US2] Extend `src/routes/files.routes.ts` (depends on T016, T011): add
+- [X] T017 [US2] Extend `src/routes/files.routes.ts` (depends on T016, T011): add
       `filesRouter.get("/files/:id", fileController.getFileById);` and
       `filesRouter.all("/files/:id", methodNotAllowedHandler);` (a new path, its own catch-all —
       later stories that add more methods on `/files/:id` must insert their route **above** this
       new catch-all line).
-- [ ] T018 [US2] Extend `tests/files.test.ts` (depends on T017): upload a small file, capture its
+- [X] T018 [US2] Extend `tests/files.test.ts` (depends on T017): upload a small file, capture its
       `id`, then `GET /files/{id}` → `200` with a body exactly equal (byte-for-byte) to the
       uploaded content, the same `Content-Type`, and a `Content-Disposition` header containing the
       original filename (FR-007). `GET /files/00000000-0000-0000-0000-000000000000` (a
@@ -240,7 +240,7 @@ quickstart.md Scenario 3.
 
 ### Implementation for User Story 3
 
-- [ ] T019 [US3] Extend `src/services/file.service.ts` (depends on T008): export
+- [X] T019 [US3] Extend `src/services/file.service.ts` (depends on T008): export
       `listFiles(rawQuery: Record<string, unknown>): ListQueryResult<FileMetadata> & { page:
       number; limit: number }` — `const query = parseListQuery(rawQuery, { allowedSortFields: []
       });` (research.md Decision 5 — no caller-facing sort field; any `?sort=` value is rejected
@@ -251,17 +251,17 @@ quickstart.md Scenario 3.
       query);` return `{ data: data.map(toFileMetadata), total, page: query.page, limit:
       query.limit };` (FR-010 — every returned item is a `FileMetadata`, never a `FileRecord`
       with its `content`).
-- [ ] T020 [US3] Extend `src/controllers/file.controller.ts` (depends on T019): export
+- [X] T020 [US3] Extend `src/controllers/file.controller.ts` (depends on T019): export
       `getFiles(req: Request, res: Response): void` — `const { data, page, limit, total } =
       fileService.listFiles(req.query as unknown as Record<string, unknown>);`
       `res.status(200).json(buildPaginationEnvelope(data, page, limit, total));` (FR-010,
       FR-011).
-- [ ] T021 [US3] Extend `src/routes/files.routes.ts` (depends on T020, T011): insert
+- [X] T021 [US3] Extend `src/routes/files.routes.ts` (depends on T020, T011): insert
       `filesRouter.get("/files", fileController.getFiles);` **above** the existing
       `filesRouter.all("/files", methodNotAllowedHandler);` line from T011 (the catch-all must
       stay last, after every real method is registered on that exact path — mirrors Spec 008's
       `payment.routes.ts` precedent).
-- [ ] T022 [US3] Extend `tests/files.test.ts` (depends on T021): with no files uploaded (after
+- [X] T022 [US3] Extend `tests/files.test.ts` (depends on T021): with no files uploaded (after
       `resetStores()`), `GET /files` → `200` with `{ data: [], pagination: { total: 0, ... } }`.
       Upload three files in sequence, then `GET /files` → `200` with all three in `data`, ordered
       newest-first (the most recently uploaded file's `id` appears at `data[0]`), and confirm no
@@ -284,20 +284,20 @@ quickstart.md Scenario 4.
 
 ### Implementation for User Story 4
 
-- [ ] T023 [US4] Extend `src/services/file.service.ts` (depends on T008): export
+- [X] T023 [US4] Extend `src/services/file.service.ts` (depends on T008): export
       `deleteFileById(id: string): void` — `const removed = fileStore.remove(id); if (!removed)
       throw new HttpError(404, "RESOURCE_NOT_FOUND", \`File ${id} not found.\`);` (FR-013 — a
       repeated delete of an already-removed id is indistinguishable from "never existed," so it
       also returns `404`, never a second `204`).
-- [ ] T024 [US4] Extend `src/controllers/file.controller.ts` (depends on T023): export
+- [X] T024 [US4] Extend `src/controllers/file.controller.ts` (depends on T023): export
       `deleteFileById(req: Request, res: Response): void` — `const id = parseUuidParam(req.params
       .id, "file");` (FR-014 — malformed id → `400`) `fileService.deleteFileById(id);
       res.status(204).end();` (FR-012).
-- [ ] T025 [US4] Extend `src/routes/files.routes.ts` (depends on T024, T017): insert
+- [X] T025 [US4] Extend `src/routes/files.routes.ts` (depends on T024, T017): insert
       `filesRouter.delete("/files/:id", fileController.deleteFileById);` **above** the existing
       `filesRouter.all("/files/:id", methodNotAllowedHandler);` line from T017 (same
       insert-before-catch-all rule as T021).
-- [ ] T026 [US4] Extend `tests/files.test.ts` (depends on T025): upload a file, capture its `id`,
+- [X] T026 [US4] Extend `tests/files.test.ts` (depends on T025): upload a file, capture its `id`,
       `DELETE /files/{id}` → `204` with no body (FR-012); immediately after, `GET /files/{id}` →
       `404`, and `GET /files` no longer lists that `id` in `data` (both confirming immediate
       removal). A second `DELETE /files/{id}` for the same, now-deleted `id` → `404`, not a
@@ -312,7 +312,7 @@ quickstart.md Scenario 4.
 
 **Purpose**: Spec-parity and whole-suite verification.
 
-- [ ] T027 [P] Merge `contracts/files-api.openapi.yaml`'s `tags`, `paths` (`/files`,
+- [X] T027 [P] Merge `contracts/files-api.openapi.yaml`'s `tags`, `paths` (`/files`,
       `/files/{id}`), `components.parameters` (`FileIdParam`), `components.schemas`
       (`FileMetadata`), and `components.responses` (`StorageLimitExceeded`) into the root
       `openapi.yaml`, reusing the existing `Error`/`ValidationError`/`NotFound`/
@@ -321,14 +321,14 @@ quickstart.md Scenario 4.
       exactly the 4 operations this spec implements (constitution: Quality Gates & Spec Parity).
       No `allOf`/`oneOf`/`anyOf` combinators (project memory: OpenAPI spec must avoid
       combinators).
-- [ ] T028 Run `npm test` and confirm the full suite — Specs 001-008's existing tests plus
+- [X] T028 Run `npm test` and confirm the full suite — Specs 001-008's existing tests plus
       `tests/files.test.ts` — passes, including confirming every other existing test file is
       unaffected (this feature touches no prior spec's resource file).
-- [ ] T029 Execute the manual validation scenarios in `specs/009-files-api/quickstart.md`
+- [X] T029 Execute the manual validation scenarios in `specs/009-files-api/quickstart.md`
       (Scenarios 1-5) against a running `npm run dev` server and confirm every expected status
       code, header, and body — including the storage-cap Scenario 5, which requires the default
       `MAX_STORED_FILES=50`.
-- [ ] T030 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 4
+- [X] T030 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 4
       new operations correctly with no schema errors. Note: `GET /api/v1/routes` is not yet
       implemented in this codebase (Spec 012's deliverable per the roadmap) — verified instead
       that `/openapi.json` lists exactly `/files` and `/files/{id}` with the documented methods,

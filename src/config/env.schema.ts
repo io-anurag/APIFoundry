@@ -47,6 +47,8 @@ export const envSchema = z.object({
 
   MAX_DELAY_MS: numeric(z.number().int().nonnegative()).default(10000),
   MAX_PAYLOAD_SIZE: z.string().min(1).default("10mb"),
+  MAX_FILE_SIZE: z.string().min(1).default("2mb"),
+  MAX_STORED_FILES: numeric(z.number().int().positive()).default(50),
 
   FAILURE_RATE: numeric(z.number().min(0).max(1)).default(0),
   FLAKY_ENABLED: boolean().default(true),

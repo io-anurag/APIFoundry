@@ -15,6 +15,8 @@ export interface ConfigurationProfile {
   readonly rateLimitWindowMs: number;
   readonly maxDelayMs: number;
   readonly maxPayloadSize: string;
+  readonly maxFileSize: string;
+  readonly maxStoredFiles: number;
   readonly failureRate: number;
   readonly flakyEnabled: boolean;
   readonly adminToken: string;
@@ -63,6 +65,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ConfigurationP
     rateLimitWindowMs: parsed.RATE_LIMIT_WINDOW_MS,
     maxDelayMs: parsed.MAX_DELAY_MS,
     maxPayloadSize: parsed.MAX_PAYLOAD_SIZE,
+    maxFileSize: parsed.MAX_FILE_SIZE,
+    maxStoredFiles: parsed.MAX_STORED_FILES,
     failureRate: parsed.FAILURE_RATE,
     flakyEnabled: parsed.FLAKY_ENABLED,
     adminToken: parsed.ADMIN_TOKEN,
