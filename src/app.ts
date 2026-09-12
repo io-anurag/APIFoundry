@@ -12,10 +12,16 @@ import { config } from "./config";
 import { requestId } from "./middleware/requestId";
 import { requestLogger } from "./middleware/requestLogger";
 import { corsMiddleware } from "./middleware/cors";
+import { captureRawBody } from "./middleware/rawBody";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
 import { authRouter } from "./routes/auth.routes";
 import { apiKeyRouter } from "./routes/apiKey.routes";
 import { basicAuthRouter } from "./routes/basicAuth.routes";
+import { delayRouter } from "./routes/delay.routes";
+import { payloadRouter } from "./routes/payload.routes";
+import { contentRouter } from "./routes/content.routes";
+import { headersRouter } from "./routes/headers.routes";
+import { cookiesRouter } from "./routes/cookies.routes";
 import { healthRouter } from "./routes/health.routes";
 import { versionRouter } from "./routes/version.routes";
 import { infoRouter } from "./routes/info.routes";
@@ -42,7 +48,7 @@ app.disable("x-powered-by");
 app.use(requestId);
 app.use(requestLogger);
 app.use(corsMiddleware);
-app.use(express.json());
+app.use(express.json({ limit: config.maxPayloadSize, verify: captureRawBody }));
 
 // Meta endpoints live outside the versioned API prefix.
 app.use(healthRouter);
@@ -50,6 +56,11 @@ app.use(versionRouter);
 app.use(authRouter);
 app.use(apiKeyRouter);
 app.use(basicAuthRouter);
+app.use(delayRouter);
+app.use(payloadRouter);
+app.use(contentRouter);
+app.use(headersRouter);
+app.use(cookiesRouter);
 app.use(openapiRouter);
 
 // Versioned resource/feature endpoints.

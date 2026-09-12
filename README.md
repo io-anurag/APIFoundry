@@ -34,9 +34,11 @@ Specs implemented so far:
 - **006 — API Key & Basic Auth**: independent, secondary auth mechanisms alongside JWT — API key
   issue/use/revoke with test-only `valid`/`expired`/`revoked` convenience issuance, and a single-account
   HTTP Basic Auth demo.
+- **007 — HTTP Testing Utilities**: low-level HTTP-mechanics endpoints — configurable response delay,
+  bounded payload generation/echo, content-type demonstration with request validation, safe header echo,
+  and multi-cookie management.
 
-HTTP testing utilities, resilience simulation, and the rest of the surface are tracked in
-[ROADMAP.md](ROADMAP.md).
+Resilience simulation and the rest of the surface are tracked in [ROADMAP.md](ROADMAP.md).
 
 ## Tech stack
 
@@ -181,6 +183,23 @@ role/scope model. Demo Basic Auth credential (feature-owned, independent of the 
 | ------------ | --------------- |
 | `demo.basic` | `basic-pass-1`  |
 
+### HTTP Testing Utilities (Spec 007)
+
+Low-level HTTP-mechanics endpoints, all top-level (not under `{API_PREFIX}`), matching CLAUDE.md's own
+path spelling. None require authentication.
+
+| Method            | Path                          | Description                                                                                                             |
+| ------------------ | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| GET                | `/delay/{ms}` , `/delay?ms=`  | Waits `ms` milliseconds before responding, bounded by `MAX_DELAY_MS`; anything over the max or malformed is rejected immediately |
+| GET                | `/payload/{small\|medium\|large}` , `/payload?size=` | Returns a generated body of the requested size (1KB / 100KB / 1MB presets, or an explicit byte count), bounded by `MAX_PAYLOAD_SIZE` |
+| POST               | `/payload`                   | Echoes `{ received: true, contentLength }` — the exact byte length of the request body received; oversized bodies get `413` |
+| GET/POST           | `/content/{json\|text\|html\|xml}` | `GET` returns a fixed demo body in the requested content type; `POST` validates the request's `Content-Type` header matches, `415` on mismatch |
+| GET                | `/headers`                   | Echoes every incoming request header except `Authorization`, `Cookie`, and `X-API-Key`                                  |
+| GET/POST/DELETE    | `/cookies`                   | Reads every cookie present (`GET`), sets one named cookie (`POST`), or clears one named cookie via `?name=` (`DELETE`) — an arbitrary number of independently-named cookies may coexist |
+
+`MAX_PAYLOAD_SIZE` is enforced globally on every request body via `express.json()`'s `limit` option
+(closing a previously-invisible gap — every endpoint in Specs 001-006 now shares this same bound).
+
 ## Response shapes
 
 Every response (success or error) carries an `X-Request-ID` header. Every error response uses the shared
@@ -227,6 +246,8 @@ Every list response uses the shared pagination envelope:
   OpenAPI contract, and quickstart for JWT auth, roles, and scopes.
 - [specs/006-api-key-basic-auth/](specs/006-api-key-basic-auth/) — spec, plan, data model, OpenAPI
   contract, and quickstart for API key and Basic Auth.
+- [specs/007-http-testing-utilities/](specs/007-http-testing-utilities/) — spec, plan, data model,
+  OpenAPI contract, and quickstart for the HTTP testing utilities.
 
 ## License
 
