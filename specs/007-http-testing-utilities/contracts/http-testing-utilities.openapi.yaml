@@ -1,0 +1,318 @@
+# Phase 1 design artifact for Spec 007 (HTTP Testing Utilities). At implementation time, every
+# path/schema/response below is merged into the project's single root openapi.yaml (constitution:
+# one document, always in sync with the implementation) — this fragment is not served on its own.
+# References to Error, ValidationError, NotFound, and the X-Request-ID header assume the root
+# document (seeded by Spec 001) already defines them.
+#
+# No allOf/oneOf/anyOf combinators are used anywhere below, consistent with every prior spec's
+# OpenAPI fragment in this project.
+
+tags:
+  - name: HTTP Testing Utilities
+    description: >
+      Low-level HTTP-mechanics endpoints for timeout, payload-size, content-type, header, and
+      cookie testing — delay, bounded payload generation/echo, content-type demonstration and
+      validation, safe header echo, and multi-cookie management.
+
+paths:
+  /delay/{ms}:
+    get:
+      tags: [HTTP Testing Utilities]
+      summary: Waits {ms} milliseconds before responding, bounded by MAX_DELAY_MS
+      operationId: getDelayByPath
+      security: []
+      parameters:
+        - name: ms
+          in: path
+          required: true
+          schema: { type: integer, minimum: 0 }
+      responses:
+        "200":
+          description: Delayed response
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DelayResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+
+  /delay:
+    get:
+      tags: [HTTP Testing Utilities]
+      summary: Waits ?ms= milliseconds before responding, bounded by MAX_DELAY_MS
+      operationId: getDelayByQuery
+      security: []
+      parameters:
+        - name: ms
+          in: query
+          required: true
+          schema: { type: integer, minimum: 0 }
+      responses:
+        "200":
+          description: Delayed response
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DelayResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+
+  /payload/{preset}:
+    get:
+      tags: [HTTP Testing Utilities]
+      summary: Returns a generated response body sized to a named preset (small=1KB, medium=100KB, large=1MB)
+      operationId: getPayloadByPreset
+      security: []
+      parameters:
+        - name: preset
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/PayloadSizePreset" }
+      responses:
+        "200":
+          description: Generated payload
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GeneratedPayload" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+
+  /payload:
+    get:
+      tags: [HTTP Testing Utilities]
+      summary: Returns a generated response body of ?size= bytes, bounded by MAX_PAYLOAD_SIZE
+      operationId: getPayloadBySize
+      security: []
+      parameters:
+        - name: size
+          in: query
+          required: true
+          schema: { type: integer, minimum: 0 }
+      responses:
+        "200":
+          description: Generated payload
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GeneratedPayload" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+    post:
+      tags: [HTTP Testing Utilities]
+      summary: Echoes the exact byte length of the posted request body, bounded by MAX_PAYLOAD_SIZE
+      operationId: postPayload
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: {}
+      responses:
+        "200":
+          description: Received
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PayloadEchoResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+
+  /content/{type}:
+    get:
+      tags: [HTTP Testing Utilities]
+      summary: Returns a response in the requested content type (json, text, html, or xml)
+      operationId: getContentDemo
+      security: []
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/ContentType" }
+      responses:
+        "200":
+          description: Content-type demo
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json: { schema: {} }
+            text/plain: { schema: { type: string } }
+            text/html: { schema: { type: string } }
+            application/xml: { schema: { type: string } }
+        "400": { $ref: "#/components/responses/ValidationError" }
+    post:
+      tags: [HTTP Testing Utilities]
+      summary: Validates the request's Content-Type header matches {type}'s expected media type
+      operationId: postContentDemo
+      security: []
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema: { $ref: "#/components/schemas/ContentType" }
+      responses:
+        "200":
+          description: Content-Type matched
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ContentAcceptedResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "415": { $ref: "#/components/responses/UnsupportedMediaType" }
+
+  /headers:
+    get:
+      tags: [HTTP Testing Utilities]
+      summary: Echoes every incoming request header except Authorization, Cookie, and X-API-Key
+      operationId: getHeaders
+      security: []
+      responses:
+        "200":
+          description: Safe headers
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HeadersResponse" }
+
+  /cookies:
+    get:
+      tags: [HTTP Testing Utilities]
+      summary: Reports every cookie present on the request
+      operationId: getCookies
+      security: []
+      responses:
+        "200":
+          description: Current cookies
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CookieMapResponse" }
+    post:
+      tags: [HTTP Testing Utilities]
+      summary: Sets an arbitrary named cookie without disturbing any other cookie held
+      operationId: postCookies
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CookieSetRequest" }
+      responses:
+        "200":
+          description: Cookie set
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CookieSetResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+    delete:
+      tags: [HTTP Testing Utilities]
+      summary: Clears one named cookie via ?name=, leaving every other cookie intact
+      operationId: deleteCookies
+      security: []
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema: { type: string, minLength: 1 }
+      responses:
+        "200":
+          description: Cookie cleared (idempotent, even if it was never set)
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CookieClearResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+
+components:
+  schemas:
+    DelayResponse:
+      type: object
+      required: [delayMs]
+      properties:
+        delayMs: { type: integer, minimum: 0 }
+
+    PayloadSizePreset:
+      type: string
+      enum: [small, medium, large]
+
+    GeneratedPayload:
+      type: object
+      required: [size, data]
+      properties:
+        size: { type: integer, minimum: 0 }
+        data: { type: string }
+
+    PayloadEchoResponse:
+      type: object
+      required: [received, contentLength]
+      properties:
+        received: { type: boolean, example: true }
+        contentLength: { type: integer, minimum: 0 }
+
+    ContentType:
+      type: string
+      enum: [json, text, html, xml]
+
+    ContentAcceptedResponse:
+      type: object
+      required: [accepted, type]
+      properties:
+        accepted: { type: boolean, example: true }
+        type: { $ref: "#/components/schemas/ContentType" }
+
+    HeadersResponse:
+      type: object
+      required: [headers]
+      properties:
+        headers:
+          type: object
+          additionalProperties: true
+
+    CookieMapResponse:
+      type: object
+      required: [cookies]
+      properties:
+        cookies:
+          type: object
+          additionalProperties: { type: string }
+
+    CookieSetRequest:
+      type: object
+      required: [name, value]
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1 }
+        value: { type: string }
+
+    CookieSetResponse:
+      type: object
+      required: [name, value]
+      properties:
+        name: { type: string }
+        value: { type: string }
+
+    CookieClearResponse:
+      type: object
+      required: [cleared, name]
+      properties:
+        cleared: { type: boolean, example: true }
+        name: { type: string }
+
+  responses:
+    PayloadTooLarge:
+      description: Request body exceeds the configured maximum payload size
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    UnsupportedMediaType:
+      description: Request's Content-Type header does not match this endpoint's expected media type
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
