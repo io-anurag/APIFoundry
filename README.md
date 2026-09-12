@@ -37,8 +37,14 @@ Specs implemented so far:
 - **007 — HTTP Testing Utilities**: low-level HTTP-mechanics endpoints — configurable response delay,
   bounded payload generation/echo, content-type demonstration with request validation, safe header echo,
   and multi-cookie management.
+- **008 — Resilience Simulation**: endpoints that simulate unreliable backends in a reproducible way —
+  per-caller rate limiting, seeded reproducible flaky failures, idempotent payment creation
+  (`Idempotency-Key`), and conditional-request caching (`ETag`/`Last-Modified`).
+- **009 — Files API**: bounded, in-memory file upload/download/list/delete, isolated from every other
+  feature area.
 
-Resilience simulation and the rest of the surface are tracked in [ROADMAP.md](ROADMAP.md).
+The rest of the surface (error simulation & the generic scenario endpoint, admin/reset, OpenAPI/route
+discovery hardening, and test/k6 hardening) is tracked in [ROADMAP.md](ROADMAP.md).
 
 ## Tech stack
 
@@ -115,6 +121,7 @@ optionally link to a user account via `userId`.
 | GET      | `/payments`                   | Paginated list                                                                                     |
 | GET      | `/payments/{id}`              | Get one by UUID                                                                                    |
 | GET      | `/payments/by-date/{date}`    | Payments processed on a given calendar date                                                        |
+| POST     | `/payments`                   | Creates a payment, honoring `Idempotency-Key` (see Resilience Simulation below)                     |
 | GET      | `/users/{id}/orders`          | Orders placed by customers linked to that user                                                     |
 | GET/POST | `/users/{id}/posts`           | List / author a post as that user                                                                  |
 | GET/POST | `/posts/{id}/comments`        | List / add a comment on that post                                                                  |
@@ -199,6 +206,31 @@ path spelling. None require authentication.
 
 `MAX_PAYLOAD_SIZE` is enforced globally on every request body via `express.json()`'s `limit` option
 (closing a previously-invisible gap — every endpoint in Specs 001-006 now shares this same bound).
+
+### Resilience Simulation (Spec 008)
+
+All top-level (not under `{API_PREFIX}`) except `POST /payments`, which extends the existing Spec 003
+resource. None require authentication.
+
+| Method | Path                | Description                                                                                                                                        |
+| ------ | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/rate-limit`       | Per-caller (by `X-API-Key` or IP) request counter against `RATE_LIMIT_REQUESTS`/`RATE_LIMIT_WINDOW_MS`; `429` + `Retry-After` past the threshold, resetting once the window elapses. Disabled entirely (always `200`) when `RATE_LIMIT_ENABLED=false`. |
+| GET    | `/flaky?failureRate=` | Fails at approximately the requested rate (`[0, 1]`, default `FAILURE_RATE`) with a status randomly chosen from `500`/`502`/`503`/`504`, via a seeded, reproducible PRNG. Disabled entirely (always `200`) when `FLAKY_ENABLED=false`.            |
+| POST   | `{API_PREFIX}/payments` | Requires an `Idempotency-Key` header; a fresh key creates one payment (`201`), an identical retry replays it (`200`), and the same key with a different body is rejected (`409`).                                                              |
+| GET    | `/cache/resource`   | Returns a demo resource with `ETag`/`Last-Modified`/`Cache-Control`; honors `If-None-Match` (checked first) and `If-Modified-Since`, returning `304` when they match.                                                                             |
+| PUT    | `/cache/resource`   | Updates the demo resource's content, reissuing its `ETag`/`Last-Modified` so any previously-valid conditional header now falls through to a fresh `200`.                                                                                          |
+
+### Files API (Spec 009)
+
+Top-level (not under `{API_PREFIX}`), matching CLAUDE.md's own path spelling. None require
+authentication. All content is held in memory only — nothing is written to disk.
+
+| Method | Path          | Description                                                                                                                                    |
+| ------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| POST   | `/files`      | Uploads one file via `multipart/form-data` under the field name `upload`; returns `201` with its id/filename/contentType/size/uploadedAt. Rejects a missing/misnamed field (`400`), a file over `MAX_FILE_SIZE` (`413`), or a store already at `MAX_STORED_FILES` (`409`, no eviction). |
+| GET    | `/files`      | Paginated list of every stored file's metadata (never raw content), ordered newest-first.                                                       |
+| GET    | `/files/{id}` | Downloads a file's exact original bytes with its original `Content-Type` and a safely-encoded `Content-Disposition`; `404` if unknown/deleted, `400` if `{id}` is malformed. |
+| DELETE | `/files/{id}` | Deletes a stored file (`204`); `404` on a repeated delete or unknown id, `400` if `{id}` is malformed.                                            |
 
 ## Response shapes
 
