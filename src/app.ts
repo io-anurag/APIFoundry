@@ -27,6 +27,7 @@ import { flakyRouter } from "./routes/flaky.routes";
 import { cacheRouter } from "./routes/cache.routes";
 import { filesRouter } from "./routes/files.routes";
 import { errorsRouter } from "./routes/errors.routes";
+import { adminRouter } from "./routes/admin.routes";
 import { healthRouter } from "./routes/health.routes";
 import { versionRouter } from "./routes/version.routes";
 import { infoRouter } from "./routes/info.routes";
@@ -72,6 +73,7 @@ app.use(flakyRouter);
 app.use(cacheRouter);
 app.use(filesRouter);
 app.use(errorsRouter);
+app.use(adminRouter);
 app.use(openapiRouter);
 
 // Versioned resource/feature endpoints.

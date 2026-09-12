@@ -1,0 +1,94 @@
+# Phase 1 design artifact for Spec 011 (Admin & Reset). At implementation time, every
+# path/schema/securityScheme below is merged into the project's single root openapi.yaml
+# (constitution: one document, always in sync with the implementation) — this fragment is not
+# served on its own.
+#
+# 401/403 responses reuse only the root document's existing Error schema (seeded by Spec 001), with
+# their own admin-specific descriptions inline — not the shared Unauthorized/Forbidden response
+# components, whose prose ("... token", "... required role") is worded for the JWT/role auth
+# mechanism and would be misleading for this feature's static shared-secret header check. This
+# fragment adds one new security scheme (adminTokenAuth) and one new schema (AdminResetResult); no
+# existing component is redefined.
+#
+# No allOf/oneOf/anyOf combinators are used anywhere below, consistent with every prior spec's
+# OpenAPI fragment in this project (and this project's own saved convention against them).
+
+tags:
+  - name: Admin
+    description: >
+      Admin-token-gated operational endpoints that restore the mock server's mutable state back to
+      its deterministic seed configuration, without a process restart — split into a data-plane
+      reset and an auth-plane reset so a caller can restore one domain independently of the other.
+
+paths:
+  /admin/reset:
+    post:
+      tags: [Admin]
+      summary: Restore every CRUD/read-oriented resource, the rate limiter, the idempotency store, the cache-demo resource, and uploaded files to their seeded state
+      operationId: postAdminReset
+      security:
+        - adminTokenAuth: []
+      responses:
+        "200":
+          description: Data-plane state has been restored to its seeded configuration
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminResetResult" }
+        "401":
+          description: Missing or empty X-Admin-Token header
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: X-Admin-Token header present but does not match the configured admin token
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /admin/auth/reset:
+    post:
+      tags: [Admin]
+      summary: Restore issued JWT session/refresh-token records and issued/revoked API keys to their initial state
+      operationId: postAdminAuthReset
+      security:
+        - adminTokenAuth: []
+      responses:
+        "200":
+          description: Auth-plane state has been restored to its initial configuration
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminResetResult" }
+        "401":
+          description: Missing or empty X-Admin-Token header
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: X-Admin-Token header present but does not match the configured admin token
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+components:
+  securitySchemes:
+    adminTokenAuth:
+      type: apiKey
+      in: header
+      name: X-Admin-Token
+      description: >
+        Shared admin secret (configured via the ADMIN_TOKEN environment variable) required to call
+        any /admin/* endpoint. Missing or empty → 401. Present but not matching → 403.
+
+  schemas:
+    AdminResetResult:
+      type: object
+      required: [message, domain, requestId]
+      properties:
+        message:
+          type: string
+          example: Data reset to seed state
+        domain:
+          type: string
+          enum: [data, auth]
+        requestId:
+          type: string
