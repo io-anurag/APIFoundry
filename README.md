@@ -1,88 +1,106 @@
-# <img width="280" height="280" alt="APIFoundry" style="max-width: 100%;" src="https://github.com/user-attachments/assets/ab43ac40-e97f-4933-bbc4-8afeffd3b709" />
+<p align="center">
+  <img width="200" height="200" alt="APIFoundry" src="https://github.com/user-attachments/assets/ab43ac40-e97f-4933-bbc4-8afeffd3b709" />
+</p>
 
+<h1 align="center">APIFoundry</h1>
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-20_LTS-green?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.x-6BA539?logo=openapiinitiative&logoColor=white)](https://www.openapis.org/)
-[![Vitest](https://img.shields.io/badge/Vitest-testing-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
-[![ESLint](https://img.shields.io/badge/ESLint-enabled-4B32C3?logo=eslint&logoColor=white)](https://eslint.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/io-anurag/APIFoundry/.github/workflows/ci.yml/badge.svg)](https://github.com/io-anurag/APIFoundry/.github/workflows/ci.yml)
-[![stars - APIFoundry](https://img.shields.io/github/stars/io-anurag/APIFoundry?style=social)](https://github.com/io-anurag/APIFoundry)
-[![forks - APIFoundry](https://img.shields.io/github/forks/io-anurag/APIFoundry?style=social)](https://github.com/io-anurag/APIFoundry)
-[![GitHub tag](https://img.shields.io/github/tag/io-anurag/APIFoundry?include_prereleases=&sort=semver&color=blue)](https://github.com/io-anurag/APIFoundry/releases/)
-[![issues - APIFoundry](https://img.shields.io/github/issues/io-anurag/APIFoundry)](https://github.com/io-anurag/APIFoundry/issues)
+<p align="center">
+  A general-purpose <b>mock API server</b> built as a testing playground — a target for functional,
+  negative, automation, contract, scenario, and performance/load testing.
+</p>
 
-A general-purpose **mock API server** built as a testing playground: a target for API functional
-testing, negative testing, automation testing, contract testing, API scenario generation, and
-performance/load testing (e.g. with k6). It exposes a wide diversity of realistic HTTP patterns, auth
-mechanisms, error conditions, and timing/payload behaviors, backed by an OpenAPI 3.x spec.
+<p align="center">
+  <a href="https://www.typescriptlang.org/"><img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-blue?logo=typescript&logoColor=white"></a>
+  <a href="https://nodejs.org/"><img alt="Node.js" src="https://img.shields.io/badge/Node.js-20_LTS-green?logo=node.js&logoColor=white"></a>
+  <a href="https://www.openapis.org/"><img alt="OpenAPI" src="https://img.shields.io/badge/OpenAPI-3.x-6BA539?logo=openapiinitiative&logoColor=white"></a>
+  <a href="https://vitest.dev/"><img alt="Vitest" src="https://img.shields.io/badge/Vitest-testing-6E9F18?logo=vitest&logoColor=white"></a>
+  <a href="https://k6.io/"><img alt="k6" src="https://img.shields.io/badge/k6-performance-7D64FF?logo=k6&logoColor=white"></a>
+  <a href="https://eslint.org/"><img alt="ESLint" src="https://img.shields.io/badge/ESLint-enabled-4B32C3?logo=eslint&logoColor=white"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
+  <br>
+  <a href="https://github.com/io-anurag/APIFoundry/.github/workflows/ci.yml"><img alt="CI" src="https://github.com/io-anurag/APIFoundry/.github/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/io-anurag/APIFoundry/releases/"><img alt="GitHub tag" src="https://img.shields.io/github/tag/io-anurag/APIFoundry?include_prereleases=&sort=semver&color=blue"></a>
+  <a href="https://github.com/io-anurag/APIFoundry/issues"><img alt="issues" src="https://img.shields.io/github/issues/io-anurag/APIFoundry"></a>
+  <a href="https://github.com/io-anurag/APIFoundry"><img alt="stars" src="https://img.shields.io/github/stars/io-anurag/APIFoundry?style=social"></a>
+  <a href="https://github.com/io-anurag/APIFoundry"><img alt="forks" src="https://img.shields.io/github/forks/io-anurag/APIFoundry?style=social"></a>
+</p>
 
-Specs implemented so far:
+APIFoundry exposes a wide diversity of realistic HTTP patterns, auth mechanisms, error conditions,
+and timing/payload behaviors — every endpoint backed by an accurate OpenAPI 3.x spec so testing
+tools (Postman, k6, contract testers, fuzzers, CI pipelines...) can discover and exercise it
+automatically. Everything runs in-memory with deterministic seed data — no database, no external
+services, no network calls other than the one you make.
 
-- **001 — Foundation, Config & Health**: the running, empty-but-correct server every later spec builds
-  on (config, cross-cutting middleware, health/version/info, OpenAPI + Swagger UI skeleton).
-- **002 — Core CRUD Resources**: full CRUD for `users`, `products`, `customers`, `orders`, backed by
-  deterministic seed data, with pagination/sorting/filtering and comprehensive input validation.
-- **003 — Read-Only Catalog & Nested Resources + Search**: read-only `categories`, `posts`, `comments`,
-  `reviews`, `payments`, six nested/derived routes connecting them to the Spec 002 resources, and
-  cross-resource `GET /api/v1/search`.
-- **004 — Status Code Playground**: `GET /api/v1/status/{code}` deterministically reproduces the exact
-  status, headers, and body for every documented HTTP status code.
-- **005 — JWT Authentication, Roles & Scopes**: login/logout/refresh/me session lifecycle, test-only
-  convenience token issuance (`valid`/`expired`/`invalid`/`revoked`) and inspection, and dedicated demo
-  endpoints proving 401-vs-403, per-role, and per-scope enforcement.
-- **006 — API Key & Basic Auth**: independent, secondary auth mechanisms alongside JWT — API key
-  issue/use/revoke with test-only `valid`/`expired`/`revoked` convenience issuance, and a single-account
-  HTTP Basic Auth demo.
-- **007 — HTTP Testing Utilities**: low-level HTTP-mechanics endpoints — configurable response delay,
-  bounded payload generation/echo, content-type demonstration with request validation, safe header echo,
-  and multi-cookie management.
-- **008 — Resilience Simulation**: endpoints that simulate unreliable backends in a reproducible way —
-  per-caller rate limiting, seeded reproducible flaky failures, idempotent payment creation
-  (`Idempotency-Key`), and conditional-request caching (`ETag`/`Last-Modified`).
-- **009 — Files API**: bounded, in-memory file upload/download/list/delete, isolated from every other
-  feature area.
-- **010 — Error Simulation & Generic Scenario Endpoint**: nine dedicated, deterministic `/errors/*`
-  failure demos plus `GET /api/v1/test` — the primary k6-facing hook that composes the same outcomes
-  (plus `delayed`/`large-response`) behind a single `scenario` query parameter, with an optional
-  `status` escape hatch and a tunable `failureRate`.
-- **011 — Admin & Reset**: `X-Admin-Token`-gated `POST /admin/reset` and `POST /admin/auth/reset`,
-  restoring the mock server's data-plane and auth-plane state to their deterministic seed
-  configuration — independently of each other — without a process restart.
+## Table of contents
 
-The rest of the surface (OpenAPI/route discovery hardening and test/k6 hardening) is tracked in
-[ROADMAP.md](ROADMAP.md).
+- [Quickstart](#quickstart)
+- [What's inside](#whats-inside)
+- [Tech stack](#tech-stack)
+- [Running the tests](#running-the-tests)
+- [API reference](#api-reference)
+- [Examples](#examples)
+- [Performance testing with k6](#performance-testing-with-k6)
+- [Response shapes](#response-shapes)
+- [Spec documentation](#spec-documentation)
+- [License](#license)
 
-## Tech stack
-
-Node.js 20 + Express + TypeScript, in-memory only (no database), environment-variable configuration,
-OpenAPI 3.x + Swagger UI, Vitest + Supertest.
-
-## Install, configure, run
+## Quickstart
 
 ```bash
 cp .env.example .env
 npm install
 
-npm run dev     # tsx watch — hot reload for development
+npm run dev                  # tsx watch — hot reload for development
 # or
 npm run build && npm start   # compiled production run
 ```
 
-Server listens on `PORT` from `.env` (default `3000`). See [.env.example](.env.example) for every
-configurable value (port, environment, API prefix, CORS origin, JWT/rate-limit/delay/payload/admin
-settings consumed by later specs).
+The server listens on `PORT` from `.env` (default `3000`). Open **`http://localhost:3000/docs`**
+for interactive Swagger UI, or fetch `GET /openapi.json` / `GET /openapi.yaml` for the machine-
+readable spec. See [.env.example](.env.example) for every configurable value (port, environment,
+API prefix, CORS origin, JWT/rate-limit/delay/payload/admin settings).
 
-## Run the tests
+## What's inside
+
+| # | Area | What it adds |
+| --- | --- | --- |
+| 001 | Foundation, Config & Health | Config, cross-cutting middleware, health/version/info, OpenAPI + Swagger UI skeleton |
+| 002 | Core CRUD Resources | Full CRUD for `users`/`products`/`customers`/`orders` with deterministic seed data, pagination/sorting/filtering, and validation |
+| 003 | Catalog, Nested Resources & Search | Read-only `categories`/`posts`/`comments`/`reviews`/`payments`, nested routes, cross-resource `search` |
+| 004 | Status Code Playground | Deterministic demo for every documented HTTP status code |
+| 005 | JWT Auth, Roles & Scopes | Login/logout/refresh/me, convenience token issuance, `401` vs `403`, role/scope enforcement |
+| 006 | API Key & Basic Auth | Independent secondary auth mechanisms alongside JWT |
+| 007 | HTTP Testing Utilities | Delay, bounded payload, content-type, header echo, cookies |
+| 008 | Resilience Simulation | Rate limiting, seeded flaky failures, idempotent payments, conditional caching |
+| 009 | Files API | Bounded, in-memory upload/download/list/delete |
+| 010 | Error Simulation & Scenario Endpoint | Deterministic `/errors/*` demos plus the k6-facing `GET /api/v1/test` hook |
+| 011 | Admin & Reset | Token-gated reset of data-plane and auth-plane state, independently |
+| 012 | OpenAPI, Swagger UI & Route Discovery | Full spec/implementation parity, enforced by an automated test, plus `GET /api/v1/routes` |
+| 013 | Test Hardening, k6 & README | ≥85% enforced statement coverage, 12 k6 performance/workflow scripts, this README |
+
+Full detail on every endpoint lives in [API reference](#api-reference) below; the *why* behind each
+spec lives in [Spec documentation](#spec-documentation).
+
+## Tech stack
+
+Node.js 20 + Express + TypeScript, in-memory only (no database), environment-variable configuration,
+OpenAPI 3.x + Swagger UI, Vitest + Supertest, k6.
+
+## Running the tests
 
 ```bash
-npm test
+npm test               # fast run, no coverage instrumentation
+npm run test:coverage  # same suite, with a v8-instrumented coverage report; enforces >=85% statement coverage
 ```
 
-## Endpoints
+## API reference
 
-### Meta (Spec 001)
+Every table below lists method, path, and behavior exactly as implemented (verified against the
+live route table and the OpenAPI document — see [Spec 012](#whats-inside)). Click a section to
+expand it.
+
+<details>
+<summary><strong>Meta (Spec 001)</strong></summary>
 
 | Method | Path                                         | Description                                                           |
 | ------ | -------------------------------------------- | --------------------------------------------------------------------- |
@@ -94,8 +112,12 @@ npm test
 | GET    | `/openapi.json`                              | OpenAPI document as JSON                                              |
 | GET    | `/openapi.yaml`                              | OpenAPI document as YAML                                              |
 | GET    | `/docs`                                      | Swagger UI                                                            |
+| GET    | `{API_PREFIX}/routes`                        | List every implemented route with its method, path, description, and auth requirement |
 
-### Core resources (Spec 002)
+</details>
+
+<details>
+<summary><strong>Core resources (Spec 002)</strong></summary>
 
 Each of the four resources below supports the full set of operations under `{API_PREFIX}` (default
 `/api/v1`):
@@ -113,7 +135,10 @@ Seed data at startup: 50 users, 50 products, 60 customers, 100 orders — determ
 across restarts. Orders reference an existing `customerId` and `items[].productId`; customers may
 optionally link to a user account via `userId`.
 
-### Catalog, nested resources & search (Spec 003)
+</details>
+
+<details>
+<summary><strong>Catalog, nested resources & search (Spec 003)</strong></summary>
 
 | Method   | Path                          | Description                                                                                        |
 | -------- | ----------------------------- | -------------------------------------------------------------------------------------------------- |
@@ -142,13 +167,19 @@ These five top-level resources are read-only (`POST`/`PUT`/`PATCH`/`DELETE` retu
 nested `POST` routes above. Seed data: ≥20 categories, ≥100 posts, ≥200 comments, ≥100 reviews, one
 payment per seeded order.
 
-### Status Code Playground (Spec 004)
+</details>
+
+<details>
+<summary><strong>Status Code Playground (Spec 004)</strong></summary>
 
 | Method | Path             | Description                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | ------ | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | GET    | `/status/{code}` | Deterministically demonstrates one of 24 documented HTTP status codes (200, 201, 202, 204, 301, 302, 304, 400, 401, 403, 404, 405, 406, 408, 409, 410, 415, 422, 429, 500, 501, 502, 503, 504) — correct status line, semantic headers (`Location` on redirects, `Allow` on 405, `Retry-After` on 429), and body shape per code. A `code` value that is malformed, outside the 100-599 range, or well-formed but undocumented always returns `400`. |
 
-### JWT Authentication, Roles & Scopes (Spec 005)
+</details>
+
+<details>
+<summary><strong>JWT Authentication, Roles & Scopes (Spec 005)</strong></summary>
 
 `/auth/*` endpoints are top-level (not under `{API_PREFIX}`), matching CLAUDE.md's own path spelling.
 
@@ -177,7 +208,10 @@ Demo login accounts (feature-owned, independent of the `users` CRUD resource —
 | `demo.manager`  | `manager-pass-1`  | `manager`  |
 | `demo.readonly` | `readonly-pass-1` | `readonly` |
 
-### API Key & Basic Auth (Spec 006)
+</details>
+
+<details>
+<summary><strong>API Key & Basic Auth (Spec 006)</strong></summary>
 
 Independent of the JWT mechanism above — no shared demo accounts, tokens, or middleware. `/auth/api-key*`,
 `/api-key/protected`, and `/auth-test/basic` are top-level (not under `{API_PREFIX}`), matching
@@ -198,7 +232,10 @@ role/scope model. Demo Basic Auth credential (feature-owned, independent of the 
 | ------------ | --------------- |
 | `demo.basic` | `basic-pass-1`  |
 
-### HTTP Testing Utilities (Spec 007)
+</details>
+
+<details>
+<summary><strong>HTTP Testing Utilities (Spec 007)</strong></summary>
 
 Low-level HTTP-mechanics endpoints, all top-level (not under `{API_PREFIX}`), matching CLAUDE.md's own
 path spelling. None require authentication.
@@ -215,7 +252,10 @@ path spelling. None require authentication.
 `MAX_PAYLOAD_SIZE` is enforced globally on every request body via `express.json()`'s `limit` option
 (closing a previously-invisible gap — every endpoint in Specs 001-006 now shares this same bound).
 
-### Resilience Simulation (Spec 008)
+</details>
+
+<details>
+<summary><strong>Resilience Simulation (Spec 008)</strong></summary>
 
 All top-level (not under `{API_PREFIX}`) except `POST /payments`, which extends the existing Spec 003
 resource. None require authentication.
@@ -228,7 +268,10 @@ resource. None require authentication.
 | GET    | `/cache/resource`   | Returns a demo resource with `ETag`/`Last-Modified`/`Cache-Control`; honors `If-None-Match` (checked first) and `If-Modified-Since`, returning `304` when they match.                                                                             |
 | PUT    | `/cache/resource`   | Updates the demo resource's content, reissuing its `ETag`/`Last-Modified` so any previously-valid conditional header now falls through to a fresh `200`.                                                                                          |
 
-### Files API (Spec 009)
+</details>
+
+<details>
+<summary><strong>Files API (Spec 009)</strong></summary>
 
 Top-level (not under `{API_PREFIX}`), matching CLAUDE.md's own path spelling. None require
 authentication. All content is held in memory only — nothing is written to disk.
@@ -240,7 +283,10 @@ authentication. All content is held in memory only — nothing is written to dis
 | GET    | `/files/{id}` | Downloads a file's exact original bytes with its original `Content-Type` and a safely-encoded `Content-Disposition`; `404` if unknown/deleted, `400` if `{id}` is malformed. |
 | DELETE | `/files/{id}` | Deletes a stored file (`204`); `404` on a repeated delete or unknown id, `400` if `{id}` is malformed.                                            |
 
-### Error Simulation & Generic Scenario Endpoint (Spec 010)
+</details>
+
+<details>
+<summary><strong>Error Simulation & Generic Scenario Endpoint (Spec 010)</strong></summary>
 
 Top-level `/errors/*` (not under `{API_PREFIX}`), plus `{API_PREFIX}/test`. None require
 authentication — `/errors/unauthorized` and `/errors/forbidden` (and their `scenario` equivalents)
@@ -255,7 +301,10 @@ are unconditional simulations that ignore any credentials supplied.
 and `scenario=rate-limit`/`timeout` never touch the real `/rate-limit` counters or actually hold the
 connection open — every outcome here is instantaneous and side-effect-free.
 
-### Admin & Reset (Spec 011)
+</details>
+
+<details>
+<summary><strong>Admin & Reset (Spec 011)</strong></summary>
 
 Top-level (not under `{API_PREFIX}`). Both endpoints require a `X-Admin-Token` header matching
 `ADMIN_TOKEN`: missing/empty → `401`; present but incorrect → `403` (and no reset is performed either
@@ -268,6 +317,98 @@ way).
 
 Both endpoints ignore any request body, are safe to call repeatedly with nothing to reset, and
 respond `200` with `{ message, domain: "data" | "auth", requestId }`.
+
+</details>
+
+## Examples
+
+Runnable `curl` examples per major feature area — success and error/edge case each — against a
+freshly started, freshly seeded server (`npm run dev`, default `.env`).
+
+**CRUD**
+
+```bash
+curl -s "http://localhost:3000/api/v1/users?page=1&limit=5" | jq        # success: paginated list
+curl -s "http://localhost:3000/api/v1/users/999999"                     # error: 404 RESOURCE_NOT_FOUND
+```
+
+**JWT auth**
+
+```bash
+curl -s -X POST http://localhost:3000/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"demo.admin","password":"admin-pass-1"}' | jq         # success: access/refresh token pair
+curl -s -X POST http://localhost:3000/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"demo.admin","password":"wrong-password"}'            # error: 401
+```
+
+**API key / Basic auth**
+
+```bash
+curl -s -X POST http://localhost:3000/auth/api-key \
+  -H 'Content-Type: application/json' -d '{"label":"demo"}' | jq        # success: issues a new API key
+curl -s http://localhost:3000/api-key/protected -H 'X-API-Key: not-a-real-key'  # error: 401
+
+curl -s -u demo.basic:basic-pass-1 http://localhost:3000/auth-test/basic       # success: 200
+curl -s -u demo.basic:wrong-password http://localhost:3000/auth-test/basic    # error: 401
+```
+
+**Status-code playground**
+
+```bash
+curl -s http://localhost:3000/api/v1/status/404                         # deterministic 404 demo
+```
+
+**Delay / payload**
+
+```bash
+curl -s "http://localhost:3000/delay/100"                               # success: waits ~100ms
+curl -s "http://localhost:3000/delay/999999"                            # error: 400, past MAX_DELAY_MS
+```
+
+**Rate limiting**
+
+```bash
+curl -s http://localhost:3000/rate-limit                                # 200 by default (RATE_LIMIT_ENABLED=false)
+# with RATE_LIMIT_ENABLED=true and RATE_LIMIT_REQUESTS exceeded within RATE_LIMIT_WINDOW_MS:
+# 429 with a Retry-After header
+```
+
+**Admin reset**
+
+```bash
+curl -s -X POST http://localhost:3000/admin/reset -H 'X-Admin-Token: admin-secret' | jq  # success
+curl -s -X POST http://localhost:3000/admin/reset                                        # error: 401, missing header
+```
+
+## Performance testing with k6
+
+`k6/` holds performance and workflow scripts for [k6](https://k6.io/docs/get-started/installation/),
+run externally against a running server instance (`npm run dev` or `npm start` first). Every script
+reads its target from the `BASE_URL` environment variable (`k6/lib/config.js`), defaulting to
+`http://localhost:3000`.
+
+| Script | Profile | Purpose |
+| --- | --- | --- |
+| `k6/smoke.js` | 1 VU / 30s | Fast sanity check across representative lightweight endpoints |
+| `k6/load.js` | 20 VUs / 2m | Steady load; p95 < 500ms, error rate < 1% |
+| `k6/stress.js` | ramp 20→100 VUs / 5m | Find the point where latency/error thresholds start to strain |
+| `k6/spike.js` | sudden jump to 200 VUs / 30s | Sudden burst tolerance; error rate < 1% by the end of ramp-down |
+| `k6/soak.js` | 20 VUs / 30m | Endurance run, surfacing slow leaks/growth |
+| `k6/latency.js` | functional | Confirms observed latency tracks `/delay`'s requested duration, bounded by `MAX_DELAY_MS` |
+| `k6/timeout.js` | functional | Confirms the `408` timeout simulations complete rather than hang |
+| `k6/error-rate.js` | functional | `/flaky` aggregate failure-rate check plus a per-VU-keyed `/rate-limit` check |
+| `k6/auth.js` | functional | Login, wrong-password, expired/revoked tokens, scope/role enforcement |
+| `k6/crud.js` | functional | One full create→get→update→delete→404 lifecycle per resource |
+| `k6/chained-workflow.js` | 1 VU | The login→me→list→get→update→create order→get order→delete-user sequence |
+| `k6/concurrent-user.js` | 50 VUs, 1 iteration each | 50 independent chained-workflow runs at once |
+
+```bash
+k6 run k6/smoke.js
+BASE_URL=http://localhost:3000 k6 run k6/chained-workflow.js
+k6 run k6/concurrent-user.js
+```
 
 ## Response shapes
 
@@ -303,29 +444,24 @@ Every list response uses the shared pagination envelope:
 
 ## Spec documentation
 
-- [specs/001-foundation-platform/](specs/001-foundation-platform/) — spec, plan, data model, OpenAPI
-  contract, and quickstart for the foundation layer.
-- [specs/002-core-crud-resources/](specs/002-core-crud-resources/) — spec, plan, data model, OpenAPI
-  contract, and quickstart for the CRUD resources.
-- [specs/003-catalog-nested-search/](specs/003-catalog-nested-search/) — spec, plan, data model, OpenAPI
-  contract, and quickstart for the catalog, nested resources, and search.
-- [specs/004-status-code-playground/](specs/004-status-code-playground/) — spec, plan, data model,
-  OpenAPI contract, and quickstart for the status code playground.
-- [specs/005-jwt-auth-roles-scopes/](specs/005-jwt-auth-roles-scopes/) — spec, plan, data model,
-  OpenAPI contract, and quickstart for JWT auth, roles, and scopes.
-- [specs/006-api-key-basic-auth/](specs/006-api-key-basic-auth/) — spec, plan, data model, OpenAPI
-  contract, and quickstart for API key and Basic Auth.
-- [specs/007-http-testing-utilities/](specs/007-http-testing-utilities/) — spec, plan, data model,
-  OpenAPI contract, and quickstart for the HTTP testing utilities.
-- [specs/008-resilience-simulation/](specs/008-resilience-simulation/) — spec, plan, data model,
-  OpenAPI contract, and quickstart for rate limiting, flaky failures, idempotent payments, and caching.
-- [specs/009-files-api/](specs/009-files-api/) — spec, plan, data model, OpenAPI contract, and
-  quickstart for the file upload/download/list/delete API.
-- [specs/010-error-simulation-scenario-endpoint/](specs/010-error-simulation-scenario-endpoint/) —
-  spec, plan, data model, OpenAPI contract, and quickstart for error simulation and the generic
-  scenario endpoint.
-- [specs/011-admin-reset/](specs/011-admin-reset/) — spec, plan, data model, OpenAPI contract, and
-  quickstart for admin-gated data/auth reset.
+Each spec's directory carries its own spec, plan, data model, OpenAPI contract, and quickstart —
+the full design rationale behind the summary table in [What's inside](#whats-inside).
+
+| Spec | Documentation |
+| --- | --- |
+| 001 — Foundation, Config & Health | [specs/001-foundation-platform/](specs/001-foundation-platform/) |
+| 002 — Core CRUD Resources | [specs/002-core-crud-resources/](specs/002-core-crud-resources/) |
+| 003 — Catalog, Nested Resources & Search | [specs/003-catalog-nested-search/](specs/003-catalog-nested-search/) |
+| 004 — Status Code Playground | [specs/004-status-code-playground/](specs/004-status-code-playground/) |
+| 005 — JWT Auth, Roles & Scopes | [specs/005-jwt-auth-roles-scopes/](specs/005-jwt-auth-roles-scopes/) |
+| 006 — API Key & Basic Auth | [specs/006-api-key-basic-auth/](specs/006-api-key-basic-auth/) |
+| 007 — HTTP Testing Utilities | [specs/007-http-testing-utilities/](specs/007-http-testing-utilities/) |
+| 008 — Resilience Simulation | [specs/008-resilience-simulation/](specs/008-resilience-simulation/) |
+| 009 — Files API | [specs/009-files-api/](specs/009-files-api/) |
+| 010 — Error Simulation & Scenario Endpoint | [specs/010-error-simulation-scenario-endpoint/](specs/010-error-simulation-scenario-endpoint/) |
+| 011 — Admin & Reset | [specs/011-admin-reset/](specs/011-admin-reset/) |
+| 012 — OpenAPI, Swagger UI & Route Discovery | [specs/012-openapi-docs-route-discovery/](specs/012-openapi-docs-route-discovery/) |
+| 013 — Test Hardening, k6 Scenarios & README | [specs/013-test-hardening-k6-readme/](specs/013-test-hardening-k6-readme/) |
 
 ## License
 

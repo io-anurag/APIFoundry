@@ -230,4 +230,27 @@ describe("Users resource", () => {
       expect(first.body.data).toEqual(second.body.data);
     });
   });
+
+  describe("Unsupported methods (405)", () => {
+    it("returns 405 for unsupported methods on the collection URL", async () => {
+      const patchRes = await request(app).patch(BASE).send({});
+      expect(patchRes.status).toBe(405);
+
+      const putRes = await request(app).put(BASE).send({});
+      expect(putRes.status).toBe(405);
+
+      const deleteRes = await request(app).delete(BASE);
+      expect(deleteRes.status).toBe(405);
+    });
+
+    it("returns 405 for unsupported methods on the single-record URL", async () => {
+      const createRes = await request(app)
+        .post(BASE)
+        .send({ name: "Method Check", email: "method.check@example.com", role: "user" });
+      const id = createRes.body.id;
+
+      const postRes = await request(app).post(`${BASE}/${id}`).send({});
+      expect(postRes.status).toBe(405);
+    });
+  });
 });

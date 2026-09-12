@@ -89,7 +89,7 @@ interface ReadmeSection {
 | CLAUDE.md Testing Expectations category | Existing covering test file(s) |
 |---|---|
 | CRUD (all four resources) | `users.test.ts`, `products.test.ts`, `orders.test.ts`, `customers.test.ts` |
-| All HTTP methods (incl. 405 on unsupported verbs) | same four, plus per-resource `methodNotAllowedHandler` assertions inline |
+| All HTTP methods (incl. 405 on unsupported verbs) | `categories.test.ts`, `comments.test.ts`, `payments.test.ts`, `posts.test.ts`, `reviews.test.ts`, `routes.test.ts`, `statusCodes.test.ts`, `admin.test.ts`, `cache.test.ts`, `errorScenarios.test.ts`, `flaky.test.ts`, `rateLimit.test.ts` already assert 405; **gap found by the T005 audit**: `users.test.ts`, `products.test.ts`, `orders.test.ts`, `customers.test.ts` did not — closed by tasks.md T006-T009 |
 | Path/query param edge cases | same four, plus `categories.test.ts`, `posts.test.ts`, `comments.test.ts`, `reviews.test.ts`, `search.test.ts` |
 | Request validation (400/422) | same four CRUD files, plus `errorEnvelope.test.ts` |
 | JWT auth (login/refresh/me/token/token-info) | `auth.test.ts`, `authToken.test.ts`, `protected.test.ts` |
@@ -116,7 +116,7 @@ interface ReadmeSection {
 | OpenAPI/route discovery/parity | `openapiDocs.test.ts`, `openapiSchema.test.ts`, `routes.test.ts`, `routeParity.test.ts` |
 | Cross-cutting: request-id, error envelope, CORS, config | `requestId.test.ts`, `errorEnvelope.test.ts`, `cors.test.ts`, `config.test.ts` |
 
-Every named category already has at least one plausible covering file by name; `/speckit-tasks`
-performs the line-by-line assertion audit that turns each row's `status` from an assumption into a
-verified `"covered"` (or produces the specific gap-closing task where it is not), per research.md
-Decision 4.
+**Audit result (T005, grep-verified against all 42 files)**: every row's `status` is `"covered"`
+except "All HTTP methods", which was `"gap"` until tasks.md T006-T009 added the missing 405
+assertions to the four core CRUD resource test files — now also `"covered"`. No other gap was
+found in this pass.
