@@ -16,6 +16,7 @@ export interface ConfigurationProfile {
   readonly maxDelayMs: number;
   readonly maxPayloadSize: string;
   readonly failureRate: number;
+  readonly flakyEnabled: boolean;
   readonly adminToken: string;
 }
 
@@ -63,6 +64,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ConfigurationP
     maxDelayMs: parsed.MAX_DELAY_MS,
     maxPayloadSize: parsed.MAX_PAYLOAD_SIZE,
     failureRate: parsed.FAILURE_RATE,
+    flakyEnabled: parsed.FLAKY_ENABLED,
     adminToken: parsed.ADMIN_TOKEN,
   });
 }

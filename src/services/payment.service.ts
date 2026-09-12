@@ -1,8 +1,12 @@
+import { randomUUID } from "node:crypto";
 import { paymentStore } from "../data/payments.seed";
 import type { Payment } from "../models/payment";
 import { HttpError } from "../utils/httpError";
 import { parseListQuery, lastQueryValue } from "../models/listQuery";
 import { applyListQuery, type ListQueryResult } from "./listQuery.service";
+import { idempotencyStore } from "../data/idempotency.store";
+import { hashRequestBody } from "../utils/canonicalJson";
+import type { CreatePaymentRequest } from "../models/paymentRequests";
 
 const ALLOWED_SORT_FIELDS = ["id", "orderId", "status", "processedAt", "createdAt"] as const;
 
@@ -51,4 +55,50 @@ export function listPaymentsByDate(
     filters: [(payment: Payment) => payment.processedAt === date],
   });
   return { data, total, page: query.page, limit: query.limit };
+}
+
+/**
+ * Creates a payment honoring `Idempotency-Key` semantics: a fresh key creates exactly one new
+ * payment; the same key reused with an identical (canonicalized) body replays the original
+ * result; the same key reused with a different body is rejected as a conflict. This whole
+ * check-then-write path is synchronous (no `await`), so concurrent requests sharing a fresh key
+ * cannot interleave (research.md Decision 4, FR-014).
+ *
+ * @param idempotencyKey - The caller-supplied `Idempotency-Key` header value.
+ * @param body - The validated request body.
+ * @returns The status code to respond with (`201` for a new payment, `200` for a replayed one)
+ *   and the resulting payment.
+ * @throws HttpError 409 IDEMPOTENCY_KEY_CONFLICT if the key was already used with a different body.
+ */
+export function createPaymentIdempotently(
+  idempotencyKey: string,
+  body: CreatePaymentRequest
+): { statusCode: 200 | 201; payment: Payment } {
+  const requestHash = hashRequestBody(body);
+  const existing = idempotencyStore.get(idempotencyKey);
+
+  if (existing) {
+    if (existing.requestHash !== requestHash) {
+      throw new HttpError(
+        409,
+        "IDEMPOTENCY_KEY_CONFLICT",
+        "This Idempotency-Key was already used with a different request body."
+      );
+    }
+    return { statusCode: 200, payment: existing.payment };
+  }
+
+  const payment: Payment = {
+    id: randomUUID(),
+    orderId: body.orderId,
+    amount: body.amount,
+    status: body.status,
+    processedAt: new Date().toISOString().slice(0, 10),
+    createdAt: new Date().toISOString(),
+  };
+
+  paymentStore.create(payment);
+  idempotencyStore.create({ id: idempotencyKey, requestHash, statusCode: 201, payment });
+
+  return { statusCode: 201, payment };
 }

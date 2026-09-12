@@ -49,6 +49,7 @@ export const envSchema = z.object({
   MAX_PAYLOAD_SIZE: z.string().min(1).default("10mb"),
 
   FAILURE_RATE: numeric(z.number().min(0).max(1)).default(0),
+  FLAKY_ENABLED: boolean().default(true),
 
   ADMIN_TOKEN: z.string().min(1).default("admin-secret"),
 });

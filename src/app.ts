@@ -22,6 +22,9 @@ import { payloadRouter } from "./routes/payload.routes";
 import { contentRouter } from "./routes/content.routes";
 import { headersRouter } from "./routes/headers.routes";
 import { cookiesRouter } from "./routes/cookies.routes";
+import { rateLimitRouter } from "./routes/rateLimit.routes";
+import { flakyRouter } from "./routes/flaky.routes";
+import { cacheRouter } from "./routes/cache.routes";
 import { healthRouter } from "./routes/health.routes";
 import { versionRouter } from "./routes/version.routes";
 import { infoRouter } from "./routes/info.routes";
@@ -61,6 +64,9 @@ app.use(payloadRouter);
 app.use(contentRouter);
 app.use(headersRouter);
 app.use(cookiesRouter);
+app.use(rateLimitRouter);
+app.use(flakyRouter);
+app.use(cacheRouter);
 app.use(openapiRouter);
 
 // Versioned resource/feature endpoints.

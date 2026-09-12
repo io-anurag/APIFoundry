@@ -74,19 +74,19 @@ Scenario 1.
 
 ### Implementation for User Story 1
 
-- [ ] T001 [P] [US1] Create `src/models/rateLimitCounter.ts`: `export interface RateLimitCounter {
+- [X] T001 [P] [US1] Create `src/models/rateLimitCounter.ts`: `export interface RateLimitCounter {
       id: string; count: number; windowStart: number; }` (data-model.md — `id` is the caller
       identity string, `count` is requests seen in the current window, `windowStart` is the epoch
       ms the current window began).
-- [ ] T002 [P] [US1] Create `src/data/rateLimit.store.ts`: `import { createKeyedStore } from
+- [X] T002 [P] [US1] Create `src/data/rateLimit.store.ts`: `import { createKeyedStore } from
       "./keyedStore"; import type { RateLimitCounter } from "../models/rateLimitCounter"; export
       const rateLimitStore = createKeyedStore<RateLimitCounter>();` (research.md Decision 1 —
       reuses the existing generic string-keyed store, exactly as `apiKeyStore` already does).
-- [ ] T003 [P] [US1] Create `src/utils/callerIdentity.ts`: `resolveCallerIdentity(req: Request):
+- [X] T003 [P] [US1] Create `src/utils/callerIdentity.ts`: `resolveCallerIdentity(req: Request):
       string` — returns the `X-API-Key` header value if present and non-empty, else `req.ip`
       (spec.md Assumptions — per-caller identity for rate limiting, since `GET /rate-limit` itself
       requires no authentication).
-- [ ] T004 [US1] Create `src/services/rateLimit.service.ts` (depends on T002): export
+- [X] T004 [US1] Create `src/services/rateLimit.service.ts` (depends on T002): export
       `checkRateLimit(callerId: string, enabled: boolean, limit: number, windowMs: number, now:
       number = Date.now()): { allowed: boolean; remaining: number; limit: number; retryAfterSec:
       number }`. When `enabled` is `false`, return `{ allowed: true, remaining: limit, limit,
@@ -104,7 +104,7 @@ Scenario 1.
       logic deterministically and instantly — by passing explicit `now` timestamps — instead of
       needing `RATE_LIMIT_ENABLED=true` in the real environment or a real 60-second sleep; the
       controller (T005) supplies the real `config` values as arguments.
-- [ ] T005 [US1] Create `src/controllers/rateLimit.controller.ts` (depends on T004, T003):
+- [X] T005 [US1] Create `src/controllers/rateLimit.controller.ts` (depends on T004, T003):
       `getRateLimit(req: Request, res: Response): void` — calls `checkRateLimit
       (resolveCallerIdentity(req), config.rateLimitEnabled, config.rateLimitRequests,
       config.rateLimitWindowMs)`; when `!result.allowed`, `res.set("Retry-After",
@@ -113,17 +113,17 @@ Scenario 1.
       rather than throwing `HttpError`, since the shared `errorHandler` has no mechanism to attach
       a response header — FR-002); otherwise `res.status(200).json({ remaining: result.remaining,
       limit: result.limit })` (FR-001).
-- [ ] T006 [US1] Create `src/routes/rateLimit.routes.ts` (depends on T005): `export const
+- [X] T006 [US1] Create `src/routes/rateLimit.routes.ts` (depends on T005): `export const
       rateLimitRouter = Router({ strict: true });` mount `GET /rate-limit` →
       `rateLimitController.getRateLimit`; `rateLimitRouter.all("/rate-limit",
       methodNotAllowedHandler)`.
-- [ ] T007 [US1] Wire `rateLimitRouter` into `src/app.ts` (depends on T006): mount it top-level
+- [X] T007 [US1] Wire `rateLimitRouter` into `src/app.ts` (depends on T006): mount it top-level
       (alongside `delayRouter`/`payloadRouter`/etc. from Spec 007), matching CLAUDE.md's
       `/rate-limit` path spelling (no `/api/v1` prefix — spec.md Assumptions).
-- [ ] T008 [US1] Extend `tests/helpers/resetStores.ts` (depends on T002): import `rateLimitStore`
+- [X] T008 [US1] Extend `tests/helpers/resetStores.ts` (depends on T002): import `rateLimitStore`
       from `../../src/data/rateLimit.store` and add `rateLimitStore.reset([]);` to
       `resetStores()`.
-- [ ] T009 [P] [US1] Create `tests/rateLimit.test.ts` (depends on T004, T007, T008): unit-level
+- [X] T009 [P] [US1] Create `tests/rateLimit.test.ts` (depends on T004, T007, T008): unit-level
       tests importing `checkRateLimit` directly from `../src/services/rateLimit.service` (mirroring
       `tests/config.test.ts`'s existing precedent of testing a pure, parameterized function
       directly) — `checkRateLimit("caller-a", false, 3, 1000)` → `allowed: true` and confirm
@@ -153,32 +153,32 @@ sequence. See quickstart.md Scenario 2.
 
 ### Implementation for User Story 2
 
-- [ ] T010 [P] [US2] Add `FLAKY_ENABLED: boolean().default(true),` to `envSchema` in
+- [X] T010 [P] [US2] Add `FLAKY_ENABLED: boolean().default(true),` to `envSchema` in
       `src/config/env.schema.ts`, placed after `FAILURE_RATE` (research.md Decision 9 — CLAUDE.md
       requires `/flaky` to be "disableable" independent of the caller-supplied `failureRate`, which
       `FAILURE_RATE` alone cannot express; mirrors the existing `RATE_LIMIT_ENABLED` pattern in the
       same schema).
-- [ ] T011 [US2] Add `flakyEnabled: boolean` to the `ConfigurationProfile` interface and
+- [X] T011 [US2] Add `flakyEnabled: boolean` to the `ConfigurationProfile` interface and
       `flakyEnabled: parsed.FLAKY_ENABLED,` to the returned object in `loadConfig` in
       `src/config/index.ts` (depends on T010).
-- [ ] T012 [P] [US2] Add a `FLAKY_ENABLED=true` entry to `.env.example`, immediately after
+- [X] T012 [P] [US2] Add a `FLAKY_ENABLED=true` entry to `.env.example`, immediately after
       `FAILURE_RATE`, with a comment following the existing style: "Master switch for `GET
       /flaky`'s failure simulation. When false, that endpoint always returns 200 regardless of
       `failureRate`. Boolean (true/false). Default: true." (depends on T010; also add the same
       line, if a local `.env` file exists, so the running dev server picks up the new default).
-- [ ] T013 [P] [US2] Create `src/utils/seededRandom.ts`: a small `mulberry32(seed: number): () =>
+- [X] T013 [P] [US2] Create `src/utils/seededRandom.ts`: a small `mulberry32(seed: number): () =>
       number` PRNG factory (research.md Decision 5 — standard public-domain 32-bit PRNG
       implementation); a module-level `let next = mulberry32(0x20260912);` (a fixed constant
       seed); export `nextRandom(): number` → `next()`; export `resetSeededRandom(): void` → `next
       = mulberry32(0x20260912);` (reinitializes to the exact same starting state).
-- [ ] T014 [P] [US2] Create `src/models/flakyRequests.ts`: `parseFailureRateParam(raw: unknown,
+- [X] T014 [P] [US2] Create `src/models/flakyRequests.ts`: `parseFailureRateParam(raw: unknown,
       fallback: number): number` — returns `fallback` when `raw === undefined`; otherwise throws
       `HttpError(400, "VALIDATION_ERROR", "failureRate must be a decimal between 0 and 1.")`
       unless `raw` is a string matching `/^(0(\.\d+)?|1(\.0+)?)$/` after trimming (accepts `"0"`,
       `"1"`, `"0.5"`, `"0.5000001"`; rejects negative, greater-than-1, scientific notation, and
       non-numeric values in one shot — FR-006, spec.md Edge Cases); returns `Number(raw.trim())`
       on success.
-- [ ] T015 [US2] Create `src/services/flaky.service.ts` (depends on T013): export interface
+- [X] T015 [US2] Create `src/services/flaky.service.ts` (depends on T013): export interface
       `FlakyOutcome { failed: boolean; status?: 500 | 502 | 503 | 504 }`; `const FAILURE_STATUSES =
       [500, 502, 503, 504] as const;`; `rollFlakyOutcome(enabled: boolean, failureRate: number,
       draw: () => number = nextRandom): FlakyOutcome` — when `enabled` is `false`, return `{
@@ -190,20 +190,20 @@ sequence. See quickstart.md Scenario 2.
       true, status }` (FR-005, FR-007). `draw` is an injectable parameter (defaulting to the real
       shared `nextRandom`) purely so tests can supply a fixed/fake draw function for edge-case
       assertions without depending on the real PRNG's exact sequence.
-- [ ] T016 [US2] Create `src/controllers/flaky.controller.ts` (depends on T015, T014): `getFlaky
+- [X] T016 [US2] Create `src/controllers/flaky.controller.ts` (depends on T015, T014): `getFlaky
       (req: Request, res: Response): void` — `const failureRate =
       parseFailureRateParam(req.query.failureRate, config.failureRate);` `const outcome =
       rollFlakyOutcome(config.flakyEnabled, failureRate);` when `outcome.failed`,
       `res.status(outcome.status!).json(buildErrorEnvelope("SIMULATED_FAILURE", "Simulated flaky
       failure.", requestIdOf(req)))`; else `res.status(200).json({ ok: true })`.
-- [ ] T017 [US2] Create `src/routes/flaky.routes.ts` (depends on T016): `export const flakyRouter =
+- [X] T017 [US2] Create `src/routes/flaky.routes.ts` (depends on T016): `export const flakyRouter =
       Router({ strict: true });` mount `GET /flaky` → `flakyController.getFlaky`;
       `flakyRouter.all("/flaky", methodNotAllowedHandler)`.
-- [ ] T018 [US2] Wire `flakyRouter` into `src/app.ts` (depends on T017): mount it top-level,
+- [X] T018 [US2] Wire `flakyRouter` into `src/app.ts` (depends on T017): mount it top-level,
       matching CLAUDE.md's `/flaky` path spelling (no `/api/v1` prefix).
-- [ ] T019 [US2] Extend `tests/helpers/resetStores.ts` (depends on T013): import
+- [X] T019 [US2] Extend `tests/helpers/resetStores.ts` (depends on T013): import
       `resetSeededRandom` from `../../src/utils/seededRandom` and call it in `resetStores()`.
-- [ ] T020 [P] [US2] Create `tests/flaky.test.ts` (depends on T015, T018, T019): unit-level tests
+- [X] T020 [P] [US2] Create `tests/flaky.test.ts` (depends on T015, T018, T019): unit-level tests
       importing `rollFlakyOutcome` directly — `rollFlakyOutcome(false, 1, () => 0)` → `{ failed:
       false }` (disabled overrides even a would-always-fail rate, FR-008); `rollFlakyOutcome(true,
       0, () => 0.999999)` → `{ failed: false }`; `rollFlakyOutcome(true, 1, () => 0)` → `{ failed:
@@ -230,24 +230,24 @@ payment), repeat with a different body (expect `409`). See quickstart.md Scenari
 
 ### Implementation for User Story 3
 
-- [ ] T021 [P] [US3] Create `src/models/idempotencyRecord.ts`: `export interface IdempotencyRecord
+- [X] T021 [P] [US3] Create `src/models/idempotencyRecord.ts`: `export interface IdempotencyRecord
       { id: string; requestHash: string; statusCode: 201; payment: Payment; }` (`id` is the raw
       `Idempotency-Key` header value; data-model.md).
-- [ ] T022 [P] [US3] Create `src/data/idempotency.store.ts`: `import { createKeyedStore } from
+- [X] T022 [P] [US3] Create `src/data/idempotency.store.ts`: `import { createKeyedStore } from
       "./keyedStore"; import type { IdempotencyRecord } from "../models/idempotencyRecord"; export
       const idempotencyStore = createKeyedStore<IdempotencyRecord>();` (research.md Decision 3).
-- [ ] T023 [P] [US3] Create `src/utils/canonicalJson.ts`: `canonicalize(value: unknown): unknown` —
+- [X] T023 [P] [US3] Create `src/utils/canonicalJson.ts`: `canonicalize(value: unknown): unknown` —
       recursively sorts object keys (arrays map element-wise, primitives pass through unchanged) so
       semantically-identical bodies with different key order produce identical output;
       `hashRequestBody(body: unknown): string` — `createHash("sha256")
       .update(JSON.stringify(canonicalize(body))).digest("hex")` (`node:crypto`, research.md
       Decision 3).
-- [ ] T024 [P] [US3] Create `src/models/paymentRequests.ts`: `createPaymentRequestSchema = z.object
+- [X] T024 [P] [US3] Create `src/models/paymentRequests.ts`: `createPaymentRequestSchema = z.object
       ({ orderId: z.number().int().positive(), amount: z.number().nonnegative(), status: z.enum
       (PAYMENT_STATUSES) }).strict();` importing `PAYMENT_STATUSES` from `./enums` (FR-010,
       data-model.md — matches the existing `Payment` model's field types exactly; `.strict()`
       rejects unexpected fields).
-- [ ] T025 [US3] Extend `src/services/payment.service.ts` (depends on T022, T023, T024, existing
+- [X] T025 [US3] Extend `src/services/payment.service.ts` (depends on T022, T023, T024, existing
       `paymentStore`): add `createPaymentIdempotently(idempotencyKey: string, body:
       z.infer<typeof createPaymentRequestSchema>): { statusCode: 200 | 201; payment: Payment }` —
       `const requestHash = hashRequestBody(body);` `const existing =
@@ -262,7 +262,7 @@ payment), repeat with a different body (expect `409`). See quickstart.md Scenari
       return `{ statusCode: 201, payment }` (FR-011; research.md Decision 4 — this whole
       check-then-write path is synchronous with no `await`, so concurrent same-key requests cannot
       interleave, satisfying FR-014 with no lock).
-- [ ] T026 [US3] Extend `src/controllers/payment.controller.ts` (depends on T025): add
+- [X] T026 [US3] Extend `src/controllers/payment.controller.ts` (depends on T025): add
       `postPayment(req: Request, res: Response): void` — `const idempotencyKey =
       req.header("Idempotency-Key");` throw `HttpError(400, "VALIDATION_ERROR", "Idempotency-Key
       header is required.")` when missing/empty (FR-009); `const body =
@@ -271,14 +271,14 @@ payment), repeat with a different body (expect `409`). See quickstart.md Scenari
       write, so an invalid body never reserves the key, FR-010); `const { statusCode, payment } =
       paymentService.createPaymentIdempotently(idempotencyKey, body);`
       `res.status(statusCode).json(payment);`.
-- [ ] T027 [US3] Extend `src/routes/payment.routes.ts` (depends on T026): insert
+- [X] T027 [US3] Extend `src/routes/payment.routes.ts` (depends on T026): insert
       `paymentRouter.post("/payments", paymentController.postPayment);` **before** the existing
       `paymentRouter.all("/payments", methodNotAllowedHandler);` line (the catch-all must stay
       last, after every real method is registered on that exact path).
-- [ ] T028 [US3] Extend `tests/helpers/resetStores.ts` (depends on T022): import
+- [X] T028 [US3] Extend `tests/helpers/resetStores.ts` (depends on T022): import
       `idempotencyStore` from `../../src/data/idempotency.store` and add
       `idempotencyStore.reset([]);` to `resetStores()`.
-- [ ] T029 [P] [US3] Create `tests/paymentsIdempotency.test.ts` (depends on T027, T028): a fresh
+- [X] T029 [P] [US3] Create `tests/paymentsIdempotency.test.ts` (depends on T027, T028): a fresh
       `Idempotency-Key` (`randomUUID()`) with a valid body → `201` and a new payment; the identical
       key+body repeated → `200` with the same payment `id` as the first call, and confirm no second
       payment exists (e.g. via `GET /api/v1/payments/:id` count or store size stays the same); the
@@ -307,14 +307,14 @@ quickstart.md Scenario 4.
 
 ### Implementation for User Story 4
 
-- [ ] T030 [P] [US4] Create `src/models/cacheResource.ts`: `export interface CacheResource {
+- [X] T030 [P] [US4] Create `src/models/cacheResource.ts`: `export interface CacheResource {
       content: unknown; version: number; updatedAt: string; }`; `cacheResourceUpdateSchema =
       z.object({ content: z.unknown() }).strict().refine((data) =>
       Object.prototype.hasOwnProperty.call(data, "content"), { message: "content is required",
       path: ["content"] });` (the `.refine` is needed because `z.unknown()` alone accepts a missing
       key as `undefined` and would not otherwise reject an absent `content` field — FR-018,
       data-model.md).
-- [ ] T031 [P] [US4] Create `src/data/cacheResource.store.ts`: a fixed seed constant (e.g. `const
+- [X] T031 [P] [US4] Create `src/data/cacheResource.store.ts`: a fixed seed constant (e.g. `const
       SEED_CONTENT = { message: "Hello, cache!" };` `const SEED_UPDATED_AT =
       "2026-01-01T00:00:00.000Z";`); module-level `let resource: CacheResource = { content:
       SEED_CONTENT, version: 1, updatedAt: SEED_UPDATED_AT };`; export `cacheResourceStore` with
@@ -323,7 +323,7 @@ quickstart.md Scenario 4.
       };` and returns it), `reset(): void` (restores `resource` to the fixed seed values) —
       research.md Decision 6 (a singleton, not `createKeyedStore`, since there is exactly one
       resource).
-- [ ] T032 [US4] Create `src/services/cache.service.ts` (depends on T031): re-export
+- [X] T032 [US4] Create `src/services/cache.service.ts` (depends on T031): re-export
       `getCacheResource = cacheResourceStore.get` and `updateCacheResource =
       cacheResourceStore.update`; `buildEtag(version: number): string` → `` `"v${version}"` ``;
       `matchesConditional(req: Request, etag: string, lastModified: string): boolean` — reads
@@ -333,7 +333,7 @@ quickstart.md Scenario 4.
       Date.parse(ifModifiedSince); if (Number.isNaN(since)) return false; return since >=
       Date.parse(lastModified);` (a malformed date parses to `NaN` and falls through to `false`,
       i.e. "does not match" → full `200`, never an error — FR-016, FR-017, spec.md Edge Cases).
-- [ ] T033 [US4] Create `src/controllers/cache.controller.ts` (depends on T032, T030):
+- [X] T033 [US4] Create `src/controllers/cache.controller.ts` (depends on T032, T030):
       `getCacheResource(req: Request, res: Response): void` — `const resource =
       cacheService.getCacheResource(); const etag = cacheService.buildEtag(resource.version);
       res.set("ETag", etag); res.set("Last-Modified", resource.updatedAt); res.set("Cache-Control",
@@ -344,17 +344,17 @@ quickstart.md Scenario 4.
       cacheService.updateCacheResource(content); const etag =
       cacheService.buildEtag(resource.version); res.set("ETag", etag).set("Last-Modified",
       resource.updatedAt).status(200).json(resource);` (FR-018).
-- [ ] T034 [US4] Create `src/routes/cache.routes.ts` (depends on T033): `export const cacheRouter =
+- [X] T034 [US4] Create `src/routes/cache.routes.ts` (depends on T033): `export const cacheRouter =
       Router({ strict: true });` mount `GET /cache/resource` → `cacheController.getCacheResource`
       and `PUT /cache/resource` → `cacheController.putCacheResource`, then
       `cacheRouter.all("/cache/resource", methodNotAllowedHandler)`.
-- [ ] T035 [US4] Wire `cacheRouter` into `src/app.ts` (depends on T034): mount it top-level,
+- [X] T035 [US4] Wire `cacheRouter` into `src/app.ts` (depends on T034): mount it top-level,
       matching CLAUDE.md's `/cache/resource` path spelling (no `/api/v1` prefix — research.md
       Decision 8).
-- [ ] T036 [US4] Extend `tests/helpers/resetStores.ts` (depends on T031): import
+- [X] T036 [US4] Extend `tests/helpers/resetStores.ts` (depends on T031): import
       `cacheResourceStore` from `../../src/data/cacheResource.store` and add
       `cacheResourceStore.reset();` to `resetStores()`.
-- [ ] T037 [P] [US4] Create `tests/cache.test.ts` (depends on T035, T036): `GET /cache/resource`
+- [X] T037 [P] [US4] Create `tests/cache.test.ts` (depends on T035, T036): `GET /cache/resource`
       with no conditional headers → `200` with `ETag`/`Last-Modified`/`Cache-Control` headers and
       the seeded body; the same `ETag` sent back via `If-None-Match` → `304` with no body; the
       current `Last-Modified` sent back via `If-Modified-Since` (no `If-None-Match`) → `304`; a
@@ -374,7 +374,7 @@ quickstart.md Scenario 4.
 
 **Purpose**: Spec-parity and whole-suite verification.
 
-- [ ] T038 [P] Merge `contracts/resilience-simulation.openapi.yaml`'s `tags`, `paths`,
+- [X] T038 [P] Merge `contracts/resilience-simulation.openapi.yaml`'s `tags`, `paths`,
       `components.schemas` (`RateLimitStatus`, `FlakyResult`, `CreatePaymentRequest`,
       `CacheResource`, `CacheResourceUpdateRequest`), and `components.responses` (`RateLimited`,
       `Conflict`) into the root `openapi.yaml`, reusing the existing `Error`/`ValidationError`/
@@ -382,16 +382,16 @@ quickstart.md Scenario 4.
       `/openapi.json`, and `/openapi.yaml` document exactly the 5 operations this spec implements
       (constitution: Quality Gates & Spec Parity). No `allOf`/`oneOf`/`anyOf` combinators
       (project memory: OpenAPI spec must avoid combinators).
-- [ ] T039 Run `npm test` and confirm the full suite — Specs 001-007's existing tests plus
+- [X] T039 Run `npm test` and confirm the full suite — Specs 001-007's existing tests plus
       `tests/rateLimit.test.ts`, `tests/flaky.test.ts`, `tests/paymentsIdempotency.test.ts`, and
       `tests/cache.test.ts` — passes, including confirming the existing `tests/payments.test.ts`
       (read-only scenarios) still passes unchanged after `payment.routes.ts`/`payment.controller
       .ts`/`payment.service.ts` gained their additive `POST` support.
-- [ ] T040 Execute the manual validation scenarios in
+- [X] T040 Execute the manual validation scenarios in
       `specs/008-resilience-simulation/quickstart.md` against a running `npm run dev` server
       (temporarily setting `RATE_LIMIT_ENABLED=true` and a low `RATE_LIMIT_REQUESTS` for Scenario
       1 as the quickstart instructs) and confirm every expected status code, header, and body.
-- [ ] T041 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 5
+- [X] T041 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 5
       new/changed operations correctly with no schema errors. Note: `GET /api/v1/routes` is not yet
       implemented in this codebase (Spec 012's deliverable per the roadmap) — verified instead
       that `/openapi.json` lists exactly the 4 new top-level paths plus the new `POST` operation on
