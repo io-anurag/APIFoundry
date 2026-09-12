@@ -32,6 +32,10 @@ tags:
     description: JWT session lifecycle (login/logout/refresh/me) and test-convenience token issuance/inspection.
   - name: Access Control Demos
     description: Dedicated endpoints demonstrating 401-vs-403, role enforcement, and scope enforcement.
+  - name: API Key & Basic Auth
+    description: >
+      Independent, secondary auth mechanisms alongside JWT (Spec 005) — issue/revoke/verify
+      opaque API keys, and a single-account HTTP Basic Auth demo.
 
 paths:
   /health:
@@ -1474,12 +1478,78 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
+
+  /auth/api-key:
+    post:
+      tags: [API Key & Basic Auth]
+      summary: Issue a new API key (test convenience; unauthenticated by design)
+      operationId: issueApiKey
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ApiKeyIssueRequest" }
+      responses:
+        "201":
+          description: Issued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApiKeyIssueResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+
+  /auth/api-key/revoke:
+    post:
+      tags: [API Key & Basic Auth]
+      summary: Revoke an API key, presented via the X-API-Key header (idempotent if already revoked)
+      operationId: revokeApiKey
+      security: [{ apiKeyAuth: [] }]
+      responses:
+        "200":
+          description: Revoked (or already was)
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api-key/protected:
+    get:
+      tags: [API Key & Basic Auth]
+      summary: Demonstrates API-key auth — 200 only for an active (unexpired, unrevoked), recognized key
+      operationId: getApiKeyProtected
+      security: [{ apiKeyAuth: [] }]
+      responses:
+        "200":
+          description: Granted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApiKeyProtectedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /auth-test/basic:
+    get:
+      tags: [API Key & Basic Auth]
+      summary: Demonstrates HTTP Basic Auth against a single seeded demo credential
+      operationId: getBasicAuthDemo
+      security: [{ basicAuth: [] }]
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BasicAuthResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    basicAuth:
+      type: http
+      scheme: basic
 
   parameters:
     PageParam:
@@ -2051,6 +2121,64 @@ components:
       properties:
         scope: { $ref: "#/components/schemas/Scope" }
         granted: { type: boolean, example: true }
+
+    ApiKeyKind:
+      type: string
+      enum: [valid, expired, revoked]
+
+    ApiKeyStatus:
+      type: string
+      enum: [active, expired, revoked]
+
+    ApiKeyIssueRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        label:
+          type: string
+          minLength: 1
+          maxLength: 100
+        kind:
+          $ref: "#/components/schemas/ApiKeyKind"
+
+    ApiKeyIssueResponse:
+      type: object
+      required: [apiKey, keyId, label, status, issuedAt, expiresAt]
+      properties:
+        apiKey:
+          type: string
+          description: The generated key value — returned only here, this one time.
+        keyId:
+          type: string
+          format: uuid
+          description: Non-secret identifier for correlation/labeling; not usable for lookup.
+        label:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/ApiKeyStatus"
+        issuedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    ApiKeyProtectedResponse:
+      type: object
+      required: [granted, keyId, label]
+      properties:
+        granted: { type: boolean, example: true }
+        keyId: { type: string, format: uuid }
+        label: { type: string, nullable: true }
+
+    BasicAuthResponse:
+      type: object
+      required: [authenticated, username]
+      properties:
+        authenticated: { type: boolean, example: true }
+        username: { type: string }
   responses:
     NotFound:
       description: The requested route does not exist

@@ -55,41 +55,41 @@ user story depends on.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T001 [P] Create `src/models/apiKey.ts`: `export const API_KEY_KINDS = ["valid", "expired",
+- [X] T001 [P] Create `src/models/apiKey.ts`: `export const API_KEY_KINDS = ["valid", "expired",
       "revoked"] as const;` and `export type ApiKeyKind = (typeof API_KEY_KINDS)[number];`; `export
       type ApiKeyStatus = "active" | "expired" | "revoked";`; an `ApiKey` interface — `id: string`
       (holds the **raw key value**, satisfying `KeyedStore<T extends { id: string }>`, per
       research.md Decision 1 — never rendered under the name `id` in any response), `keyId: string`
       (UUID, the non-secret, human-facing identifier), `label: string | null`, `revoked: boolean`,
       `issuedAt: string` (ISO 8601), `expiresAt: string | null` (data-model.md's ApiKey table).
-- [ ] T002 [P] Create `src/data/basicAuthAccount.seed.ts`: export a single fixed constant
+- [X] T002 [P] Create `src/data/basicAuthAccount.seed.ts`: export a single fixed constant
       `BASIC_AUTH_DEMO_ACCOUNT: { username: string; password: string }` with one hardcoded
       username/password pair (research.md Decision 4 — plaintext, feature-owned, independent of
       Spec 005's demo accounts and the Spec 002 `users` resource). Not a store — no `reset()`,
       no lifecycle.
-- [ ] T003 Create `src/models/apiKeyRequests.ts` (depends on T001): `apiKeyIssueRequestSchema`
+- [X] T003 Create `src/models/apiKeyRequests.ts` (depends on T001): `apiKeyIssueRequestSchema`
       (zod: `label: z.string().min(1).max(100).optional()`, `kind:
       z.enum(API_KEY_KINDS).optional()`, `.strict()`) — matches data-model.md's validation rules
       and `contracts/api-key-basic-auth.openapi.yaml`'s `ApiKeyIssueRequest` schema exactly
       (`label` 1-100 chars, `kind` one of `valid`/`expired`/`revoked`, no other fields accepted).
-- [ ] T004 Create `src/data/apiKey.store.ts` (depends on T001): `export const apiKeyStore =
+- [X] T004 Create `src/data/apiKey.store.ts` (depends on T001): `export const apiKeyStore =
       createKeyedStore<ApiKey>();` reusing the existing generic from `./keyedStore` — no new store
       type needed, mirroring `session.store.ts` (research.md Decision 1).
-- [ ] T005 Update `tests/helpers/resetStores.ts` (depends on T004): add `apiKeyStore.reset([])` to
+- [X] T005 Update `tests/helpers/resetStores.ts` (depends on T004): add `apiKeyStore.reset([])` to
       `resetStores()` so every test file starts with a clean API key store, matching the existing
       per-file `beforeEach` convention (`sessionStore.reset([])` is already there from Spec 005).
-- [ ] T006 Create `src/auth/apiKey.ts` (depends on T001): `generateApiKey(): string` — returns
+- [X] T006 Create `src/auth/apiKey.ts` (depends on T001): `generateApiKey(): string` — returns
       `crypto.randomBytes(32).toString("hex")` (research.md Decision 2 — 256 bits of entropy, no
       new dependency); `computeStatus(key: ApiKey): ApiKeyStatus` — returns `"revoked"` if
       `key.revoked`; else `"expired"` if `key.expiresAt !== null && Date.parse(key.expiresAt) <=
       Date.now()`; else `"active"` (data-model.md's computed-status function, verbatim).
-- [ ] T007 [P] Create `src/auth/basicAuth.ts`: `parseBasicAuthHeader(header: string | undefined):
+- [X] T007 [P] Create `src/auth/basicAuth.ts`: `parseBasicAuthHeader(header: string | undefined):
       { username: string; password: string } | null` — returns `null` if `header` is missing or
       does not start with `"Basic "`; returns `null` if the remainder is not valid base64; else
       decodes it and splits on the **first** `:` only (a password may itself contain a colon, per
       the Edge Cases section), returning `{ username, password }` (research.md Decision 5). Never
       throws.
-- [ ] T008 Create `src/middleware/apiKeyAuth.ts` (depends on T001, T004, T006): augment Express via
+- [X] T008 Create `src/middleware/apiKeyAuth.ts` (depends on T001, T004, T006): augment Express via
       `declare global { namespace Express { interface Request { apiKey?: { keyId: string; label:
       string | null } } } }`. The `apiKeyAuth` middleware: reads `req.header("X-API-Key")`; an
       empty string or missing header → `401` (`error.code: "UNAUTHORIZED"`, reason `"missing"`,
@@ -97,7 +97,7 @@ user story depends on.
       found → `401` reason `"unrecognized"`; found → `computeStatus(record)` — `"expired"` → `401`
       reason `"expired"`; `"revoked"` → `401` reason `"revoked"`; `"active"` → set `req.apiKey =
       { keyId: record.keyId, label: record.label }` and call `next()` (FR-003, FR-010).
-- [ ] T009 Create `src/middleware/basicAuth.ts` (depends on T002, T007): augment Express via
+- [X] T009 Create `src/middleware/basicAuth.ts` (depends on T002, T007): augment Express via
       `declare global { namespace Express { interface Request { basicAuthUser?: { username:
       string } } } }`. The `basicAuth` middleware: calls `parseBasicAuthHeader(req.headers
       .authorization)`; `null` → `401` reason `"malformed"` (covers both a missing header and an
@@ -106,7 +106,7 @@ user story depends on.
       `BASIC_AUTH_DEMO_ACCOUNT` → `401` with the same generic message for wrong-username and
       wrong-password (never reveal which, FR-011/Edge Cases); match → set `req.basicAuthUser =
       { username }` and call `next()` (FR-004, FR-011).
-- [ ] T010 [P] Update `src/utils/logger.ts` (independent of T001-T009): add
+- [X] T010 [P] Update `src/utils/logger.ts` (independent of T001-T009): add
       `"req.headers['x-api-key']"` to the existing `redact.paths` array, alongside
       `"req.headers.authorization"` and `"req.headers.cookie"` (FR-015 — no response or log line
       may ever contain an API key value).
@@ -126,7 +126,7 @@ with it and rejects every missing/unrecognized case.
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Create `src/services/apiKey.service.ts` (depends on T003, T004, T006):
+- [X] T011 [US1] Create `src/services/apiKey.service.ts` (depends on T003, T004, T006):
       `issueApiKey(rawBody: unknown)` — `apiKeyIssueRequestSchema.parse(rawBody)`; `kind` defaults
       to `"valid"` when omitted. Build the record per research.md Decision 3's **full** switch
       (built once, here, for all three `kind` values — User Story 3 below adds test coverage for
@@ -139,21 +139,21 @@ with it and rejects every missing/unrecognized case.
       then return `{ apiKey: record.id, keyId: record.keyId, label: record.label, status:
       computeStatus(record), issuedAt: record.issuedAt, expiresAt: record.expiresAt }` (FR-001,
       FR-006, FR-007, FR-008).
-- [ ] T012 [US1] Create `src/controllers/apiKey.controller.ts` (depends on T011): `issueApiKey(req,
+- [X] T012 [US1] Create `src/controllers/apiKey.controller.ts` (depends on T011): `issueApiKey(req,
       res)` → `res.status(201).json(apiKeyService.issueApiKey(req.body))`; `getApiKeyProtected(req,
       res)` → `res.status(200).json({ granted: true, keyId: req.apiKey!.keyId, label:
       req.apiKey!.label })` (reachable only after `apiKeyAuth` (T008) has already set `req.apiKey`,
       so `granted` is always `true` here — the `401` case never reaches this handler).
-- [ ] T013 [US1] Create `src/routes/apiKey.routes.ts` (depends on T012, T008): `export const
+- [X] T013 [US1] Create `src/routes/apiKey.routes.ts` (depends on T012, T008): `export const
       apiKeyRouter = Router({ strict: true });` mount `POST /auth/api-key` (no middleware —
       unauthenticated by design, per spec.md's Assumptions, mirroring `POST /auth/token`) →
       `apiKeyController.issueApiKey`; `GET /api-key/protected` (`apiKeyAuth`) →
       `apiKeyController.getApiKeyProtected`; `methodNotAllowedHandler` for each path, following the
       existing `auth.routes.ts` style.
-- [ ] T014 [US1] Wire `apiKeyRouter` into `src/app.ts` (depends on T013): mount it top-level
+- [X] T014 [US1] Wire `apiKeyRouter` into `src/app.ts` (depends on T013): mount it top-level
       (alongside `authRouter`, *not* under `apiRouter`), matching CLAUDE.md's `/auth/api-key` and
       `/api-key/protected` path spelling (no `/api/v1` prefix).
-- [ ] T015 [P] [US1] Create `tests/apiKey.test.ts` (depends on T014) covering spec.md User Story
+- [X] T015 [P] [US1] Create `tests/apiKey.test.ts` (depends on T014) covering spec.md User Story
       1's acceptance scenarios 1-4 and relevant Edge Cases: `POST /auth/api-key` with no body →
       `201` with `apiKey`, `keyId`, `label: null`, `status: "active"`, `issuedAt`, `expiresAt:
       null`; `POST /auth/api-key` with `{"label":"ci-suite"}` → `201` with `label: "ci-suite"`;
@@ -177,7 +177,7 @@ returns `404` for a key this system never issued.
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Extend `src/services/apiKey.service.ts` (depends on T011) with
+- [X] T016 [US2] Extend `src/services/apiKey.service.ts` (depends on T011) with
       `revokeApiKey(rawKey: string | undefined)` — an empty/undefined `rawKey` → throw
       `HttpError(401, "UNAUTHORIZED", "Missing X-API-Key header")` (consistent with how the
       protected endpoint treats a missing key, per the Edge Cases section, rather than a false
@@ -185,16 +185,16 @@ returns `404` for a key this system never issued.
       "RESOURCE_NOT_FOUND", "API key not found")`; found → `apiKeyStore.replace(rawKey, (existing)
       => ({ ...existing, revoked: true }))` (a no-op write if already revoked, making a second
       call idempotent, FR-002).
-- [ ] T017 [US2] Extend `src/controllers/apiKey.controller.ts` (depends on T016, T012) with
+- [X] T017 [US2] Extend `src/controllers/apiKey.controller.ts` (depends on T016, T012) with
       `revokeApiKey(req, res)` → `apiKeyService.revokeApiKey(req.header("X-API-Key") ??
       undefined); res.status(200).json({})`.
-- [ ] T018 [US2] Extend `src/routes/apiKey.routes.ts` (depends on T017, T013) with `POST
+- [X] T018 [US2] Extend `src/routes/apiKey.routes.ts` (depends on T017, T013) with `POST
       /auth/api-key/revoke` — **not** gated by the `apiKeyAuth` middleware (its handler performs
       its own lookup so it can distinguish `401` missing vs. `404` unknown vs. idempotent `200`,
       which the enforcing `apiKeyAuth` middleware's uniform-401 semantics can't express, mirroring
       how Spec 005's `/auth/logout` bypasses `authenticate` for the same reason); add
       `methodNotAllowedHandler`.
-- [ ] T019 [P] [US2] Extend `tests/apiKey.test.ts` (depends on T015) with spec.md User Story 2's
+- [X] T019 [P] [US2] Extend `tests/apiKey.test.ts` (depends on T015) with spec.md User Story 2's
       acceptance scenarios 1-4 and Edge Cases: revoke a freshly issued, active key → `200`; the
       same key on `GET /api-key/protected` → `401` with a reason indicating revocation; revoking
       that same key again → `200` (idempotent, not an error); revoking a well-formed but
@@ -220,7 +220,7 @@ produces a key already in that state, without waiting on real time or an extra r
 
 ### Tests for User Story 3
 
-- [ ] T020 [P] [US3] Extend `tests/apiKey.test.ts` (depends on T015) with spec.md User Story 3's
+- [X] T020 [P] [US3] Extend `tests/apiKey.test.ts` (depends on T015) with spec.md User Story 3's
       acceptance scenarios 1-3: `POST /auth/api-key` with `{"kind":"expired"}` → `201` with
       `status: "expired"` and `expiresAt` already in the past, and that key on
       `GET /api-key/protected` → `401` with a reason indicating expiry; `POST /auth/api-key` with
@@ -243,17 +243,17 @@ missing, and malformed Basic Auth credentials.
 
 ### Implementation for User Story 4
 
-- [ ] T021 [US4] Create `src/controllers/basicAuth.controller.ts` (depends on T009): `getBasicAuthDemo(req,
+- [X] T021 [US4] Create `src/controllers/basicAuth.controller.ts` (depends on T009): `getBasicAuthDemo(req,
       res)` → `res.status(200).json({ authenticated: true, username: req.basicAuthUser!.username
       })` (reachable only after `basicAuth` (T009) has already verified the credentials, so
       `authenticated` is always `true` here — the `401` case never reaches this handler).
-- [ ] T022 [US4] Create `src/routes/basicAuth.routes.ts` (depends on T021, T009): `export const
+- [X] T022 [US4] Create `src/routes/basicAuth.routes.ts` (depends on T021, T009): `export const
       basicAuthRouter = Router({ strict: true });` mount `GET /auth-test/basic` (`basicAuth`) →
       `basicAuthController.getBasicAuthDemo`; `methodNotAllowedHandler` for other methods.
-- [ ] T023 [US4] Wire `basicAuthRouter` into `src/app.ts` (depends on T022): mount it top-level
+- [X] T023 [US4] Wire `basicAuthRouter` into `src/app.ts` (depends on T022): mount it top-level
       (alongside `authRouter`/`apiKeyRouter`), matching CLAUDE.md's `/auth-test/basic` path
       spelling (no `/api/v1` prefix).
-- [ ] T024 [P] [US4] Create `tests/basicAuth.test.ts` (depends on T023) covering spec.md User
+- [X] T024 [P] [US4] Create `tests/basicAuth.test.ts` (depends on T023) covering spec.md User
       Story 4's acceptance scenarios 1-4 and Edge Cases: valid demo username/password via HTTP
       Basic → `200` with `{ authenticated: true, username: "<demo-username>" }`; the demo username
       with a wrong password → `401`; an unknown username → `401` with the *same* error shape as
@@ -271,18 +271,18 @@ missing, and malformed Basic Auth credentials.
 
 **Purpose**: Spec-parity and whole-suite verification.
 
-- [ ] T025 [P] Merge `contracts/api-key-basic-auth.openapi.yaml`'s `tags`, `paths`,
+- [X] T025 [P] Merge `contracts/api-key-basic-auth.openapi.yaml`'s `tags`, `paths`,
       `components.securitySchemes` (`apiKeyAuth`, `basicAuth`), `components.schemas`, into the
       root `openapi.yaml`, reusing the existing `Error`/`Unauthorized`/`NotFound`/
       `ValidationError` schemas/responses rather than duplicating them, so `/docs`,
       `/openapi.json`, and `/openapi.yaml` document exactly the 4 operations this spec implements
       (constitution: Quality Gates & Spec Parity). No `allOf`/`oneOf`/`anyOf` combinators.
-- [ ] T026 Run `npm test` and confirm the full suite — Specs 001-005's existing tests plus
+- [X] T026 Run `npm test` and confirm the full suite — Specs 001-005's existing tests plus
       `tests/apiKey.test.ts` and `tests/basicAuth.test.ts` — passes.
-- [ ] T027 Execute the manual validation scenarios in
+- [X] T027 Execute the manual validation scenarios in
       `specs/006-api-key-basic-auth/quickstart.md` against a running `npm run dev` server and
       confirm every expected status code and state.
-- [ ] T028 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 4
+- [X] T028 [P] Spot-check `/docs` (Swagger UI), `/openapi.json`, and `/openapi.yaml` render the 4
       new endpoints correctly (including their `apiKeyAuth`/`basicAuth` security requirements),
       with no schema errors. Note: `GET /api/v1/routes` is not yet implemented in this codebase
       (Spec 012's deliverable per the roadmap) — verified instead that `/openapi.json` lists
