@@ -13,6 +13,7 @@ import { rateLimitStore } from "../../src/data/rateLimit.store";
 import { resetSeededRandom } from "../../src/utils/seededRandom";
 import { idempotencyStore } from "../../src/data/idempotency.store";
 import { cacheResourceStore } from "../../src/data/cacheResource.store";
+import { fileStore, resetFileSequence } from "../../src/data/files.store";
 
 /**
  * Restores every in-memory store to its deterministic seeded state. Call from `beforeEach` in every
@@ -37,4 +38,6 @@ export function resetStores(): void {
   resetSeededRandom();
   idempotencyStore.reset([]);
   cacheResourceStore.reset();
+  fileStore.reset([]);
+  resetFileSequence();
 }

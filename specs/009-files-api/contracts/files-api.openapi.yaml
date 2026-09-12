@@ -1,0 +1,130 @@
+# Phase 1 design artifact for Spec 009 (Files API). At implementation time, every path/schema/
+# response below is merged into the project's single root openapi.yaml (constitution: one
+# document, always in sync with the implementation) — this fragment is not served on its own.
+# References to Error, ValidationError, NotFound, PaginationMeta, and X-Request-ID assume the root
+# document (seeded by Spec 001) already defines them. This fragment reuses the existing
+# PayloadTooLarge (413) response as-is and adds one new reusable response (StorageLimitExceeded,
+# 409) to components/responses for future specs to reuse rather than duplicate.
+#
+# No allOf/oneOf/anyOf combinators are used anywhere below, consistent with every prior spec's
+# OpenAPI fragment in this project.
+
+tags:
+  - name: Files
+    description: >
+      Bounded, in-memory file upload, download, list, and delete — isolated from every other
+      feature area.
+
+paths:
+  /files:
+    get:
+      tags: [Files]
+      summary: Lists every currently stored file's metadata, newest first
+      operationId: listFiles
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of stored files' metadata (never raw content)
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FileMetadata"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
+        "400": { $ref: "#/components/responses/ValidationError" }
+    post:
+      tags: [Files]
+      summary: Uploads one file via multipart/form-data under the 'upload' field
+      operationId: uploadFile
+      security: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [upload]
+              properties:
+                upload:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: File stored
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FileMetadata" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "409": { $ref: "#/components/responses/StorageLimitExceeded" }
+
+  /files/{id}:
+    parameters:
+      - $ref: "#/components/parameters/FileIdParam"
+    get:
+      tags: [Files]
+      summary: Downloads a stored file's exact original bytes
+      operationId: getFileById
+      security: []
+      responses:
+        "200":
+          description: Raw file content
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+            Content-Disposition: { schema: { type: string } }
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [Files]
+      summary: Deletes a stored file
+      operationId: deleteFileById
+      security: []
+      responses:
+        "204":
+          description: File deleted
+          headers:
+            X-Request-ID: { $ref: "#/components/headers/X-Request-ID" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+components:
+  parameters:
+    FileIdParam:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  schemas:
+    FileMetadata:
+      type: object
+      required: [id, filename, contentType, size, uploadedAt]
+      properties:
+        id: { type: string, format: uuid }
+        filename: { type: string }
+        contentType: { type: string }
+        size: { type: integer, minimum: 0 }
+        uploadedAt: { type: string, format: date-time }
+
+  responses:
+    StorageLimitExceeded:
+      description: The configured maximum number of stored files has been reached
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }

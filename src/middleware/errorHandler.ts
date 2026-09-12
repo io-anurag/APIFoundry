@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
+import { MulterError } from "multer";
 import { buildErrorEnvelope } from "../models/errorEnvelope";
 import { HttpError } from "../utils/httpError";
 import { config } from "../config";
@@ -54,8 +55,10 @@ function isPayloadTooLargeError(err: unknown): boolean {
  * standard JSON error envelope: an `HttpError` is rendered with its own status/code/details; a
  * `ZodError` becomes a 400 `VALIDATION_ERROR` with flattened field/form errors; a body-parser JSON
  * syntax error (per `isJsonParseError`) becomes a 400 `VALIDATION_ERROR`; a body-parser over-limit
- * rejection (per `isPayloadTooLargeError`) becomes a 413 `PAYLOAD_TOO_LARGE`; anything else is
- * logged via `req.log` and rendered as a 500 `INTERNAL_ERROR`.
+ * rejection (per `isPayloadTooLargeError`) becomes a 413 `PAYLOAD_TOO_LARGE`; a `MulterError` from
+ * a multipart upload becomes a 413 `FILE_TOO_LARGE` (`LIMIT_FILE_SIZE`) or a 400
+ * `VALIDATION_ERROR` (any other Multer error code, e.g. a missing/misnamed file field); anything
+ * else is logged via `req.log` and rendered as a 500 `INTERNAL_ERROR`.
  *
  * @param err - The error thrown or passed to `next()` upstream.
  * @param req - The Express request; used for the request id and logging.
@@ -103,6 +106,13 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
           limit: config.maxPayloadSize,
         })
       );
+    return;
+  }
+
+  if (err instanceof MulterError) {
+    const statusCode = err.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+    const code = err.code === "LIMIT_FILE_SIZE" ? "FILE_TOO_LARGE" : "VALIDATION_ERROR";
+    res.status(statusCode).json(buildErrorEnvelope(code, err.message, requestId, { multerCode: err.code }));
     return;
   }
 
