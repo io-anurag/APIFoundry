@@ -1,3 +1,8 @@
+/**
+ * `GET /protected`: gated by `authenticate` then `requireRole("admin")` to demonstrate the 401
+ * (unauthenticated) vs 403 (authenticated but insufficient role) distinction. The required role is
+ * fixed to "admin" for the clearest possible demonstration (research.md Decision 8).
+ */
 import { Router } from "express";
 import * as protectedController from "../controllers/protected.controller";
 import { authenticate } from "../middleware/authenticate";

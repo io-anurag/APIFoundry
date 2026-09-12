@@ -5,6 +5,9 @@ const BASIC_PREFIX = "Basic ";
  * (missing header, wrong scheme, invalid base64) rather than throwing (research.md Decision 5) —
  * callers treat `null` as a "malformed" 401, distinct from a well-formed-but-wrong-credential one.
  * Splits on the first `:` only, since a password may itself contain a colon (Edge Cases).
+ *
+ * @param header - The raw `Authorization` header value, if present.
+ * @returns The decoded `{ username, password }` pair, or `null` if the header is missing or malformed.
  */
 export function parseBasicAuthHeader(header: string | undefined): { username: string; password: string } | null {
   if (typeof header !== "string" || !header.startsWith(BASIC_PREFIX)) return null;

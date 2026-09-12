@@ -6,6 +6,12 @@ export const productStore = createInMemoryStore<Product>();
 
 const PRODUCT_COUNT = 50;
 
+/**
+ * Builds `PRODUCT_COUNT` deterministic seed products, cycling through every documented product
+ * category with a formulaic price/stock spread.
+ *
+ * @returns The complete array of seed `Product` records.
+ */
 function buildSeedProducts(): Product[] {
   const now = new Date().toISOString();
   const products: Product[] = [];

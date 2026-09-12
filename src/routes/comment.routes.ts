@@ -1,3 +1,7 @@
+/**
+ * Comment routes: read-only listing/lookup by id, plus the nested `posts/:id/comments` list and create
+ * routes. No authentication is required on any of these routes.
+ */
 import { Router } from "express";
 import * as commentController from "../controllers/comment.controller";
 import { methodNotAllowedHandler } from "../middleware/methodNotAllowed";

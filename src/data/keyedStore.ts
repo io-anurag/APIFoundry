@@ -17,19 +17,40 @@ export function createKeyedStore<T extends { id: string }>(): KeyedStore<T> {
   let records = new Map<string, T>();
 
   return {
+    /**
+     * Lists every record currently in the store.
+     * @returns All stored records, in insertion order.
+     */
     list(): T[] {
       return Array.from(records.values());
     },
 
+    /**
+     * Looks up a single record by its id.
+     * @param id - The record's caller-assigned id.
+     * @returns The matching record, or `undefined` if no record has that id.
+     */
     get(id: string): T | undefined {
       return records.get(id);
     },
 
+    /**
+     * Inserts a fully-formed record, keyed by its own `id`, overwriting any existing record with the
+     * same id.
+     * @param record - The complete record to store, including its id.
+     * @returns The stored record.
+     */
     create(record: T): T {
       records.set(record.id, record);
       return record;
     },
 
+    /**
+     * Replaces an existing record by deriving a new value from it.
+     * @param id - The id of the record to replace.
+     * @param build - Builder invoked with the existing record to produce its replacement.
+     * @returns The updated record, or `undefined` if no record has that id.
+     */
     replace(id: string, build: (existing: T) => T): T | undefined {
       const existing = records.get(id);
       if (!existing) return undefined;
@@ -38,6 +59,12 @@ export function createKeyedStore<T extends { id: string }>(): KeyedStore<T> {
       return updated;
     },
 
+    /**
+     * Merges a partial update into an existing record, preserving its id.
+     * @param id - The id of the record to patch.
+     * @param patch - Fields to merge into the existing record.
+     * @returns The updated record, or `undefined` if no record has that id.
+     */
     patch(id: string, patch: Partial<Omit<T, "id">>): T | undefined {
       const existing = records.get(id);
       if (!existing) return undefined;
@@ -46,10 +73,19 @@ export function createKeyedStore<T extends { id: string }>(): KeyedStore<T> {
       return updated;
     },
 
+    /**
+     * Deletes a record by id.
+     * @param id - The id of the record to remove.
+     * @returns `true` if a record was removed, `false` if no record had that id.
+     */
     remove(id: string): boolean {
       return records.delete(id);
     },
 
+    /**
+     * Replaces the entire contents of the store with the given records, keyed by their own `id`.
+     * @param seedRecords - The full set of records to repopulate the store with.
+     */
     reset(seedRecords: T[]): void {
       records = new Map(seedRecords.map((record) => [record.id, record]));
     },

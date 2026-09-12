@@ -14,6 +14,15 @@ interface IssueParams {
   sid: string;
 }
 
+/**
+ * Signs a JWT with the given subject/role/scopes/session claims plus a token `type` marker,
+ * using the configured secret, issuer, and audience, and a fresh `jti` per call.
+ *
+ * @param params - The subject id, role, scopes, and session id to embed in the token.
+ * @param type - The token kind (`"access"` or `"refresh"`) recorded in the `type` claim.
+ * @param expiresInSeconds - Token lifetime in seconds from now.
+ * @returns The signed, encoded JWT string.
+ */
 function sign(params: IssueParams, type: TokenType, expiresInSeconds: number): string {
   return jwt.sign({ sub: params.sub, role: params.role, scopes: params.scopes, sid: params.sid, type }, config.jwtSecret, {
     issuer: config.jwtIssuer,
@@ -23,10 +32,24 @@ function sign(params: IssueParams, type: TokenType, expiresInSeconds: number): s
   });
 }
 
+/**
+ * Issues a signed access token for the given subject.
+ *
+ * @param params - The subject id, role, scopes, and session id to embed in the token.
+ * @param expiresInSeconds - Token lifetime in seconds; defaults to the configured `jwtExpiresIn`.
+ * @returns The signed access token string.
+ */
 export function signAccessToken(params: IssueParams, expiresInSeconds: number = config.jwtExpiresIn): string {
   return sign(params, "access", expiresInSeconds);
 }
 
+/**
+ * Issues a signed refresh token for the given subject. Refresh tokens outlive access tokens by a
+ * fixed multiple — no new env var (research.md Decision 9).
+ *
+ * @param params - The subject id, role, scopes, and session id to embed in the token.
+ * @returns The signed refresh token string.
+ */
 export function signRefreshToken(params: IssueParams): string {
   return sign(params, "refresh", config.jwtExpiresIn * REFRESH_LIFETIME_MULTIPLIER);
 }
@@ -35,6 +58,9 @@ export function signRefreshToken(params: IssueParams): string {
  * Flips one character in a token's signature segment — keeps it structurally decodable (still
  * three base64url-shaped, dot-separated parts) while guaranteeing signature verification fails
  * (research.md Decision 7, the `invalid` convenience-kind).
+ *
+ * @param token - A well-formed JWT string (`header.payload.signature`).
+ * @returns The same token with one character of its signature segment flipped.
  */
 export function corruptSignature(token: string): string {
   const parts = token.split(".");
@@ -43,7 +69,13 @@ export function corruptSignature(token: string): string {
   return `${parts[0]}.${parts[1]}.${flipped}`;
 }
 
-/** Structural decode only — never throws, used by GET /auth/token-info's 400 check (research.md Decision 6). */
+/**
+ * Decodes a JWT's header and payload without verifying its signature or claims. Structural decode
+ * only — never throws, used by GET /auth/token-info's 400 check (research.md Decision 6).
+ *
+ * @param token - The JWT string to decode.
+ * @returns The decoded `{ header, payload, signature }` structure, or `null` if the token is not well-formed.
+ */
 export function decodeToken(token: string): jwt.Jwt | null {
   return jwt.decode(token, { complete: true });
 }
@@ -63,6 +95,10 @@ export type VerifyResult =
 /**
  * Verifies signature, expiry, issuer, and audience, then checks the `type` claim matches
  * `expectedType`. Classifies every failure into one of VerifyFailureReason per FR-006/FR-014.
+ *
+ * @param token - The JWT string to verify.
+ * @param expectedType - The token type (`"access"` or `"refresh"`) the token must declare.
+ * @returns `{ ok: true, claims }` on success, or `{ ok: false, reason }` naming which check failed.
  */
 export function verifyToken(token: string, expectedType: TokenType): VerifyResult {
   let decoded: jwt.JwtPayload;

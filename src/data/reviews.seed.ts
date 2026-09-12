@@ -10,6 +10,12 @@ const REVIEW_COUNT = 120;
 // (research.md) — while still exercising every rating value via REVIEW_COUNT's cycle length.
 const REVIEWED_PRODUCT_COUNT = 30;
 
+/**
+ * Builds `REVIEW_COUNT` deterministic seed reviews, cycling across the first
+ * `REVIEWED_PRODUCT_COUNT` products, every seeded user, and every rating value 1-5.
+ *
+ * @returns The complete array of seed `Review` records.
+ */
 function buildSeedReviews(): Review[] {
   const now = new Date().toISOString();
   const products = productStore.list().slice(0, REVIEWED_PRODUCT_COUNT);

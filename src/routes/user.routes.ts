@@ -1,3 +1,9 @@
+/**
+ * User routes: full CRUD (`GET` list/one, `POST`, `PUT`, `PATCH`, `DELETE`) with no authentication
+ * required. `Router({ strict: true })` so a trailing slash (e.g. "/users/") does not alias the
+ * collection route — it falls through to the app-level 404 handler instead of silently matching
+ * "/users" (FR-006 edge case).
+ */
 import { Router } from "express";
 import * as userController from "../controllers/user.controller";
 import { methodNotAllowedHandler } from "../middleware/methodNotAllowed";

@@ -20,6 +20,11 @@ export interface ConfigurationProfile {
 }
 
 export class ConfigValidationError extends Error {
+  /**
+   * Constructs a ConfigValidationError carrying an aggregated, human-readable description of why
+   * environment configuration failed validation.
+   * @param message - Human-readable message describing the validation failures.
+   */
   constructor(message: string) {
     super(message);
     this.name = "ConfigValidationError";
@@ -62,6 +67,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ConfigurationP
   });
 }
 
+/**
+ * Loads configuration from `process.env` for real process startup: on a validation failure it
+ * prints the error message and exits the process (`process.exit(1)`) instead of throwing, since an
+ * unusable configuration should stop the server before it starts listening. Any other, unexpected
+ * error is rethrown.
+ *
+ * @returns The validated, frozen configuration profile.
+ */
 function loadConfigOrExit(): ConfigurationProfile {
   try {
     return loadConfig(process.env);

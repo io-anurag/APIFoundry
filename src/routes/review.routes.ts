@@ -1,3 +1,7 @@
+/**
+ * Review routes: read-only listing/lookup by id, listing by rating, and the nested
+ * `products/:id/reviews` lookup. No authentication is required.
+ */
 import { Router } from "express";
 import * as reviewController from "../controllers/review.controller";
 import { methodNotAllowedHandler } from "../middleware/methodNotAllowed";

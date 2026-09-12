@@ -15,11 +15,24 @@ export interface TokenPair {
   expiresIn: number;
 }
 
+/**
+ * Builds the standard 401 error for a failed login. Deliberately identical for "unknown username"
+ * and "wrong password" — never reveal which (Edge Cases).
+ *
+ * @returns An `HttpError` with status 401 and code `UNAUTHORIZED`.
+ */
 function invalidCredentials(): HttpError {
-  // Deliberately identical for "unknown username" and "wrong password" — never reveal which (Edge Cases).
   return new HttpError(401, "UNAUTHORIZED", "Invalid username or password");
 }
 
+/**
+ * Authenticates a demo account by username/password and issues a fresh access/refresh token pair.
+ * A new session is created and tracked so the refresh token can later be validated and rotated.
+ *
+ * @param rawBody - Request body containing `username` and `password`, validated against `loginRequestSchema`.
+ * @returns The signed access token, refresh token, token type, and expiry (in seconds).
+ * @throws HttpError 401 UNAUTHORIZED if the username is unknown or the password does not match — the same error is used for both cases so callers cannot distinguish them.
+ */
 export function login(rawBody: unknown): TokenPair {
   const { username, password } = loginRequestSchema.parse(rawBody);
   const account = findDemoAccount(username);
@@ -38,14 +51,25 @@ export function login(rawBody: unknown): TokenPair {
   return { accessToken, refreshToken, tokenType: "Bearer", expiresIn: config.jwtExpiresIn };
 }
 
+/**
+ * Returns the identity of the currently authenticated caller.
+ *
+ * @param auth - The authenticated request context populated by the `authenticate` middleware.
+ * @returns The subject, role, and scopes carried by the caller's verified token.
+ */
 export function getMe(auth: AuthContext): { sub: string; role: AuthContext["role"]; scopes: AuthContext["scopes"] } {
   return { sub: auth.sub, role: auth.role, scopes: auth.scopes };
 }
 
 /**
- * Verifies signature/expiry/issuer/audience/type but deliberately does NOT check `session.revoked`
- * (research.md Decision 5) — an already-revoked token from a prior logout must still succeed here
- * (idempotent 200), while a token that never passes verification is a 401.
+ * Logs the caller out by marking their session as revoked. Verifies signature/expiry/issuer/
+ * audience/type but deliberately does NOT check `session.revoked` (research.md Decision 5) — an
+ * already-revoked token from a prior logout must still succeed here (idempotent 200), while a
+ * token that never passes verification is a 401.
+ *
+ * @param token - The access token identifying the session to revoke.
+ * @returns Nothing; the session is marked revoked as a side effect.
+ * @throws HttpError 401 UNAUTHORIZED if the token fails signature/expiry/issuer/audience/type verification.
  */
 export function logout(token: string): void {
   const result = verifyToken(token, "access");
@@ -55,6 +79,15 @@ export function logout(token: string): void {
   sessionStore.replace(result.claims.sid, (session) => ({ ...session, revoked: true }));
 }
 
+/**
+ * Rotates a refresh token: validates it against the tracked session's current refresh JTI (so a
+ * stale or already-rotated refresh token is rejected), then issues and stores a new access/refresh
+ * token pair for the same session.
+ *
+ * @param rawBody - Request body containing `refreshToken`, validated against `refreshRequestSchema`.
+ * @returns A new signed access token, refresh token, token type, and expiry (in seconds).
+ * @throws HttpError 401 UNAUTHORIZED if the refresh token fails verification, or if the session is missing/revoked, or if the token's `jti` no longer matches the session's current refresh token (already rotated).
+ */
 export function refresh(rawBody: unknown): TokenPair {
   const { refreshToken } = refreshRequestSchema.parse(rawBody);
   const result = verifyToken(refreshToken, "refresh");
@@ -90,7 +123,12 @@ export interface TokenIssueResult {
 /**
  * Issues a token directly for a chosen role/scopes/kind, without a real login (FR-005). Every kind
  * still gets its own session, so revocation/token-info behave uniformly whether a token came from
- * login or from here (research.md Decision 7).
+ * login or from here (research.md Decision 7). "expired" tokens are signed already in the past;
+ * "invalid" tokens are signed validly and then have their signature corrupted; "revoked" tokens are
+ * signed validly but their session is immediately marked revoked.
+ *
+ * @param rawBody - Request body containing `role`, `scopes`, and `kind` ("valid" | "expired" | "invalid" | "revoked"), validated against `tokenIssueRequestSchema`.
+ * @returns The issued access token, its token type, and the requested `kind`.
  */
 export function issueConvenienceToken(rawBody: unknown): TokenIssueResult {
   const { role, scopes, kind } = tokenIssueRequestSchema.parse(rawBody);
@@ -122,8 +160,14 @@ export interface TokenInfoResult {
 }
 
 /**
- * Never gated by `authenticate` (research.md Decision 6) — this endpoint's entire purpose is to
- * report on tokens `authenticate` would reject. Only a structurally undecodable token is a 400.
+ * Reports the state of a token (valid, expired, invalid-signature, revoked, etc.) and decodes its
+ * claims for inspection. Never gated by `authenticate` (research.md Decision 6) — this endpoint's
+ * entire purpose is to report on tokens `authenticate` would reject. Only a structurally
+ * undecodable token is a 400.
+ *
+ * @param token - The token to inspect; need not be currently valid.
+ * @returns The token's computed state and its decoded (unverified) claims payload.
+ * @throws HttpError 400 VALIDATION_ERROR if the token cannot be decoded at all (malformed structure).
  */
 export function getTokenInfo(token: string): TokenInfoResult {
   const decoded = decodeToken(token);

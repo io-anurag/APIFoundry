@@ -1,3 +1,7 @@
+/**
+ * Category routes: read-only listing/lookup by slug, plus the nested `products/:id/category` lookup.
+ * No authentication is required on any of these routes.
+ */
 import { Router } from "express";
 import * as categoryController from "../controllers/category.controller";
 import { methodNotAllowedHandler } from "../middleware/methodNotAllowed";

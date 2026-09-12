@@ -1,3 +1,8 @@
+/**
+ * Customer routes: full CRUD (`GET` list/one, `POST`, `PUT`, `PATCH`, `DELETE`) with no authentication
+ * required. `Router({ strict: true })` so a trailing slash does not alias the collection route
+ * (FR-006 edge case).
+ */
 import { Router } from "express";
 import * as customerController from "../controllers/customer.controller";
 import { methodNotAllowedHandler } from "../middleware/methodNotAllowed";

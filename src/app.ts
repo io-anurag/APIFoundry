@@ -1,3 +1,12 @@
+/**
+ * Constructs and configures the Express application: wires global middleware (request id, request
+ * logging, CORS, JSON body parsing), mounts the meta/auth routers that live outside the versioned API
+ * prefix (health, version, JWT auth, API key auth, basic auth, OpenAPI/Swagger docs), mounts every
+ * resource/feature router under `config.apiPrefix`, marks the service ready (this spec has no async
+ * bootstrap work), and registers the terminal 404 and error handlers. This module has no exported
+ * function — it is top-level imperative wiring executed on import, exporting only the resulting `app`.
+ * It never calls `app.listen()`; see src/server.ts for that.
+ */
 import express, { type Express, Router } from "express";
 import { config } from "./config";
 import { requestId } from "./middleware/requestId";

@@ -13,6 +13,13 @@ function slugify(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+/**
+ * Converts a hyphenated slug back into a human-readable, title-cased name (e.g. `"new-arrivals"`
+ * → `"New Arrivals"`).
+ *
+ * @param slug - A hyphen-separated, lowercase slug.
+ * @returns The slug rendered as space-separated, title-cased words.
+ */
 function titleCase(slug: string): string {
   return slug
     .split("-")
@@ -38,6 +45,13 @@ const CATALOG_ONLY_CATEGORY_NAMES = [
   "On Sale",
 ];
 
+/**
+ * Builds the full deterministic set of seed categories: one per `PRODUCT_CATEGORIES` value (so
+ * every seeded product's `category` resolves to a real catalog entry) plus a fixed set of
+ * catalog-only categories not referenced by any product (research.md).
+ *
+ * @returns The complete array of seed `Category` records.
+ */
 function buildSeedCategories(): Category[] {
   const now = new Date().toISOString();
   const categories: Category[] = [];

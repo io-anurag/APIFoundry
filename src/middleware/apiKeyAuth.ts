@@ -19,13 +19,27 @@ const REASON_MESSAGES = {
   revoked: "API key has been revoked",
 } as const;
 
+/**
+ * Builds a 401 `HttpError` for a given API-key failure reason, using the matching message from
+ * `REASON_MESSAGES`.
+ *
+ * @param reason - Which API-key check failed (`missing`, `unrecognized`, `expired`, or `revoked`).
+ * @returns An `HttpError` with status 401, code `UNAUTHORIZED`, and `{ reason }` details.
+ */
 function unauthorized(reason: keyof typeof REASON_MESSAGES): HttpError {
   return new HttpError(401, "UNAUTHORIZED", REASON_MESSAGES[reason], { reason });
 }
 
 /**
  * Enforces `X-API-Key` on protected endpoints. A missing or empty-string header is always
- * "missing" — never a partial match against a stored key (Edge Cases).
+ * "missing" — never a partial match against a stored key (Edge Cases). Looks up the key in
+ * `apiKeyStore` and rejects with 401 `UNAUTHORIZED` if the header is absent, the key is
+ * unrecognized, or `computeStatus` reports it `expired` or `revoked`. On success, attaches
+ * `{ keyId, label }` to `req.apiKey` and calls `next()`.
+ *
+ * @param req - The incoming Express request; read for the `X-API-Key` header.
+ * @param _res - Unused Express response.
+ * @param next - Express callback; invoked with an `HttpError` on failure, or with no argument to continue.
  */
 export function apiKeyAuth(req: Request, _res: Response, next: NextFunction): void {
   const key = req.header("X-API-Key");
