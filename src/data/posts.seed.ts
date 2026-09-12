@@ -7,6 +7,11 @@ export const postStore = createKeyedStore<Post>();
 
 const POST_COUNT = 100;
 
+/**
+ * Builds `POST_COUNT` deterministic seed posts, cycling through seeded users as authors.
+ *
+ * @returns The complete array of seed `Post` records.
+ */
 function buildSeedPosts(): Post[] {
   const now = new Date().toISOString();
   const users = userStore.list();

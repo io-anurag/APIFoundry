@@ -27,6 +27,17 @@ export function lastQueryValue(raw: unknown): string | undefined {
   return typeof value === "string" ? value : String(value);
 }
 
+/**
+ * Parses a query parameter as a positive integer, applying a default when absent and rejecting
+ * any non-integer, non-positive, or (when `max` is given) out-of-range value with a `400`.
+ *
+ * @param raw - The raw query value (string, string array, or undefined).
+ * @param name - The parameter's name, used in the error message/details on failure.
+ * @param defaultValue - The value to use when `raw` is undefined.
+ * @param max - Optional inclusive upper bound.
+ * @returns The parsed, validated integer.
+ * @throws HttpError 400 VALIDATION_ERROR if the value is not an integer within the allowed range.
+ */
 function parsePositiveInt(raw: unknown, name: string, defaultValue: number, max?: number): number {
   if (raw === undefined) return defaultValue;
   const value = lastQueryValue(raw);
@@ -41,6 +52,15 @@ function parsePositiveInt(raw: unknown, name: string, defaultValue: number, max?
   return parsed;
 }
 
+/**
+ * Parses a `sort` query parameter (e.g. `"name"` or `"-name"`) into a field/direction pair,
+ * rejecting any field not present in `allowedFields`.
+ *
+ * @param raw - The raw `sort` query value (string, string array, or undefined).
+ * @param allowedFields - The set of field names this resource may be sorted by.
+ * @returns The parsed sort, or `undefined` if `raw` was absent.
+ * @throws HttpError 400 VALIDATION_ERROR if the field is missing or not in `allowedFields`.
+ */
 function parseSort(raw: unknown, allowedFields: readonly string[]): ListQuerySort | undefined {
   const value = lastQueryValue(raw);
   if (value === undefined) return undefined;
@@ -60,6 +80,14 @@ function parseSort(raw: unknown, allowedFields: readonly string[]): ListQuerySor
   return { field, direction };
 }
 
+/**
+ * Parses and validates the `page`, `limit`, and `sort` query parameters into a normalized
+ * ListQuery, applying defaults (page 1, limit 20) and enforcing limit's upper bound of 100 and
+ * sort's allowed-field list.
+ * @param query - Raw query parameter map (e.g. `req.query`).
+ * @param options - Options specifying which fields are valid for `sort`.
+ * @returns The parsed page, limit, and optional sort field/direction.
+ */
 export function parseListQuery(query: Record<string, unknown>, options: ParseListQueryOptions): ListQuery {
   return {
     page: parsePositiveInt(query.page, "page", 1),

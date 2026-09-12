@@ -7,6 +7,12 @@ export const commentStore = createInMemoryStore<Comment>();
 
 const COMMENT_COUNT = 200;
 
+/**
+ * Builds `COMMENT_COUNT` deterministic seed comments, distributing them round-robin across every
+ * seeded post and user so each comment's `postId`/`userId` always references a real record.
+ *
+ * @returns The complete array of seed `Comment` records.
+ */
 function buildSeedComments(): Comment[] {
   const now = new Date().toISOString();
   const posts = postStore.list();

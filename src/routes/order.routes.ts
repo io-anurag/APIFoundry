@@ -1,3 +1,8 @@
+/**
+ * Order routes: full CRUD (`GET` list/one, `POST`, `PUT`, `PATCH`, `DELETE`) plus the nested
+ * `users/:id/orders` and `orders/:id/products` lookups. No authentication is required.
+ * `Router({ strict: true })` so a trailing slash does not alias the collection route (FR-006 edge case).
+ */
 import { Router } from "express";
 import * as orderController from "../controllers/order.controller";
 import { methodNotAllowedHandler } from "../middleware/methodNotAllowed";

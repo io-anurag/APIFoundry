@@ -21,6 +21,9 @@ export interface ApiKeyIssueResult {
  * Issues a new API key for a chosen `kind` (FR-001). Implements the full valid/expired/revoked
  * switch here, once — User Story 3 only adds test coverage for the expired/revoked branches,
  * per research.md Decision 3.
+ *
+ * @param rawBody - Request body with an optional `label` and `kind` ("valid" | "expired" | "revoked"), validated against `apiKeyIssueRequestSchema`.
+ * @returns The issued key's plaintext value, key id, label, computed status, and issued/expiry timestamps.
  */
 export function issueApiKey(rawBody: unknown): ApiKeyIssueResult {
   const { label, kind = "valid" } = apiKeyIssueRequestSchema.parse(rawBody ?? {});
@@ -60,6 +63,11 @@ export function issueApiKey(rawBody: unknown): ApiKeyIssueResult {
 /**
  * Revokes a key presented via `X-API-Key` (FR-002). Idempotent for an already-revoked key; a
  * missing header is `401` (consistent with the protected endpoint) rather than a false `404`.
+ *
+ * @param rawKey - The API key value from the `X-API-Key` header, or undefined if the header was absent.
+ * @returns Nothing; the matching key record is marked revoked as a side effect.
+ * @throws HttpError 401 UNAUTHORIZED if `rawKey` is missing.
+ * @throws HttpError 404 RESOURCE_NOT_FOUND if no key record matches `rawKey`.
  */
 export function revokeApiKey(rawKey: string | undefined): void {
   if (!rawKey) {

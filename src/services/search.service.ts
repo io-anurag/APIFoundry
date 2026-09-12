@@ -10,6 +10,12 @@ import { HttpError } from "../utils/httpError";
 import { parseListQuery, lastQueryValue } from "../models/listQuery";
 import { applyListQuery, type ListQueryResult } from "./listQuery.service";
 
+/**
+ * Gathers every searchable record across all seeded resources (users, customers, products,
+ * categories, posts, comments, reviews) into a single flat, heterogeneous list.
+ *
+ * @returns Every resource's records mapped into the common `SearchResult` shape.
+ */
 function collectResults(): SearchResult[] {
   const results: SearchResult[] = [];
 
@@ -57,15 +63,28 @@ function collectResults(): SearchResult[] {
   return results;
 }
 
+/**
+ * Case-insensitively checks whether a search result's label/snippet contains the search term.
+ *
+ * @param result - The candidate search result.
+ * @param needle - The lowercased search term to look for.
+ * @returns True if `needle` appears in the result's combined label and snippet text.
+ */
 function matches(result: SearchResult, needle: string): boolean {
   const haystack = `${result.label} ${result.snippet ?? ""}`.toLowerCase();
   return haystack.includes(needle);
 }
 
 /**
- * Cross-resource search (FR-020-FR-023). `q` is required and non-empty; a well-formed query with no
- * matches returns 200 + empty data, never 404. Only `page`/`limit` apply — the combined result set is
- * heterogeneous, so no `sort` field is offered (research.md).
+ * Cross-resource search (FR-020-FR-023). Case-insensitively matches `q` against the label/snippet of
+ * users, customers, products, categories, posts, comments, and reviews. `q` is required and
+ * non-empty; a well-formed query with no matches returns 200 + empty data, never 404. Only
+ * `page`/`limit` apply — the combined result set is heterogeneous, so no `sort` field is offered
+ * (research.md).
+ *
+ * @param rawQuery - Raw query-string parameters; must include a non-empty `q`, plus optional `page`/`limit`.
+ * @returns The matching page of heterogeneous search results plus the total count, page, and limit used.
+ * @throws HttpError 400 VALIDATION_ERROR if `q` is missing or empty.
  */
 export function search(
   rawQuery: Record<string, unknown>

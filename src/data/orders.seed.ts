@@ -8,6 +8,14 @@ export const orderStore = createInMemoryStore<Order>();
 
 const ORDER_COUNT = 100;
 
+/**
+ * Computes an order's total price by summing each line item's `product.price * quantity`,
+ * rounded to two decimal places.
+ *
+ * @param items - The order's line items.
+ * @param products - The full product catalog, used to look up each item's price.
+ * @returns The order total, rounded to the nearest cent.
+ */
 function computeTotal(items: OrderLineItem[], products: ReturnType<typeof productStore.list>): number {
   const total = items.reduce((sum, item) => {
     const product = products.find((candidate) => candidate.id === item.productId)!;
@@ -16,6 +24,12 @@ function computeTotal(items: OrderLineItem[], products: ReturnType<typeof produc
   return Math.round(total * 100) / 100;
 }
 
+/**
+ * Builds `ORDER_COUNT` deterministic seed orders, cycling through seeded customers and products
+ * (every fourth order also gets a second line item) and computing each order's total/status.
+ *
+ * @returns The complete array of seed `Order` records.
+ */
 function buildSeedOrders(): Order[] {
   const now = new Date().toISOString();
   const customers = customerStore.list();

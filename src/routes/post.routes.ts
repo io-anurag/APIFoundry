@@ -1,3 +1,7 @@
+/**
+ * Post routes: read-only listing/lookup by id, plus the nested `users/:id/posts` list and create
+ * routes. No authentication is required.
+ */
 import { Router } from "express";
 import * as postController from "../controllers/post.controller";
 import { methodNotAllowedHandler } from "../middleware/methodNotAllowed";

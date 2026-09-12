@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+/**
+ * Wraps a numeric zod schema so it also accepts a numeric-looking string (as every environment
+ * variable arrives) or an empty/missing value, coercing the latter to `undefined` so the schema's
+ * own `.default(...)` can apply.
+ *
+ * @param schema - The base numeric schema to validate the coerced value against.
+ * @returns A zod schema that preprocesses a raw env value into a number before validating it.
+ */
 function numeric(schema: z.ZodNumber) {
   return z.preprocess((value) => {
     if (value === undefined || value === "") return undefined;
@@ -7,6 +15,13 @@ function numeric(schema: z.ZodNumber) {
   }, schema);
 }
 
+/**
+ * Builds a zod schema that coerces an environment variable's string form (e.g. `"true"`/`"false"`,
+ * case-insensitive) — or an already-boolean value, or an empty/missing one — into a real boolean
+ * before validation.
+ *
+ * @returns A zod boolean schema with the string-to-boolean preprocessing applied.
+ */
 function boolean() {
   return z.preprocess((value) => {
     if (value === undefined || value === "") return undefined;

@@ -1,3 +1,6 @@
+/**
+ * Payment routes: read-only listing/lookup by id, plus lookup by date. No authentication is required.
+ */
 import { Router } from "express";
 import * as paymentController from "../controllers/payment.controller";
 import { methodNotAllowedHandler } from "../middleware/methodNotAllowed";

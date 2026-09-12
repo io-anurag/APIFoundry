@@ -16,7 +16,12 @@ declare global {
  * Enforces HTTP Basic Auth against the single seeded demo account. A missing header and an
  * unparseable one both resolve to the same "malformed" reason (research.md Decision 5); a
  * well-formed but wrong username/password gets a separate, generic message that never reveals
- * whether the username exists (FR-011/Edge Cases).
+ * whether the username exists (FR-011/Edge Cases). Rejects with 401 `UNAUTHORIZED` in both cases;
+ * on success, attaches `{ username }` to `req.basicAuthUser` and calls `next()`.
+ *
+ * @param req - The incoming Express request; read for the `Authorization` header.
+ * @param _res - Unused Express response.
+ * @param next - Express callback; invoked with an `HttpError` on failure, or with no argument to continue.
  */
 export function basicAuth(req: Request, _res: Response, next: NextFunction): void {
   const parsed = parseBasicAuthHeader(req.headers.authorization);

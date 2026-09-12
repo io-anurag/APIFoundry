@@ -7,6 +7,12 @@ export const customerStore = createInMemoryStore<Customer>();
 const CUSTOMER_COUNT = 60;
 const COUNTRIES = ["USA", "Canada", "UK", "Germany", "France", "Australia"];
 
+/**
+ * Builds `CUSTOMER_COUNT` deterministic seed customers, cycling through `COUNTRIES` for address
+ * data and linking every third customer to an existing seeded user (never a non-existent one).
+ *
+ * @returns The complete array of seed `Customer` records.
+ */
 function buildSeedCustomers(): Customer[] {
   const now = new Date().toISOString();
   const userCount = userStore.list().length;

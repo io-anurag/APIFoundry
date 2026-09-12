@@ -6,6 +6,11 @@ export const userStore = createInMemoryStore<User>();
 
 const USER_COUNT = 50;
 
+/**
+ * Builds `USER_COUNT` deterministic, active seed users, cycling through every documented role.
+ *
+ * @returns The complete array of seed `User` records.
+ */
 function buildSeedUsers(): User[] {
   const now = new Date().toISOString();
   const users: User[] = [];

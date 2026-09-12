@@ -1,3 +1,7 @@
+/**
+ * Basic-auth demo route: `GET /auth-test/basic`, gated by the `basicAuth` middleware, to exercise
+ * valid/invalid/missing/malformed `Authorization: Basic` credential cases.
+ */
 import { Router } from "express";
 import * as basicAuthController from "../controllers/basicAuth.controller";
 import { basicAuth } from "../middleware/basicAuth";

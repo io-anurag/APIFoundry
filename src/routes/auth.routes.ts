@@ -1,3 +1,14 @@
+/**
+ * JWT auth routes: login, logout, refresh, current-user lookup, and direct token issuance/inspection.
+ *
+ * - `POST /auth/login`, `POST /auth/refresh`, and `POST /auth/token` are unauthenticated by design (they
+ *   are how a caller obtains a token in the first place).
+ * - `POST /auth/logout` is NOT gated by `authenticate` — it performs its own non-revocation-gated
+ *   verification so a double-logout stays idempotent (research.md Decision 5).
+ * - `GET /auth/me` is gated by `authenticate` and returns the caller's own identity.
+ * - `GET /auth/token-info` is NOT gated by `authenticate` — its purpose is to diagnose tokens that
+ *   `authenticate` would otherwise reject (research.md Decision 6).
+ */
 import { Router } from "express";
 import * as authController from "../controllers/auth.controller";
 import { authenticate } from "../middleware/authenticate";

@@ -1,3 +1,13 @@
+/**
+ * OpenAPI document loading and Swagger UI wiring.
+ *
+ * Reads `openapi.yaml` from the repo root once at module load, parses it, and exposes an
+ * `openapiRouter` (mounted by app.ts outside the versioned API prefix) with three routes:
+ * `GET /openapi.yaml` (the raw YAML text), `GET /openapi.json` (the parsed document as JSON), and
+ * `/docs` (Swagger UI, served via `swagger-ui-express` against the parsed document). There are no
+ * exported functions beyond `openapiRouter` itself — the route handlers are inline closures over the
+ * document loaded at module scope.
+ */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Router } from "express";

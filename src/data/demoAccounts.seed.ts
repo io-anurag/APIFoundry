@@ -32,6 +32,11 @@ export const DEMO_ACCOUNTS: DemoAccount[] = [
   },
 ];
 
+/**
+ * Looks up a fixed demo account by username, for POST /auth/login credential checks.
+ * @param username - The username to look up.
+ * @returns The matching demo account, or `undefined` if no demo account has that username.
+ */
 export function findDemoAccount(username: string): DemoAccount | undefined {
   return DEMO_ACCOUNTS.find((account) => account.username === username);
 }

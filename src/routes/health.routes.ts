@@ -1,3 +1,7 @@
+/**
+ * Health-check routes mounted outside the versioned API prefix: `/health`, `/health/live`, and
+ * `/health/ready`. None of these require authentication.
+ */
 import { Router } from "express";
 import { getHealth, getLiveness, getReadiness } from "../controllers/health.controller";
 import { methodNotAllowedHandler } from "../middleware/methodNotAllowed";
