@@ -4,9 +4,10 @@
 # meant to be MERGED into the existing root `openapi.yaml`: its `paths` are added under the existing
 # `paths` key, its `components.schemas`/`components.parameters` are added under the existing
 # `components` key, and its one new tag is appended to the existing `tags` list. It reuses the root
-# document's `Error` and `Pagination` schemas by name ($ref) rather than redefining them — this spec
+# document's `Error` and `PaginationMeta` schemas by name ($ref) rather than redefining them — this spec
 # introduces no new error/pagination shape (constitution: one error envelope, one pagination envelope,
-# project-wide).
+# project-wide). List responses inline their `data`/`pagination` shape directly (no `allOf`) since the
+# spec's downstream tooling does not process `allOf`/`oneOf`/`anyOf`.
 
 tags:
   - name: Core Resources
@@ -33,14 +34,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/User"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
     post:
@@ -157,14 +159,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Product"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
     post:
@@ -281,14 +284,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Customer"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Customer"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
     post:
@@ -405,14 +409,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Order"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Order"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
     post:
@@ -729,6 +734,6 @@ components:
           items: { $ref: "#/components/schemas/OrderLineItem" }
         status: { $ref: "#/components/schemas/OrderStatus" }
 
-# NOTE: `Pagination`, `Error`, `responses.NotFound`, `responses.ValidationError`, and
+# NOTE: `PaginationMeta`, `Error`, `responses.NotFound`, `responses.ValidationError`, and
 # `responses.MethodNotAllowed` are all defined in the root `openapi.yaml` by Spec 001 and are reused
 # here by reference — this fragment does not redefine them.

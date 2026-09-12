@@ -11,7 +11,7 @@ export type SearchResourceType = (typeof SEARCH_RESOURCE_TYPES)[number];
 
 export interface SearchResult {
   resourceType: SearchResourceType;
-  id: string | number;
+  id: string;
   label: string;
   snippet?: string;
 }

@@ -130,14 +130,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/User"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
     post:
@@ -254,14 +255,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Product"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
     post:
@@ -378,14 +380,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Customer"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Customer"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
     post:
@@ -502,14 +505,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Order"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Order"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
     post:
@@ -624,14 +628,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Category"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
 
@@ -673,14 +678,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Post"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Post"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
 
@@ -722,14 +728,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Comment"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Comment"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
 
@@ -771,14 +778,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Review"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
 
@@ -817,14 +825,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Review"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
 
@@ -848,14 +857,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Payment"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Payment"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
 
@@ -894,14 +904,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Payment"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Payment"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
 
@@ -924,14 +935,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Order"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Order"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
         "404":
@@ -953,14 +965,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Post"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Post"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
         "404":
@@ -1005,14 +1018,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Comment"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Comment"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
         "404":
@@ -1057,14 +1071,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Review"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
         "404":
@@ -1105,14 +1120,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Product"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
         "404":
@@ -1142,14 +1158,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Pagination"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/SearchResult"
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SearchResult"
+                  pagination:
+                    $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
 
@@ -1799,29 +1816,22 @@ components:
               type: string
               format: uuid
 
-    Pagination:
+    PaginationMeta:
       type: object
-      required: [data, pagination]
+      required: [page, limit, total, totalPages, hasNext, hasPrevious]
       properties:
-        data:
-          type: array
-          items: {}
-        pagination:
-          type: object
-          required: [page, limit, total, totalPages, hasNext, hasPrevious]
-          properties:
-            page:
-              type: integer
-            limit:
-              type: integer
-            total:
-              type: integer
-            totalPages:
-              type: integer
-            hasNext:
-              type: boolean
-            hasPrevious:
-              type: boolean
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+        hasNext:
+          type: boolean
+        hasPrevious:
+          type: boolean
 
     PaymentStatus:
       type: string
@@ -1905,10 +1915,7 @@ components:
       required: [resourceType, id, label]
       properties:
         resourceType: { $ref: "#/components/schemas/SearchResourceType" }
-        id:
-          oneOf:
-            - type: string
-            - type: integer
+        id: { type: string }
         label: { type: string }
         snippet: { type: string }
 

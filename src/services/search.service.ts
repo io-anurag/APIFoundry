@@ -14,30 +14,44 @@ function collectResults(): SearchResult[] {
   const results: SearchResult[] = [];
 
   for (const user of userStore.list()) {
-    results.push({ resourceType: "user", id: user.id, label: user.name, snippet: user.email });
+    results.push({ resourceType: "user", id: String(user.id), label: user.name, snippet: user.email });
   }
   for (const customer of customerStore.list()) {
-    results.push({ resourceType: "customer", id: customer.id, label: customer.name, snippet: customer.email });
+    results.push({
+      resourceType: "customer",
+      id: String(customer.id),
+      label: customer.name,
+      snippet: customer.email,
+    });
   }
   for (const product of productStore.list()) {
-    results.push({ resourceType: "product", id: product.id, label: product.name, snippet: product.description });
+    results.push({
+      resourceType: "product",
+      id: String(product.id),
+      label: product.name,
+      snippet: product.description,
+    });
   }
   for (const category of categoryStore.list()) {
     results.push({
       resourceType: "category",
-      id: category.id,
+      id: String(category.id),
       label: category.name,
       snippet: category.description,
     });
   }
   for (const post of postStore.list()) {
-    results.push({ resourceType: "post", id: post.id, label: post.title, snippet: post.body });
+    results.push({ resourceType: "post", id: String(post.id), label: post.title, snippet: post.body });
   }
   for (const comment of commentStore.list()) {
-    results.push({ resourceType: "comment", id: comment.id, label: comment.body });
+    results.push({ resourceType: "comment", id: String(comment.id), label: comment.body });
   }
   for (const review of reviewStore.list()) {
-    results.push({ resourceType: "review", id: review.id, label: review.body || `${review.rating}-star review` });
+    results.push({
+      resourceType: "review",
+      id: String(review.id),
+      label: review.body || `${review.rating}-star review`,
+    });
   }
 
   return results;
