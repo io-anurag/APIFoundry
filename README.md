@@ -31,9 +31,12 @@ Specs implemented so far:
 - **005 — JWT Authentication, Roles & Scopes**: login/logout/refresh/me session lifecycle, test-only
   convenience token issuance (`valid`/`expired`/`invalid`/`revoked`) and inspection, and dedicated demo
   endpoints proving 401-vs-403, per-role, and per-scope enforcement.
+- **006 — API Key & Basic Auth**: independent, secondary auth mechanisms alongside JWT — API key
+  issue/use/revoke with test-only `valid`/`expired`/`revoked` convenience issuance, and a single-account
+  HTTP Basic Auth demo.
 
-API key/Basic auth, HTTP testing utilities, resilience simulation, and the rest of the surface are
-tracked in [ROADMAP.md](ROADMAP.md).
+HTTP testing utilities, resilience simulation, and the rest of the surface are tracked in
+[ROADMAP.md](ROADMAP.md).
 
 ## Tech stack
 
@@ -157,6 +160,27 @@ Demo login accounts (feature-owned, independent of the `users` CRUD resource —
 | `demo.manager`  | `manager-pass-1`  | `manager`  |
 | `demo.readonly` | `readonly-pass-1` | `readonly` |
 
+### API Key & Basic Auth (Spec 006)
+
+Independent of the JWT mechanism above — no shared demo accounts, tokens, or middleware. `/auth/api-key*`,
+`/api-key/protected`, and `/auth-test/basic` are top-level (not under `{API_PREFIX}`), matching
+CLAUDE.md's own path spelling.
+
+| Method | Path                     | Auth                    | Description                                                                                                                     |
+| ------ | ------------------------ | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/auth/api-key`          | none (test convenience) | Issues a new API key with an optional `label` and `kind` (`valid`, `expired`, `revoked`); returns the key value once, plus its `keyId`/`status`/timestamps |
+| POST   | `/auth/api-key/revoke`   | `X-API-Key` header      | Revokes the presented key; idempotent if already revoked; `404` if the key was never issued                                     |
+| GET    | `/api-key/protected`     | `X-API-Key` header      | `200` only for an active (unexpired, unrevoked), recognized key; `401` with a specific reason otherwise                          |
+| GET    | `/auth-test/basic`       | HTTP Basic              | Demonstrates Basic Auth against the single seeded demo credential below                                                          |
+
+API keys carry no role/scope — they're a flat active/expired/revoked mechanism, distinct from the JWT
+role/scope model. Demo Basic Auth credential (feature-owned, independent of the JWT demo accounts — see
+[specs/006-api-key-basic-auth/data-model.md](specs/006-api-key-basic-auth/data-model.md)):
+
+| Username     | Password        |
+| ------------ | --------------- |
+| `demo.basic` | `basic-pass-1`  |
+
 ## Response shapes
 
 Every response (success or error) carries an `X-Request-ID` header. Every error response uses the shared
@@ -201,6 +225,8 @@ Every list response uses the shared pagination envelope:
   OpenAPI contract, and quickstart for the status code playground.
 - [specs/005-jwt-auth-roles-scopes/](specs/005-jwt-auth-roles-scopes/) — spec, plan, data model,
   OpenAPI contract, and quickstart for JWT auth, roles, and scopes.
+- [specs/006-api-key-basic-auth/](specs/006-api-key-basic-auth/) — spec, plan, data model, OpenAPI
+  contract, and quickstart for API key and Basic Auth.
 
 ## License
 
