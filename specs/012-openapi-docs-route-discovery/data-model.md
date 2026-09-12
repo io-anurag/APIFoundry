@@ -52,9 +52,10 @@ export interface RoutesListResponse {
 ```
 
 - Deliberately not the project's pagination envelope — see research.md Decision 3. `data.length`
-  equals the total number of implemented method+path combinations (97 once this feature ships:
-  96 pre-existing operations across Specs 001-011, plus this endpoint's own `GET /api/v1/routes`
-  entry).
+  equals the total number of implemented method+path combinations (99 once this feature ships: 96
+  operations across Specs 001-011, plus `GET /openapi.json`/`GET /openapi.yaml` themselves — found
+  undocumented during implementation and documented as part of this feature — plus this endpoint's
+  own `GET /api/v1/routes` entry).
 
 ## Source-of-truth relationship (how the three discovery surfaces stay provably in sync)
 
@@ -86,8 +87,9 @@ it fails, instead of just reporting "the two disagree."
 | 009 | `filesRouter` | 4 |
 | 010 | `errorsRouter`, `testScenarioRouter`, `scopeRouter` | 11 |
 | 011 | `adminRouter` | 2 |
-| **012 (this feature)** | `routesRouter` (new) | **1** (`GET /api/v1/routes`) |
+| **012 (this feature)** | `openapiRouter` (existing, newly documented), `routesRouter` (new) | **3** (`GET /openapi.json`, `GET /openapi.yaml` documented for the first time; `GET /api/v1/routes` newly built) |
 
-Totals reconcile to the 96 existing operations `openapi.yaml` documents today (verified by
-counting operation entries directly) plus this feature's own new endpoint, for **97** total —
+Totals reconcile to the 96 operations `openapi.yaml` documented before this feature (verified by
+counting operation entries directly) plus the 2 pre-existing `/openapi.json`/`/openapi.yaml` routes
+this feature documents for the first time, plus this feature's own new endpoint, for **99** total —
 the number `tests/routeParity.test.ts` and the Success Criteria (SC-001, SC-004) check against.

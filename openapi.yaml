@@ -17,7 +17,9 @@ servers:
 
 tags:
   - name: Meta
-    description: Health, liveness/readiness, version and instance info — outside the versioned API prefix (except /api/v1/info).
+    description: >
+      Health, liveness/readiness, version, instance info, the OpenAPI document itself, and route
+      discovery — outside the versioned API prefix (except /api/v1/info and /api/v1/routes).
   - name: Core Resources
     description: Full CRUD for the four primary resources — users, products, orders, customers.
   - name: Catalog
@@ -138,11 +140,49 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiInfo"
 
+  /api/v1/routes:
+    get:
+      tags: [Meta]
+      summary: List every implemented route with its method, path, description, and auth requirement
+      operationId: getRoutes
+      security: []
+      responses:
+        "200":
+          description: Every implemented route
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RoutesListResponse" }
+
+  /openapi.json:
+    get:
+      tags: [Meta]
+      summary: This OpenAPI document, as JSON
+      operationId: getOpenApiJson
+      security: []
+      responses:
+        "200":
+          description: The full OpenAPI 3.x document describing every endpoint in this API
+          content:
+            application/json: { schema: {} }
+
+  /openapi.yaml:
+    get:
+      tags: [Meta]
+      summary: This OpenAPI document, as YAML
+      operationId: getOpenApiYaml
+      security: []
+      responses:
+        "200":
+          description: The full OpenAPI 3.x document describing every endpoint in this API
+          content:
+            text/yaml: { schema: { type: string } }
+
   /api/v1/users:
     get:
       tags: [Core Resources]
       summary: List users
       operationId: listUsers
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -173,6 +213,7 @@ paths:
       tags: [Core Resources]
       summary: Create a user
       operationId: createUser
+      security: []
       requestBody:
         required: true
         content:
@@ -198,6 +239,7 @@ paths:
       tags: [Core Resources]
       summary: Get a user by id
       operationId: getUserById
+      security: []
       responses:
         "200":
           description: The requested user
@@ -213,6 +255,7 @@ paths:
       tags: [Core Resources]
       summary: Replace a user
       operationId: replaceUser
+      security: []
       requestBody:
         required: true
         content:
@@ -234,6 +277,7 @@ paths:
       tags: [Core Resources]
       summary: Partially update a user
       operationId: patchUser
+      security: []
       requestBody:
         required: true
         content:
@@ -255,6 +299,7 @@ paths:
       tags: [Core Resources]
       summary: Delete a user
       operationId: deleteUser
+      security: []
       responses:
         "204":
           description: User deleted
@@ -268,6 +313,7 @@ paths:
       tags: [Core Resources]
       summary: List products
       operationId: listProducts
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -298,6 +344,7 @@ paths:
       tags: [Core Resources]
       summary: Create a product
       operationId: createProduct
+      security: []
       requestBody:
         required: true
         content:
@@ -323,6 +370,7 @@ paths:
       tags: [Core Resources]
       summary: Get a product by id
       operationId: getProductById
+      security: []
       responses:
         "200":
           description: The requested product
@@ -338,6 +386,7 @@ paths:
       tags: [Core Resources]
       summary: Replace a product
       operationId: replaceProduct
+      security: []
       requestBody:
         required: true
         content:
@@ -359,6 +408,7 @@ paths:
       tags: [Core Resources]
       summary: Partially update a product
       operationId: patchProduct
+      security: []
       requestBody:
         required: true
         content:
@@ -380,6 +430,7 @@ paths:
       tags: [Core Resources]
       summary: Delete a product
       operationId: deleteProduct
+      security: []
       responses:
         "204":
           description: Product deleted
@@ -393,6 +444,7 @@ paths:
       tags: [Core Resources]
       summary: List customers
       operationId: listCustomers
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -423,6 +475,7 @@ paths:
       tags: [Core Resources]
       summary: Create a customer
       operationId: createCustomer
+      security: []
       requestBody:
         required: true
         content:
@@ -448,6 +501,7 @@ paths:
       tags: [Core Resources]
       summary: Get a customer by id
       operationId: getCustomerById
+      security: []
       responses:
         "200":
           description: The requested customer
@@ -463,6 +517,7 @@ paths:
       tags: [Core Resources]
       summary: Replace a customer
       operationId: replaceCustomer
+      security: []
       requestBody:
         required: true
         content:
@@ -484,6 +539,7 @@ paths:
       tags: [Core Resources]
       summary: Partially update a customer
       operationId: patchCustomer
+      security: []
       requestBody:
         required: true
         content:
@@ -505,6 +561,7 @@ paths:
       tags: [Core Resources]
       summary: Delete a customer
       operationId: deleteCustomer
+      security: []
       responses:
         "204":
           description: Customer deleted
@@ -518,6 +575,7 @@ paths:
       tags: [Core Resources]
       summary: List orders
       operationId: listOrders
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -548,6 +606,7 @@ paths:
       tags: [Core Resources]
       summary: Create an order
       operationId: createOrder
+      security: []
       requestBody:
         required: true
         content:
@@ -573,6 +632,7 @@ paths:
       tags: [Core Resources]
       summary: Get an order by id
       operationId: getOrderById
+      security: []
       responses:
         "200":
           description: The requested order
@@ -588,6 +648,7 @@ paths:
       tags: [Core Resources]
       summary: Replace an order
       operationId: replaceOrder
+      security: []
       requestBody:
         required: true
         content:
@@ -609,6 +670,7 @@ paths:
       tags: [Core Resources]
       summary: Partially update an order
       operationId: patchOrder
+      security: []
       requestBody:
         required: true
         content:
@@ -630,6 +692,7 @@ paths:
       tags: [Core Resources]
       summary: Delete an order
       operationId: deleteOrder
+      security: []
       responses:
         "204":
           description: Order deleted
@@ -646,6 +709,7 @@ paths:
       tags: [Catalog]
       summary: List categories
       operationId: listCategories
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -675,6 +739,7 @@ paths:
       tags: [Catalog]
       summary: Get a category by slug
       operationId: getCategoryBySlug
+      security: []
       responses:
         "200":
           description: The requested category
@@ -692,6 +757,7 @@ paths:
       tags: [Catalog]
       summary: List posts
       operationId: listPosts
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -725,6 +791,7 @@ paths:
       tags: [Catalog]
       summary: Get a post by id
       operationId: getPostById
+      security: []
       responses:
         "200":
           description: The requested post
@@ -742,6 +809,7 @@ paths:
       tags: [Catalog]
       summary: List comments
       operationId: listComments
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -775,6 +843,7 @@ paths:
       tags: [Catalog]
       summary: Get a comment by id
       operationId: getCommentById
+      security: []
       responses:
         "200":
           description: The requested comment
@@ -792,6 +861,7 @@ paths:
       tags: [Catalog]
       summary: List reviews
       operationId: listReviews
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -825,6 +895,7 @@ paths:
       tags: [Catalog]
       summary: Get a review by id
       operationId: getReviewById
+      security: []
       responses:
         "200":
           description: The requested review
@@ -844,6 +915,7 @@ paths:
       tags: [Catalog]
       summary: List reviews with a given rating
       operationId: listReviewsByRating
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -870,6 +942,7 @@ paths:
       tags: [Catalog]
       summary: List payments
       operationId: listPayments
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -934,6 +1007,7 @@ paths:
       tags: [Catalog]
       summary: Get a payment by id
       operationId: getPaymentById
+      security: []
       responses:
         "200":
           description: The requested payment
@@ -953,6 +1027,7 @@ paths:
       tags: [Catalog]
       summary: List payments processed on a given calendar date
       operationId: listPaymentsByDate
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -984,6 +1059,7 @@ paths:
       tags: [Nested Resources]
       summary: List orders placed by customers linked to a user
       operationId: listOrdersForUser
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -1014,6 +1090,7 @@ paths:
       tags: [Nested Resources]
       summary: List posts authored by a user
       operationId: listPostsForUser
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -1040,6 +1117,7 @@ paths:
       tags: [Nested Resources]
       summary: Create a post authored by a user
       operationId: createPostForUser
+      security: []
       requestBody:
         required: true
         content:
@@ -1067,6 +1145,7 @@ paths:
       tags: [Nested Resources]
       summary: List comments on a post
       operationId: listCommentsForPost
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -1093,6 +1172,7 @@ paths:
       tags: [Nested Resources]
       summary: Create a comment on a post
       operationId: createCommentForPost
+      security: []
       requestBody:
         required: true
         content:
@@ -1120,6 +1200,7 @@ paths:
       tags: [Nested Resources]
       summary: List reviews for a product
       operationId: listReviewsForProduct
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -1150,6 +1231,7 @@ paths:
       tags: [Nested Resources]
       summary: Get the category record for a product
       operationId: getCategoryForProduct
+      security: []
       responses:
         "200":
           description: The product's category record
@@ -1169,6 +1251,7 @@ paths:
       tags: [Nested Resources]
       summary: List the distinct products referenced by an order's line items
       operationId: listProductsForOrder
+      security: []
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -1200,6 +1283,7 @@ paths:
       tags: [Search]
       summary: Cross-resource free-text search
       operationId: search
+      security: []
       parameters:
         - name: q
           in: query
@@ -1242,6 +1326,7 @@ paths:
         value that is malformed, out of the 100-599 range, or well-formed but not one of the 24
         documented codes always returns 400 (never the demonstrated code itself).
       operationId: demonstrateStatusCode
+      security: []
       responses:
         "200":
           description: Demonstrates 200 OK
@@ -1562,7 +1647,7 @@ paths:
         400 only when the token cannot be structurally decoded at all; otherwise always 200 with a
         computed state.
       operationId: getTokenInfo
-      security: [{ bearerAuth: [] }]
+      security: []
       responses:
         "200":
           description: Decoded (state may be anything but a structural-decode failure)
@@ -2372,6 +2457,46 @@ components:
         maximum: 599
 
   schemas:
+    AuthRequirement:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [none, jwt, apiKey, basic, adminToken]
+        detail:
+          type: string
+          description: >
+            Present only when a route requires more than a successfully authenticated caller
+            under the given type — e.g. "role: admin", "scope: orders:write", or a note that the
+            requirement is determined by a path parameter.
+          example: "role: admin"
+
+    RouteInfo:
+      type: object
+      required: [method, path, description, auth]
+      properties:
+        method:
+          type: string
+          enum: [GET, POST, PUT, PATCH, DELETE]
+        path:
+          type: string
+          example: "/api/v1/users/{id}"
+        description:
+          type: string
+          example: "Get, replace, partially update, or delete a single user by id"
+        auth:
+          $ref: "#/components/schemas/AuthRequirement"
+
+    RoutesListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/RouteInfo"
+
     UserRole:
       type: string
       enum: [user, admin, manager, readonly]

@@ -103,7 +103,7 @@ of a small flat object over a composed one.
 
 **Rationale**: The project's pagination envelope (constitution, CLAUDE.md) exists for
 CRUD/read-oriented *resource* collections that can grow arbitrarily (users, products, etc.).
-The route table is a small, fixed-size, build-time-determined list (97 entries once this feature
+The route table is a small, fixed-size, build-time-determined list (99 entries once this feature
 ships) that changes only when a developer ships a new spec — not a resource a client would ever
 need to page through. Every other meta endpoint in this project (`/api/v1/info`, `/version`)
 already returns a plain object rather than the pagination envelope for the same reason: it isn't

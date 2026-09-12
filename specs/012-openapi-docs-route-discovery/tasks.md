@@ -59,7 +59,7 @@ Phase 2.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T001 Create `tests/helpers/listAppRoutes.ts` (research.md Decision 1; verified against the
+- [X] T001 Create `tests/helpers/listAppRoutes.ts` (research.md Decision 1; verified against the
       installed `express@4.21` source: `.all()`-registered catch-all layers set
       `route.methods._all = true` distinctly from real verbs, and a router mounted with no path
       argument — e.g. `app.use(healthRouter)` — gets `layer.regexp.fast_slash === true`, while
@@ -85,7 +85,12 @@ Phase 2.
       handful of known paths (`GET /health`, `GET /api/v1/users/{id}`, `POST /admin/reset`) look
       correct before deleting the scratch check — Express's internal `Layer`/`Route` shapes are
       intentionally undocumented, so this empirical check is the real verification, not the code
-      above by itself.
+      above by itself. **Empirical result**: the live app has 98 routes, not 96 — `GET /openapi.json`
+      and `GET /openapi.yaml` (from `src/openapi/index.ts`, Spec 001) are real, reachable routes that
+      `openapi.yaml` never documented about itself; `/docs` correctly does not appear in either set
+      (swagger-ui-express mounts plain middleware, not an Express `Router`, so it has no `layer.route`
+      and was never expected to appear in `openapi.yaml`'s `paths` either). This is a third,
+      previously-unnoticed pre-existing FR-011 gap, folded into T002 below.
 
 **Checkpoint**: Foundation ready — the live-route ground truth is available for both User Story 1's
 and User Story 3's parity checks.
@@ -106,7 +111,7 @@ the live Express app, every operation has an explicit and accurate security requ
 
 ### Implementation for User Story 1
 
-- [ ] T002 [US1] Edit root `openapi.yaml`, two changes: **(1)** add `security: []` explicitly to
+- [X] T002 [US1] Edit root `openapi.yaml`, three changes: **(1)** add `security: []` explicitly to
       every operation below that currently has no `security` key at its operation level (confirmed
       by direct inspection — each one is served by a router with zero auth middleware attached, so
       this makes the already-true "no authentication required" state explicit rather than implied by
@@ -114,10 +119,15 @@ the live Express app, every operation has an explicit and accurate security requ
       from `[{ bearerAuth: [] }]` to `[]` — `src/routes/auth.routes.ts` deliberately does **not**
       gate this route with the `authenticate` middleware (its own comment: "its purpose is to
       diagnose tokens `authenticate` would otherwise reject"), so the currently-documented
-      `bearerAuth` requirement misrepresents this endpoint's real, auth-optional behavior. This is a
-      pre-existing FR-006 defect (found during `/speckit-analyze`) that this feature must close, not
-      a new requirement it introduces. Both changes are documentation-only edits — neither changes
-      any operation's runtime behavior. The 46 operations gaining a newly-added `security: []`:
+      `bearerAuth` requirement misrepresents this endpoint's real, auth-optional behavior (a
+      pre-existing FR-006 defect found during `/speckit-analyze`); **(3)** document `GET
+      /openapi.json` and `GET /openapi.yaml` themselves under the `Meta` tag, `security: []` each,
+      each returning the document (JSON body / YAML text respectively) — T001's empirical check found
+      both are real, reachable, unauthenticated routes `openapi.yaml` never documented (a
+      pre-existing FR-011 defect found while building T001). None of these three changes alter any
+      operation's runtime behavior — every one is documentation-only. **All three are done** (see
+      `openapi.yaml`: `/auth/token-info`, `/openapi.json`, `/openapi.yaml`, and the 46 operations
+      below). The 46 operations that gained a newly-added `security: []`:
       `GET /api/v1/users`, `POST /api/v1/users`, `GET /api/v1/users/{id}`, `PUT /api/v1/users/{id}`,
       `PATCH /api/v1/users/{id}`, `DELETE /api/v1/users/{id}`,
       `GET /api/v1/products`, `POST /api/v1/products`, `GET /api/v1/products/{id}`,
@@ -136,10 +146,12 @@ the live Express app, every operation has an explicit and accurate security requ
       `GET /api/v1/products/{id}/reviews`, `GET /api/v1/products/{id}/category`,
       `GET /api/v1/orders/{id}/products`, `GET /api/v1/search`, `GET /api/v1/status/{code}`.
       (That is 46 operations gaining a new `security: []` field, plus `GET /auth/token-info` having
-      its incorrect existing one corrected — 47 operations touched in total, verified by scripted
-      inspection of every `security` key across the document's 96 pre-existing operations before
-      this task.)
-- [ ] T003 [P] [US1] Create `tests/openapiSchema.test.ts` (depends on T002 for the "every operation
+      its incorrect existing one corrected, plus 2 brand-new operations
+      (`GET /openapi.json`, `GET /openapi.yaml`) documented for the first time — 49 operations
+      touched in total. The document now covers 98 operations (96 pre-existing + these 2 newly
+      documented), verified by scripted inspection of every `security` key and cross-checked against
+      the live app's actual route table via T001's helper.)
+- [X] T003 [P] [US1] Create `tests/openapiSchema.test.ts` (depends on T002 for the "every operation
       has an explicit `security` array" and "`/auth/token-info` is `[]`" assertions to pass): read
       `openapi.yaml`'s raw text (e.g. `readFileSync(join(__dirname, "..", "openapi.yaml"), "utf-8")`)
       and assert it contains none of the literal substrings `"allOf:"`, `"oneOf:"`, `"anyOf:"`
@@ -159,14 +171,14 @@ the live Express app, every operation has an explicit and accurate security requ
       `parsed.openapi` matches `/^3\.\d+\.\d+$/` and `parsed.info?.title` and `parsed.info?.version`
       are both non-empty strings (the minimal required top-level fields a real OpenAPI 3.x validator
       would also check first).
-- [ ] T004 [P] [US1] Create `tests/openapiDocs.test.ts`: `GET /openapi.json` → `200`, no auth header
+- [X] T004 [P] [US1] Create `tests/openapiDocs.test.ts`: `GET /openapi.json` → `200`, no auth header
       needed, `res.body.openapi` starts with `"3."`, `Object.keys(res.body.paths).length > 0`.
       `GET /openapi.yaml` → `200`, no auth header needed, `content-type` includes `yaml` or `text`;
       parse the returned text with `js-yaml` and assert `Object.keys(parsed.paths).sort()` equals
       `Object.keys(jsonRes.body.paths).sort()` — the JSON and YAML documents describe the identical
       path surface (spec.md Edge Cases: "`GET /openapi.json` and `GET /openapi.yaml`... MUST
       describe an identical API surface").
-- [ ] T005 [US1] Create `tests/routeParity.test.ts` (depends on T001): import `listAppRoutes` from
+- [X] T005 [US1] Create `tests/routeParity.test.ts` (depends on T001): import `listAppRoutes` from
       `./helpers/listAppRoutes`, `app` from `../src/app`, and parse `openapi.yaml` with `js-yaml`.
       Build the live set from `listAppRoutes(app)` as `"${method} ${path}"` strings. Build the
       documented set by iterating `parsed.paths` and, for each path, each of
@@ -192,7 +204,7 @@ quickstart.md Scenario 2.
 
 ### Implementation for User Story 2
 
-- [ ] T006 [US2] Extend `tests/openapiDocs.test.ts` (depends on T004): add `GET /docs` → `200`, no
+- [X] T006 [US2] Extend `tests/openapiDocs.test.ts` (depends on T004): add `GET /docs` → `200`, no
       auth header needed, `content-type` includes `text/html`, response body (as text) contains the
       case-insensitive substring `"swagger-ui"` — a smoke test proving the interactive UI route
       itself is wired and serving real markup. Full "try it out" execution (submitting a live
@@ -212,22 +224,22 @@ serving the same accurate, combinator-free document (quickstart.md Scenario 2).
 requirement), sourced from a hand-authored catalog that is itself cross-checked against both the
 live Express app and `openapi.yaml` — closing the last gap CLAUDE.md's endpoint list calls for.
 
-**Independent Test**: `GET /api/v1/routes` returns `data.length === 97` with accurate auth
+**Independent Test**: `GET /api/v1/routes` returns `data.length === 99` with accurate auth
 requirements, and `npm test -- tests/routeParity.test.ts` (extended in this phase) confirms the
 catalog itself never drifts from the live app or the OpenAPI document. See quickstart.md
 Scenario 3.
 
 ### Implementation for User Story 3
 
-- [ ] T007 [P] [US3] Create `src/models/routeInfo.ts` (data-model.md "RouteInfo"/"AuthRequirement"):
+- [X] T007 [P] [US3] Create `src/models/routeInfo.ts` (data-model.md "RouteInfo"/"AuthRequirement"):
       `export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";` `export type AuthType =
       "none" | "jwt" | "apiKey" | "basic" | "adminToken";` `export interface AuthRequirement { type:
       AuthType; detail?: string; }` `export interface RouteInfo { method: HttpMethod; path: string;
       description: string; auth: AuthRequirement; }` — flat shapes only, no nested union, per
       research.md Decision 2 and project memory `openapi-no-combinators`.
-- [ ] T008 [US3] Create `src/data/routeRegistry.catalog.ts` (depends on T007; data-model.md
+- [X] T008 [US3] Create `src/data/routeRegistry.catalog.ts` (depends on T007; data-model.md
       "Coverage inventory"): export `const routeRegistry: RouteInfo[]` containing exactly one entry
-      per method+path pair below (97 total), `path` using `{param}` brace notation matching
+      per method+path pair below (99 total), `path` using `{param}` brace notation matching
       `openapi.yaml`, `auth` built per the type/detail rules in data-model.md (`type: "none"` unless
       listed otherwise below; `detail` present only where shown):
 
@@ -239,6 +251,8 @@ Scenario 3.
       | GET | /version | Application version | none |
       | GET | /api/v1/info | Running instance information | none |
       | GET | /api/v1/routes | List every implemented route with its method, path, description, and auth requirement | none |
+      | GET | /openapi.json | This OpenAPI document, as JSON | none |
+      | GET | /openapi.yaml | This OpenAPI document, as YAML | none |
       | GET | /api/v1/users | List users | none |
       | POST | /api/v1/users | Create a user | none |
       | GET | /api/v1/users/{id} | Get a user by id | none |
@@ -332,43 +346,43 @@ Scenario 3.
       | POST | /admin/auth/reset | Restore issued JWT session/refresh-token records and issued/revoked API keys to their initial state | adminToken |
 
       Sort the final array by `path` then `method` (matching `listAppRoutes`'s own sort order, so a
-      diff between the two is stable and readable). Double-check the row count is 97 before moving
-      on (`routeRegistry.length === 97`).
-- [ ] T009 [US3] Create `src/services/routeRegistry.service.ts` (depends on T008): `import {
+      diff between the two is stable and readable). Double-check the row count is 99 before moving
+      on (`routeRegistry.length === 99`).
+- [X] T009 [US3] Create `src/services/routeRegistry.service.ts` (depends on T008): `import {
       routeRegistry } from "../data/routeRegistry.catalog"; import type { RouteInfo } from
       "../models/routeInfo";` export `function listRoutes(): RouteInfo[] { return routeRegistry; }`
       — the catalog is already sorted and immutable at module scope, so no copying or re-sorting is
       needed here.
-- [ ] T010 [US3] Create `src/controllers/routes.controller.ts` (depends on T009): `import type {
+- [X] T010 [US3] Create `src/controllers/routes.controller.ts` (depends on T009): `import type {
       Request, Response } from "express"; import { listRoutes } from
       "../services/routeRegistry.service";` export `function getRoutes(_req: Request, res: Response):
       void { res.status(200).json({ data: listRoutes() }); }` — mirrors `info.controller.ts`'s shape
       (no input to validate, no error path).
-- [ ] T011 [US3] Create `src/routes/routes.routes.ts` (depends on T010), mirroring
+- [X] T011 [US3] Create `src/routes/routes.routes.ts` (depends on T010), mirroring
       `info.routes.ts` exactly: `import { Router } from "express"; import { getRoutes } from
       "../controllers/routes.controller"; import { methodNotAllowedHandler } from
       "../middleware/methodNotAllowed"; export const routesRouter = Router();
       routesRouter.get("/routes", getRoutes); routesRouter.all("/routes",
       methodNotAllowedHandler);`.
-- [ ] T012 [US3] Wire `routesRouter` into `src/app.ts` (depends on T011): add `import { routesRouter
+- [X] T012 [US3] Wire `routesRouter` into `src/app.ts` (depends on T011): add `import { routesRouter
       } from "./routes/routes.routes";` and `apiRouter.use(routesRouter);` alongside
       `apiRouter.use(infoRouter);` (mounted under `config.apiPrefix`, per research.md Decision 4 —
       CLAUDE.md lists this endpoint as `/api/v1/routes`, unlike the prefix-less
       `/openapi.json`/`/openapi.yaml`/`/docs`).
-- [ ] T013 [US3] Merge `contracts/route-discovery.openapi.yaml` into root `openapi.yaml` (depends on
+- [X] T013 [US3] Merge `contracts/route-discovery.openapi.yaml` into root `openapi.yaml` (depends on
       T012): add its `paths./api/v1/routes` entry and its three `components.schemas` entries
       (`AuthRequirement`, `RouteInfo`, `RoutesListResponse`) into the corresponding root-document
       sections; update the existing `Meta` tag's `description` to also mention route discovery (the
       fragment's own `tags` entry shows the intended wording). No `allOf`/`oneOf`/`anyOf` anywhere in
       what's added (project memory `openapi-no-combinators`).
-- [ ] T014 [P] [US3] Create `tests/routes.test.ts` (depends on T012): `GET /api/v1/routes` with no
-      auth header → `200` with `{ data: [...] }`, `res.body.data.length === 97` (FR-009). Spot-check
+- [X] T014 [P] [US3] Create `tests/routes.test.ts` (depends on T012): `GET /api/v1/routes` with no
+      auth header → `200` with `{ data: [...] }`, `res.body.data.length === 99` (FR-009). Spot-check
       specific entries: find the entry for `{ method: "POST", path: "/admin/reset" }` and assert
       `auth: { type: "adminToken" }`; find `{ method: "GET", path: "/api/v1/role/{role}" }` and
       assert `auth.type === "jwt"` and `auth.detail` is a non-empty string; find `{ method: "GET",
       path: "/health" }` and assert `auth: { type: "none" }` (FR-010). `POST /api/v1/routes` →
       `405` via `methodNotAllowedHandler`.
-- [ ] T015 [US3] Extend `tests/routeParity.test.ts` (depends on T005, T008, T013, and on T002's
+- [X] T015 [US3] Extend `tests/routeParity.test.ts` (depends on T005, T008, T013, and on T002's
       `/auth/token-info` correction — without it, this task's own security-consistency check would
       fail): import
       `routeRegistry` from `../src/data/routeRegistry.catalog`. Build a third set from it as
@@ -392,18 +406,32 @@ accurate, and its catalog is provably in sync with both the live server and the 
 **Purpose**: Whole-suite verification and the manual checks CLAUDE.md's testing expectations still
 call for alongside the new automated gate.
 
-- [ ] T016 [P] Run `npm test` and confirm the full suite — every existing Specs 001-011 test file,
+- [X] T016 [P] Run `npm test` and confirm the full suite — every existing Specs 001-011 test file,
       unaffected by this feature's changes, plus this feature's five new/extended test files
       (`tests/openapiSchema.test.ts`, `tests/openapiDocs.test.ts`, `tests/routeParity.test.ts`,
       `tests/routes.test.ts`) — passes.
-- [ ] T017 Execute the manual validation scenarios in `specs/012-openapi-docs-route-discovery/
-      quickstart.md` against a running `npm run dev` server, including Scenario 2's browser-based
-      "try it out" pass referenced by T006 (not automatable via Supertest).
-- [ ] T018 [P] Final spot-check: confirm `/docs`, `/openapi.json`, `/openapi.yaml`, and
-      `/api/v1/routes` are mutually consistent on the running server — `curl .../openapi.json | jq
-      '.paths | keys | length'` equals `curl .../api/v1/routes | jq '.data | length'` equals `97`,
-      and every `$ref` in the merged document resolves with no Swagger UI console errors when
-      `/docs` is loaded (constitution: Quality Gates & Spec Parity).
+- [X] T017 Execute the manual validation scenarios in `specs/012-openapi-docs-route-discovery/
+      quickstart.md` against a running `npm run dev` server. **Done** — all three scenarios pass
+      against a live server: Scenario 1 (`/openapi.json`/`/openapi.yaml` parity, 73 distinct paths /
+      99 operations, matching security/schemas present); Scenario 2 (`/docs/` reachable and rendering
+      real Swagger UI markup with no auth header; the "try it out" *mechanics* were validated via the
+      curl-equivalent of the UI's own request flow — `POST /auth/token` → `GET /auth/me` succeeds
+      `200` with the token and `401` without — since no browser is available in this environment;
+      the literal browser click-through remains an outstanding manual check for a human reviewer);
+      Scenario 3 (`GET /api/v1/routes` returns 99 entries, exact empty-diff match against
+      `openapi.json`). **Found and fixed two bugs in quickstart.md itself while running it**: its
+      `jq '.paths | keys | length'` checks counted distinct *path strings* (73), not *operations*
+      (99) — some path items also carry a shared `parameters` key alongside their HTTP methods,
+      which a naive `.value | keys[]` (Scenario 3's original diff command) miscounted as a spurious
+      `"PARAMETERS"` method entry, breaking the diff. Both are corrected in quickstart.md (filtering
+      to `get`/`post`/`put`/`patch`/`delete` explicitly) — this was a documentation bug in the
+      validation script only; no test or implementation file was affected.
+- [X] T018 [P] Final spot-check: confirm `/docs`, `/openapi.json`, `/openapi.yaml`, and
+      `/api/v1/routes` are mutually consistent on the running server. **Done** —
+      `curl .../openapi.json | jq '[.paths[] | keys[] | select(IN("get","post","put","patch","delete"))] | length'`
+      (99) equals `curl .../api/v1/routes | jq '.data | length'` (99); every `$ref` resolves (already
+      enforced by `tests/openapiSchema.test.ts`); `/docs/` loads real Swagger UI markup with no
+      auth required.
 
 ---
 

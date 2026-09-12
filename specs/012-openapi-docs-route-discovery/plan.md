@@ -34,16 +34,17 @@ no new persisted state, nothing for `POST /admin/reset` to reset.
 **Project Type**: Single Express/TypeScript backend service (existing structure; no new project)
 
 **Performance Goals**: N/A beyond the constitution's general bounded-resource principle — serving
-a ~97-entry static array and a pre-loaded document has no meaningful latency or throughput profile
+a ~99-entry static array and a pre-loaded document has no meaningful latency or throughput profile
 of its own.
 
 **Constraints**: The new route-parity test must run within the existing Vitest suite (no external
 process, no network calls) and must not become flaky under the live Express app's own internal
 router-stack structure (Express 4.21, already pinned).
 
-**Scale/Scope**: 96 pre-existing documented operations (verified by direct count against
-`openapi.yaml`) + 1 new operation (`GET /api/v1/routes`) = 97 total method+path combinations to
-reconcile across the route catalog, the OpenAPI document, and the live app.
+**Scale/Scope**: 98 pre-existing documented operations (96 originally documented + `GET
+/openapi.json`/`GET /openapi.yaml` themselves, found undocumented during implementation and fixed
+in T002) + 1 new operation (`GET /api/v1/routes`) = 99 total method+path combinations to reconcile
+across the route catalog, the OpenAPI document, and the live app.
 
 ## Constitution Check
 
@@ -55,7 +56,7 @@ reconcile across the route catalog, the OpenAPI document, and the live app.
 | II. Determinism & Reproducibility (NON-NEGOTIABLE) | PASS — the route catalog, the OpenAPI document, and `/api/v1/routes`'s response are all static/in-memory; no randomness is introduced anywhere in this feature. |
 | III. Fail-Safe Handling & Consistent Contracts | PASS — `GET /api/v1/routes` takes no input (no path/query params to validate) and returns a fixed shape; non-`GET` verbs on `/api/v1/routes` go through the existing `methodNotAllowedHandler`, matching `/api/v1/info`'s precedent. |
 | IV. Secret & Credential Hygiene | PASS — the route catalog and OpenAPI document describe scheme *names*, roles, and scopes only; no secret value is ever included. |
-| V. Bounded Resource Usage Under Load | PASS — serving a ~97-entry in-memory array and a pre-parsed document involves no unbounded allocation, no external calls, no expensive computation. |
+| V. Bounded Resource Usage Under Load | PASS — serving a ~99-entry in-memory array and a pre-parsed document involves no unbounded allocation, no external calls, no expensive computation. |
 | Quality Gates & Spec Parity | This feature **is** that gate: it adds the automated test that enforces doc/implementation parity, replacing the manual spot-check with a regression test. |
 
 No violations found.

@@ -14,13 +14,24 @@ values. `jq` is used for readability but any HTTP client works.
 ## Scenario 1 — Machine-readable spec/implementation parity (User Story 1, P1)
 
 ```bash
-# Fetch the document and list every path it declares.
+# Fetch the document and count distinct path keys (NOT the same as operation count — many paths
+# carry several HTTP methods, and some path items also carry a shared `parameters` key alongside
+# their methods, so a naive `.paths | keys | length` undercounts operations; filter to real HTTP
+# methods to count operations instead).
 curl -s http://localhost:3000/openapi.json | jq '.paths | keys | length'
-# Expect: 97 (96 pre-existing operations' paths, deduplicated by path, plus /api/v1/routes)
+# Expect: 73 distinct path strings
 
-# Confirm JSON and YAML describe the same surface.
-curl -s http://localhost:3000/openapi.yaml | python3 -c "import sys, yaml, json; print(len(yaml.safe_load(sys.stdin)['paths']))"
-# Expect: the same path count as above
+curl -s http://localhost:3000/openapi.json | \
+  jq '[.paths[] | keys[] | select(IN("get","post","put","patch","delete"))] | length'
+# Expect: 99 total operations (98 pre-existing — including /openapi.json and /openapi.yaml
+# documenting themselves — plus /api/v1/routes)
+
+# Confirm JSON and YAML describe the same path surface (Node here, not python3/pyyaml, to match
+# this project's own toolchain — js-yaml is already a dependency).
+node -e "const yaml=require('js-yaml'); const https=require('http'); \
+  https.get('http://localhost:3000/openapi.yaml', res => { let d=''; res.on('data', c => d+=c); \
+  res.on('end', () => console.log(Object.keys(yaml.load(d).paths).length)); });"
+# Expect: the same distinct-path count as above (73)
 
 # Confirm the new operation's security requirement and schemas are present.
 curl -s http://localhost:3000/openapi.json | jq '.paths["/api/v1/routes"].get.security'
@@ -53,15 +64,17 @@ authenticated `curl` requests.
 
 ```bash
 curl -s http://localhost:3000/api/v1/routes | jq '.data | length'
-# Expect: 97
+# Expect: 99
 
 curl -s http://localhost:3000/api/v1/routes | jq '.data[] | select(.path == "/admin/reset")'
 # Expect: {"method":"POST","path":"/admin/reset","description":"...","auth":{"type":"adminToken"}}
 
-# Cross-check against the OpenAPI document directly.
+# Cross-check against the OpenAPI document directly (filter to real HTTP methods only — a path
+# item's shared `parameters` key is not an operation and must be excluded, or this diff will show
+# spurious "PARAMETERS" entries on the openapi.json side).
 diff \
   <(curl -s http://localhost:3000/api/v1/routes | jq -S '[.data[] | {method,path}] | sort_by(.method,.path)') \
-  <(curl -s http://localhost:3000/openapi.json | jq -S '[.paths | to_entries[] | .key as $p | (.value | keys[]) as $m | {method: ($m|ascii_upcase), path: $p}] | sort_by(.method,.path)')
+  <(curl -s http://localhost:3000/openapi.json | jq -S '[.paths | to_entries[] | .key as $p | (.value | keys[] | select(IN("get","post","put","patch","delete"))) as $m | {method: ($m|ascii_upcase), path: $p}] | sort_by(.method,.path)')
 # Expect: no output (empty diff)
 ```
 
