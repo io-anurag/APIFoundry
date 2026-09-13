@@ -6,7 +6,7 @@
 openapi: 3.0.3
 info:
   title: APIFoundry
-  version: "0.1.0"
+  version: "0.2.0"
   description: >
     General-purpose mock API server used as a testing target for functional, negative, automation,
     contract, and performance/load testing. This foundation slice provides configuration, health,
@@ -182,7 +182,7 @@ paths:
       tags: [Core Resources]
       summary: List users
       operationId: listUsers
-      security: []
+      security: [{ bearerAuth: [] }]
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -209,11 +209,15 @@ paths:
                     $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
     post:
       tags: [Core Resources]
       summary: Create a user
       operationId: createUser
-      security: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -229,6 +233,10 @@ paths:
                 $ref: "#/components/schemas/User"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "422":
           $ref: "#/components/responses/ValidationError"
 
@@ -239,7 +247,7 @@ paths:
       tags: [Core Resources]
       summary: Get a user by id
       operationId: getUserById
-      security: []
+      security: [{ bearerAuth: [] }]
       responses:
         "200":
           description: The requested user
@@ -249,13 +257,17 @@ paths:
                 $ref: "#/components/schemas/User"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
     put:
       tags: [Core Resources]
       summary: Replace a user
       operationId: replaceUser
-      security: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -271,13 +283,17 @@ paths:
                 $ref: "#/components/schemas/User"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
     patch:
       tags: [Core Resources]
       summary: Partially update a user
       operationId: patchUser
-      security: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -293,18 +309,26 @@ paths:
                 $ref: "#/components/schemas/User"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
     delete:
       tags: [Core Resources]
       summary: Delete a user
       operationId: deleteUser
-      security: []
+      security: [{ bearerAuth: [] }]
       responses:
         "204":
           description: User deleted
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -313,7 +337,7 @@ paths:
       tags: [Core Resources]
       summary: List products
       operationId: listProducts
-      security: []
+      security: [{ bearerAuth: [] }]
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -340,11 +364,15 @@ paths:
                     $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
     post:
       tags: [Core Resources]
       summary: Create a product
       operationId: createProduct
-      security: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -360,6 +388,10 @@ paths:
                 $ref: "#/components/schemas/Product"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "422":
           $ref: "#/components/responses/ValidationError"
 
@@ -370,7 +402,7 @@ paths:
       tags: [Core Resources]
       summary: Get a product by id
       operationId: getProductById
-      security: []
+      security: [{ bearerAuth: [] }]
       responses:
         "200":
           description: The requested product
@@ -380,13 +412,17 @@ paths:
                 $ref: "#/components/schemas/Product"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
     put:
       tags: [Core Resources]
       summary: Replace a product
       operationId: replaceProduct
-      security: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -402,13 +438,17 @@ paths:
                 $ref: "#/components/schemas/Product"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
     patch:
       tags: [Core Resources]
       summary: Partially update a product
       operationId: patchProduct
-      security: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -424,18 +464,26 @@ paths:
                 $ref: "#/components/schemas/Product"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
     delete:
       tags: [Core Resources]
       summary: Delete a product
       operationId: deleteProduct
-      security: []
+      security: [{ bearerAuth: [] }]
       responses:
         "204":
           description: Product deleted
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -444,7 +492,7 @@ paths:
       tags: [Core Resources]
       summary: List customers
       operationId: listCustomers
-      security: []
+      security: [{ bearerAuth: [] }]
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -471,11 +519,15 @@ paths:
                     $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
     post:
       tags: [Core Resources]
       summary: Create a customer
       operationId: createCustomer
-      security: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -491,6 +543,10 @@ paths:
                 $ref: "#/components/schemas/Customer"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "422":
           $ref: "#/components/responses/ValidationError"
 
@@ -501,7 +557,7 @@ paths:
       tags: [Core Resources]
       summary: Get a customer by id
       operationId: getCustomerById
-      security: []
+      security: [{ bearerAuth: [] }]
       responses:
         "200":
           description: The requested customer
@@ -511,13 +567,17 @@ paths:
                 $ref: "#/components/schemas/Customer"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
     put:
       tags: [Core Resources]
       summary: Replace a customer
       operationId: replaceCustomer
-      security: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -533,13 +593,17 @@ paths:
                 $ref: "#/components/schemas/Customer"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
     patch:
       tags: [Core Resources]
       summary: Partially update a customer
       operationId: patchCustomer
-      security: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -555,18 +619,26 @@ paths:
                 $ref: "#/components/schemas/Customer"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
     delete:
       tags: [Core Resources]
       summary: Delete a customer
       operationId: deleteCustomer
-      security: []
+      security: [{ bearerAuth: [] }]
       responses:
         "204":
           description: Customer deleted
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -575,7 +647,7 @@ paths:
       tags: [Core Resources]
       summary: List orders
       operationId: listOrders
-      security: []
+      security: [{ bearerAuth: [] }]
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -602,11 +674,15 @@ paths:
                     $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
     post:
       tags: [Core Resources]
       summary: Create an order
       operationId: createOrder
-      security: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -622,6 +698,10 @@ paths:
                 $ref: "#/components/schemas/Order"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "422":
           $ref: "#/components/responses/ValidationError"
 
@@ -632,7 +712,7 @@ paths:
       tags: [Core Resources]
       summary: Get an order by id
       operationId: getOrderById
-      security: []
+      security: [{ bearerAuth: [] }]
       responses:
         "200":
           description: The requested order
@@ -642,13 +722,17 @@ paths:
                 $ref: "#/components/schemas/Order"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
     put:
       tags: [Core Resources]
       summary: Replace an order
       operationId: replaceOrder
-      security: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -664,13 +748,17 @@ paths:
                 $ref: "#/components/schemas/Order"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
     patch:
       tags: [Core Resources]
       summary: Partially update an order
       operationId: patchOrder
-      security: []
+      security: [{ bearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -686,18 +774,26 @@ paths:
                 $ref: "#/components/schemas/Order"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
     delete:
       tags: [Core Resources]
       summary: Delete an order
       operationId: deleteOrder
-      security: []
+      security: [{ bearerAuth: [] }]
       responses:
         "204":
           description: Order deleted
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -1059,7 +1155,7 @@ paths:
       tags: [Nested Resources]
       summary: List orders placed by customers linked to a user
       operationId: listOrdersForUser
-      security: []
+      security: [{ bearerAuth: [] }]
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -1080,6 +1176,10 @@ paths:
                     $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -1251,7 +1351,7 @@ paths:
       tags: [Nested Resources]
       summary: List the distinct products referenced by an order's line items
       operationId: listProductsForOrder
-      security: []
+      security: [{ bearerAuth: [] }]
       parameters:
         - $ref: "#/components/parameters/PageParam"
         - $ref: "#/components/parameters/LimitParam"
@@ -1272,6 +1372,10 @@ paths:
                     $ref: "#/components/schemas/PaginationMeta"
         "400":
           $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/InsufficientScope"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -2551,7 +2655,7 @@ components:
         id: { type: integer }
         name: { type: string }
         description: { type: string }
-        price: { type: number, exclusiveMinimum: 0 }
+        price: { type: number, minimum: 0, exclusiveMinimum: true }
         category: { $ref: "#/components/schemas/ProductCategory" }
         stock: { type: integer, minimum: 0 }
         createdAt: { type: string, format: date-time }
@@ -2564,7 +2668,7 @@ components:
       properties:
         name: { type: string, minLength: 1, maxLength: 200 }
         description: { type: string, maxLength: 2000 }
-        price: { type: number, exclusiveMinimum: 0 }
+        price: { type: number, minimum: 0, exclusiveMinimum: true }
         category: { $ref: "#/components/schemas/ProductCategory" }
         stock: { type: integer, minimum: 0 }
 
@@ -2574,7 +2678,7 @@ components:
       properties:
         name: { type: string, minLength: 1, maxLength: 200 }
         description: { type: string, maxLength: 2000 }
-        price: { type: number, exclusiveMinimum: 0 }
+        price: { type: number, minimum: 0, exclusiveMinimum: true }
         category: { $ref: "#/components/schemas/ProductCategory" }
         stock: { type: integer, minimum: 0 }
 
@@ -2932,6 +3036,8 @@ components:
           "products:write",
           "orders:read",
           "orders:write",
+          "customers:read",
+          "customers:write",
           "admin",
         ]
 
@@ -3201,6 +3307,12 @@ components:
             $ref: "#/components/schemas/Error"
     Forbidden:
       description: Authenticated but missing the required role
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    InsufficientScope:
+      description: Authenticated but missing the required scope
       content:
         application/json:
           schema:

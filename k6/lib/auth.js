@@ -16,3 +16,15 @@ export function login(username, password) {
 export function authHeader(token) {
   return { Authorization: `Bearer ${token}` };
 }
+
+// Issues a token directly via POST /auth/token (the unauthenticated test-convenience issuer) for
+// scripts that only need a bearer token to pass the CRUD resources' auth gate and aren't otherwise
+// exercising the login flow itself (that's chained-workflow.js/lib/workflow.js's job).
+export function issueToken(scopes) {
+  const res = http.post(
+    `${BASE_URL}/auth/token`,
+    JSON.stringify({ role: "admin", scopes, kind: "valid" }),
+    { headers: { "Content-Type": "application/json" } }
+  );
+  return res.status === 200 ? res.json("accessToken") : null;
+}
