@@ -20,9 +20,12 @@ export const requestLogger = pinoHttp({
     return "info";
   },
   serializers: {
+    // req here is pino-http's already-serialized request object (method/url/headers/remoteAddress),
+    // not the raw Express request — `.ip` only exists on the raw req under `.raw`.
     req: (req) => ({
       method: req.method,
       url: req.url,
+      ip: req.remoteAddress,
     }),
     res: (res) => ({
       statusCode: res.statusCode,

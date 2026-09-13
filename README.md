@@ -120,7 +120,9 @@ expand it.
 <summary><strong>Core resources (Spec 002)</strong></summary>
 
 Each of the four resources below supports the full set of operations under `{API_PREFIX}` (default
-`/api/v1`):
+`/api/v1`), gated by bearer-token auth: `GET` requires `{resource}:read`, writes (`POST`/`PUT`/`PATCH`/
+`DELETE`) require `{resource}:write` — either satisfied by the `admin` scope (see the JWT Authentication,
+Roles & Scopes section below).
 
 | Method | Path                                                               | Description                                                                                                                            |
 | ------ | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -167,6 +169,10 @@ These five top-level resources are read-only (`POST`/`PUT`/`PATCH`/`DELETE` retu
 nested `POST` routes above. Seed data: ≥20 categories, ≥100 posts, ≥200 comments, ≥100 reviews, one
 payment per seeded order.
 
+`/users/{id}/orders` and `/orders/{id}/products` are owned by the `orders` resource and require bearer
+auth with the `orders:read` scope (or `admin`), same as the rest of Core resources above; every other
+route in this table is unauthenticated.
+
 </details>
 
 <details>
@@ -196,7 +202,8 @@ payment per seeded order.
 | GET    | `{API_PREFIX}/scope/{scope}` | Bearer, matching scope (or `admin`)    | `200` only when the caller's token carries `{scope}` (or the `admin` scope); `403`/`INSUFFICIENT_SCOPE` otherwise                  |
 
 Roles: `user`, `admin`, `manager`, `readonly`. Scopes: `users:read`, `users:write`, `products:read`,
-`products:write`, `orders:read`, `orders:write`, `admin` (the `admin` scope satisfies every scope check).
+`products:write`, `orders:read`, `orders:write`, `customers:read`, `customers:write`, `admin` (the
+`admin` scope satisfies every scope check).
 
 Demo login accounts (feature-owned, independent of the `users` CRUD resource — see
 [specs/005-jwt-auth-roles-scopes/data-model.md](specs/005-jwt-auth-roles-scopes/data-model.md)):
@@ -327,9 +334,19 @@ freshly started, freshly seeded server (`npm run dev`, default `.env`).
 
 **CRUD**
 
+CRUD routes require a bearer token with the matching `{resource}:read`/`{resource}:write` scope (or
+`admin`) — see the JWT auth example below. `/auth/token` issues one directly, without logging in:
+
 ```bash
-curl -s "http://localhost:3000/api/v1/users?page=1&limit=5" | jq        # success: paginated list
-curl -s "http://localhost:3000/api/v1/users/999999"                     # error: 404 RESOURCE_NOT_FOUND
+TOKEN=$(curl -s -X POST http://localhost:3000/auth/token \
+  -H 'Content-Type: application/json' \
+  -d '{"role":"admin","scopes":["admin"],"kind":"valid"}' | jq -r .accessToken)
+
+curl -s "http://localhost:3000/api/v1/users?page=1&limit=5" \
+  -H "Authorization: Bearer $TOKEN" | jq                                # success: paginated list
+curl -s "http://localhost:3000/api/v1/users/999999" \
+  -H "Authorization: Bearer $TOKEN"                                     # error: 404 RESOURCE_NOT_FOUND
+curl -s "http://localhost:3000/api/v1/users"                            # error: 401, missing token
 ```
 
 **JWT auth**

@@ -6,14 +6,18 @@ import { config } from "../src/config";
 import { resetStores } from "./helpers/resetStores";
 import { rateLimitStore } from "../src/data/rateLimit.store";
 import { DEMO_ACCOUNTS } from "../src/data/demoAccounts.seed";
+import { issueScopedToken, bearer } from "./helpers/authToken";
 
 const admin = DEMO_ACCOUNTS.find((a) => a.role === "admin")!;
 const ADMIN_TOKEN_HEADER = "X-Admin-Token";
 const VALID_TOKEN = config.adminToken;
 
 describe("Admin: data reset (User Story 1)", () => {
-  beforeEach(() => {
+  let token: string;
+
+  beforeEach(async () => {
     resetStores();
+    token = await issueScopedToken(["admin"]);
   });
 
   it("resets data to seed state and responds with the standard acknowledgment shape", async () => {
@@ -27,14 +31,14 @@ describe("Admin: data reset (User Story 1)", () => {
   });
 
   it("restores a deleted product to its original seeded content", async () => {
-    const before = await request(app).get(`${config.apiPrefix}/products/1`);
-    await request(app).delete(`${config.apiPrefix}/products/1`);
-    const afterDelete = await request(app).get(`${config.apiPrefix}/products/1`);
+    const before = await request(app).get(`${config.apiPrefix}/products/1`).set(...bearer(token));
+    await request(app).delete(`${config.apiPrefix}/products/1`).set(...bearer(token));
+    const afterDelete = await request(app).get(`${config.apiPrefix}/products/1`).set(...bearer(token));
     expect(afterDelete.status).toBe(404);
 
     await request(app).post("/admin/reset").set(ADMIN_TOKEN_HEADER, VALID_TOKEN);
 
-    const afterReset = await request(app).get(`${config.apiPrefix}/products/1`);
+    const afterReset = await request(app).get(`${config.apiPrefix}/products/1`).set(...bearer(token));
     expect(afterReset.status).toBe(200);
     // createdAt/updatedAt are stamped fresh on every seedProducts() call (products.seed.ts), so
     // only the deterministic content fields are compared here — not this feature's concern.
@@ -99,8 +103,11 @@ describe("Admin: data reset (User Story 1)", () => {
 });
 
 describe("Admin: auth reset (User Story 2)", () => {
-  beforeEach(() => {
+  let token: string;
+
+  beforeEach(async () => {
     resetStores();
+    token = await issueScopedToken(["admin"]);
   });
 
   it("resets auth state and responds with the standard acknowledgment shape", async () => {
@@ -139,9 +146,11 @@ describe("Admin: auth reset (User Story 2)", () => {
   });
 
   it("never resets data-domain state (a deletion made beforehand survives)", async () => {
-    await request(app).delete(`${config.apiPrefix}/products/2`);
+    await request(app).delete(`${config.apiPrefix}/products/2`).set(...bearer(token));
     await request(app).post("/admin/auth/reset").set(ADMIN_TOKEN_HEADER, VALID_TOKEN);
-    const res = await request(app).get(`${config.apiPrefix}/products/2`);
+    // The auth reset just now revoked `token`'s session — issue a fresh one to check the data domain.
+    token = await issueScopedToken(["admin"]);
+    const res = await request(app).get(`${config.apiPrefix}/products/2`).set(...bearer(token));
     expect(res.status).toBe(404);
   });
 
@@ -157,8 +166,11 @@ describe("Admin: auth reset (User Story 2)", () => {
 });
 
 describe("Admin: reject unauthorized callers (User Story 3)", () => {
-  beforeEach(() => {
+  let token: string;
+
+  beforeEach(async () => {
     resetStores();
+    token = await issueScopedToken(["admin"]);
   });
 
   const paths = ["/admin/reset", "/admin/auth/reset"];
@@ -182,32 +194,36 @@ describe("Admin: reject unauthorized callers (User Story 3)", () => {
     });
 
     it(`${path}: a rejected call has no side effect`, async () => {
-      await request(app).delete(`${config.apiPrefix}/products/3`);
+      await request(app).delete(`${config.apiPrefix}/products/3`).set(...bearer(token));
       await request(app).post(path).set(ADMIN_TOKEN_HEADER, "wrong");
-      const res = await request(app).get(`${config.apiPrefix}/products/3`);
+      const res = await request(app).get(`${config.apiPrefix}/products/3`).set(...bearer(token));
       expect(res.status).toBe(404);
     });
   }
 
   it("calling both endpoints back to back (in either order) leaves the server equivalent to a fresh start across both domains", async () => {
-    await request(app).delete(`${config.apiPrefix}/products/4`);
+    await request(app).delete(`${config.apiPrefix}/products/4`).set(...bearer(token));
     const issued = await request(app).post("/auth/api-key").send();
 
     await request(app).post("/admin/reset").set(ADMIN_TOKEN_HEADER, VALID_TOKEN);
     await request(app).post("/admin/auth/reset").set(ADMIN_TOKEN_HEADER, VALID_TOKEN);
 
-    const product = await request(app).get(`${config.apiPrefix}/products/4`);
+    // The auth reset just now revoked `token`'s session — issue a fresh one to keep probing.
+    token = await issueScopedToken(["admin"]);
+    const product = await request(app).get(`${config.apiPrefix}/products/4`).set(...bearer(token));
     expect(product.status).toBe(200);
     const keyCheck = await request(app).get("/api-key/protected").set("X-API-Key", issued.body.apiKey);
     expect(keyCheck.status).toBe(401);
 
-    await request(app).delete(`${config.apiPrefix}/products/4`);
+    await request(app).delete(`${config.apiPrefix}/products/4`).set(...bearer(token));
     const issuedAgain = await request(app).post("/auth/api-key").send();
 
     await request(app).post("/admin/auth/reset").set(ADMIN_TOKEN_HEADER, VALID_TOKEN);
     await request(app).post("/admin/reset").set(ADMIN_TOKEN_HEADER, VALID_TOKEN);
 
-    const productAgain = await request(app).get(`${config.apiPrefix}/products/4`);
+    // Same again — the second auth reset revoked this `token` too.
+    token = await issueScopedToken(["admin"]);
+    const productAgain = await request(app).get(`${config.apiPrefix}/products/4`).set(...bearer(token));
     expect(productAgain.status).toBe(200);
     const keyCheckAgain = await request(app).get("/api-key/protected").set("X-API-Key", issuedAgain.body.apiKey);
     expect(keyCheckAgain.status).toBe(401);

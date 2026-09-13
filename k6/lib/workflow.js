@@ -33,22 +33,27 @@ export function runChainedWorkflow() {
     "auth/me: identity matches": (r) => r.json("sub") === "demo.admin",
   });
 
+  // Steps 3-9 all hit the CRUD resources, which require bearer auth (Spec 002 auth hardening);
+  // demo.admin's "admin" scope (src/data/demoAccounts.seed.ts) satisfies every :read/:write check.
+  const authed = authHeader(token);
+  const authedJsonHeaders = { ...authed, ...JSON_HEADERS };
+
   // 3. List users.
-  const listRes = http.get(`${BASE_URL}${API_PREFIX}/users?page=1&limit=5`);
+  const listRes = http.get(`${BASE_URL}${API_PREFIX}/users?page=1&limit=5`, { headers: authed });
   check(listRes, { "list users: 200": (r) => r.status === 200 });
   const listedUsers = listRes.status === 200 ? listRes.json("data") : [];
   if (!listedUsers || listedUsers.length === 0) return;
   const listedUserId = listedUsers[0].id;
 
   // 4. Get that user by the id drawn from the list response.
-  const getRes = http.get(`${BASE_URL}${API_PREFIX}/users/${listedUserId}`);
+  const getRes = http.get(`${BASE_URL}${API_PREFIX}/users/${listedUserId}`, { headers: authed });
   check(getRes, { "get user: 200": (r) => r.status === 200 });
 
   // 5. Update that same user (reversible; safe under concurrency/soak).
   const patchRes = http.patch(
     `${BASE_URL}${API_PREFIX}/users/${listedUserId}`,
     JSON.stringify({ status: "inactive" }),
-    { headers: JSON_HEADERS }
+    { headers: authedJsonHeaders }
   );
   check(patchRes, { "update user: 200": (r) => r.status === 200 });
 
@@ -56,14 +61,14 @@ export function runChainedWorkflow() {
   const orderRes = http.post(
     `${BASE_URL}${API_PREFIX}/orders`,
     JSON.stringify({ customerId: 1, items: [{ productId: 1, quantity: 1 }] }),
-    { headers: JSON_HEADERS }
+    { headers: authedJsonHeaders }
   );
   check(orderRes, { "create order: 201": (r) => r.status === 201 });
   const orderId = orderRes.status === 201 ? orderRes.json("id") : null;
 
   // 7. Get the created order by its returned id.
   if (orderId !== null) {
-    const getOrderRes = http.get(`${BASE_URL}${API_PREFIX}/orders/${orderId}`);
+    const getOrderRes = http.get(`${BASE_URL}${API_PREFIX}/orders/${orderId}`, { headers: authed });
     check(getOrderRes, { "get order: 200": (r) => r.status === 200 });
   }
 
@@ -72,14 +77,14 @@ export function runChainedWorkflow() {
   const createUserRes = http.post(
     `${BASE_URL}${API_PREFIX}/users`,
     JSON.stringify({ name: "K6 Disposable User", email: disposableEmail, role: "user" }),
-    { headers: JSON_HEADERS }
+    { headers: authedJsonHeaders }
   );
   check(createUserRes, { "create disposable user: 201": (r) => r.status === 201 });
   const disposableUserId = createUserRes.status === 201 ? createUserRes.json("id") : null;
 
   // 9. Delete that disposable user.
   if (disposableUserId !== null) {
-    const deleteRes = http.del(`${BASE_URL}${API_PREFIX}/users/${disposableUserId}`);
+    const deleteRes = http.del(`${BASE_URL}${API_PREFIX}/users/${disposableUserId}`, null, { headers: authed });
     check(deleteRes, { "delete user: 204": (r) => r.status === 204 });
   }
 }

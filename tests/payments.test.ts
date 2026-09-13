@@ -3,6 +3,7 @@ import request from "supertest";
 import { app } from "../src/app";
 import { config } from "../src/config";
 import { resetStores } from "./helpers/resetStores";
+import { issueScopedToken, bearer } from "./helpers/authToken";
 
 const BASE = `${config.apiPrefix}/payments`;
 
@@ -13,7 +14,8 @@ describe("Payments resource", () => {
 
   describe("Read-only catalog (User Story 1)", () => {
     it("seeds exactly one payment per seeded order (FR-002)", async () => {
-      const orders = await request(app).get(`${config.apiPrefix}/orders?limit=1`);
+      const token = await issueScopedToken(["orders:read"]);
+      const orders = await request(app).get(`${config.apiPrefix}/orders?limit=1`).set(...bearer(token));
       const payments = await request(app).get(`${BASE}?limit=1`);
       expect(payments.status).toBe(200);
       expect(payments.body.pagination.total).toBe(orders.body.pagination.total);

@@ -1,6 +1,6 @@
 {
   "name": "apifoundry",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "General-purpose mock API server used as a testing target for functional, negative, automation, contract, and performance/load testing.",
   "main": "dist/server.js",
   "type": "commonjs",
