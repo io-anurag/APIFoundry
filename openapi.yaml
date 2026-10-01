@@ -318,6 +318,7 @@ paths:
     delete:
       tags: [Core Resources]
       summary: Delete a user
+      description: Requires the `users:execute` scope (or `admin`); `users:write` alone is rejected with 403 INSUFFICIENT_SCOPE.
       operationId: deleteUser
       security: [{ bearerAuth: [] }]
       responses:
@@ -473,6 +474,7 @@ paths:
     delete:
       tags: [Core Resources]
       summary: Delete a product
+      description: Requires the `products:execute` scope (or `admin`); `products:write` alone is rejected with 403 INSUFFICIENT_SCOPE.
       operationId: deleteProduct
       security: [{ bearerAuth: [] }]
       responses:
@@ -628,6 +630,7 @@ paths:
     delete:
       tags: [Core Resources]
       summary: Delete a customer
+      description: Requires the `customers:execute` scope (or `admin`); `customers:write` alone is rejected with 403 INSUFFICIENT_SCOPE.
       operationId: deleteCustomer
       security: [{ bearerAuth: [] }]
       responses:
@@ -783,6 +786,7 @@ paths:
     delete:
       tags: [Core Resources]
       summary: Delete an order
+      description: Requires the `orders:execute` scope (or `admin`); `orders:write` alone is rejected with 403 INSUFFICIENT_SCOPE.
       operationId: deleteOrder
       security: [{ bearerAuth: [] }]
       responses:
@@ -1799,7 +1803,7 @@ paths:
   /api/v1/scope/{scope}:
     get:
       tags: [Access Control Demos]
-      summary: Demonstrates scope enforcement — 200 when the caller's token carries {scope} (or admin)
+      summary: Demonstrates scope enforcement — 200 when the caller's token satisfies {scope} (same or higher level on that resource, or admin)
       operationId: getScopeDemo
       security: [{ bearerAuth: [] }]
       parameters:
@@ -1809,7 +1813,7 @@ paths:
           schema: { $ref: "#/components/schemas/Scope" }
       responses:
         "200":
-          description: Caller's token carries the required scope (or admin)
+          description: Caller's token satisfies the required scope (same or higher level on that resource, or admin)
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ScopeDemoResponse" }
@@ -3028,16 +3032,24 @@ components:
 
     Scope:
       type: string
+      description: >-
+        Per-resource scopes at three hierarchical levels: read (GET), write (GET, POST, PUT, PATCH),
+        execute (GET, POST, PUT, PATCH, DELETE). A higher level satisfies a lower requirement on the
+        same resource only. `admin` satisfies every scope check.
       enum:
         [
           "users:read",
           "users:write",
+          "users:execute",
           "products:read",
           "products:write",
+          "products:execute",
           "orders:read",
           "orders:write",
+          "orders:execute",
           "customers:read",
           "customers:write",
+          "customers:execute",
           "admin",
         ]
 

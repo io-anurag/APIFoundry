@@ -1,9 +1,10 @@
 /**
  * Order routes: full CRUD (`GET` list/one, `POST`, `PUT`, `PATCH`, `DELETE`) plus the nested
  * `users/:id/orders` and `orders/:id/products` lookups. Gated by bearer-token auth — reads
- * (including both nested lookups) require the `orders:read` scope, writes require `orders:write`
- * (either satisfied by `admin`). `Router({ strict: true })` so a trailing slash does not alias the
- * collection route (FR-006 edge case).
+ * (including both nested lookups) require `orders:read`, POST/PUT/PATCH require `orders:write`,
+ * DELETE requires `orders:execute` (each also satisfied by a higher level on the same resource, or by `admin`).
+ * `Router({ strict: true })` so a trailing slash does not alias the collection route (FR-006 edge
+ * case).
  */
 import { Router } from "express";
 import * as orderController from "../controllers/order.controller";
@@ -21,7 +22,7 @@ orderRouter.all("/orders", methodNotAllowedHandler);
 orderRouter.get("/orders/:id", authenticate, requireScope("orders:read"), orderController.getOrderById);
 orderRouter.put("/orders/:id", authenticate, requireScope("orders:write"), orderController.replaceOrder);
 orderRouter.patch("/orders/:id", authenticate, requireScope("orders:write"), orderController.patchOrder);
-orderRouter.delete("/orders/:id", authenticate, requireScope("orders:write"), orderController.deleteOrder);
+orderRouter.delete("/orders/:id", authenticate, requireScope("orders:execute"), orderController.deleteOrder);
 orderRouter.all("/orders/:id", methodNotAllowedHandler);
 
 orderRouter.get("/users/:id/orders", authenticate, requireScope("orders:read"), orderController.getOrdersForUser);

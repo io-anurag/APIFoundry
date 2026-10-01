@@ -117,9 +117,10 @@ expand it.
 <summary><strong>Core resources (Spec 002)</strong></summary>
 
 Each of the four resources below supports the full set of operations under `{API_PREFIX}` (default
-`/api/v1`), gated by bearer-token auth: `GET` requires `{resource}:read`, writes (`POST`/`PUT`/`PATCH`/
-`DELETE`) require `{resource}:write` — either satisfied by the `admin` scope (see the JWT Authentication,
-Roles & Scopes section below).
+`/api/v1`), gated by bearer-token auth: `GET` requires at least `{resource}:read`, `POST`/`PUT`/`PATCH` require at
+least `{resource}:write`, and `DELETE` requires `{resource}:execute`. Scope levels are hierarchical (`execute` includes `write`,
+which includes `read`), and the `admin` scope satisfies everything (see the JWT Authentication, Roles &
+Scopes section below).
 
 | Method | Path                                                               | Description                                                                                                                            |
 | ------ | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -196,11 +197,19 @@ route in this table is unauthenticated.
 | GET    | `/auth/token-info`           | Bearer (any token)                     | Decodes and diagnoses any token's validity state — including expired/invalid/revoked ones; never gated by the enforcing auth check |
 | GET    | `{API_PREFIX}/protected`     | Bearer, role `admin`                   | Demonstrates `401` (no/invalid token) vs `403` (valid token, wrong role) vs `200`                                                  |
 | GET    | `{API_PREFIX}/role/{role}`   | Bearer, matching role                  | `200` only when the caller's token role matches `{role}`; `400` if `{role}` isn't one of the four documented roles                 |
-| GET    | `{API_PREFIX}/scope/{scope}` | Bearer, matching scope (or `admin`)    | `200` only when the caller's token carries `{scope}` (or the `admin` scope); `403`/`INSUFFICIENT_SCOPE` otherwise                  |
+| GET    | `{API_PREFIX}/scope/{scope}` | Bearer, matching scope (or `admin`)    | `200` only when the caller's token satisfies `{scope}` (same or higher level on that resource, or `admin`); `403`/`INSUFFICIENT_SCOPE` otherwise |
 
-Roles: `user`, `admin`, `manager`, `readonly`. Scopes: `users:read`, `users:write`, `products:read`,
-`products:write`, `orders:read`, `orders:write`, `customers:read`, `customers:write`, `admin` (the
-`admin` scope satisfies every scope check).
+Roles: `user`, `admin`, `manager`, `readonly`. Scopes are per resource (`users`, `products`, `orders`,
+`customers`) at three hierarchical levels, plus `admin`:
+
+| Scope                | Grants on that resource                                    |
+| -------------------- | ---------------------------------------------------------- |
+| `{resource}:read`    | `GET`                                                      |
+| `{resource}:write`   | `GET`, `POST`, `PUT`, `PATCH`                              |
+| `{resource}:execute` | `GET`, `POST`, `PUT`, `PATCH`, `DELETE`                    |
+| `admin`              | Every scope check on every resource                        |
+
+A level never carries across resources: `users:execute` does not grant `orders:read`.
 
 Demo login accounts (feature-owned, independent of the `users` CRUD resource — see
 [specs/005-jwt-auth-roles-scopes/data-model.md](specs/005-jwt-auth-roles-scopes/data-model.md)):
