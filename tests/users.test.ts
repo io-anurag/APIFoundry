@@ -56,6 +56,27 @@ describe("Users resource", () => {
       expect(res.status).toBe(201);
     });
 
+    it("users:write also grants GET (write includes read)", async () => {
+      const writer = await issueScopedToken(["users:write"]);
+      const list = await request(app).get(BASE).set(...bearer(writer));
+      expect(list.status).toBe(200);
+    });
+
+    it("users:execute grants read, write, and delete", async () => {
+      const executor = await issueScopedToken(["users:execute"]);
+      const list = await request(app).get(BASE).set(...bearer(executor));
+      expect(list.status).toBe(200);
+
+      const create = await request(app)
+        .post(BASE)
+        .set(...bearer(executor))
+        .send({ name: "Scoped Executor", email: "scoped.executor@example.com", role: "user" });
+      expect(create.status).toBe(201);
+
+      const del = await request(app).delete(`${BASE}/${create.body.id}`).set(...bearer(executor));
+      expect(del.status).toBe(204);
+    });
+
     it("the admin scope satisfies both read and write", async () => {
       const list = await request(app).get(BASE).set(...bearer(token));
       expect(list.status).toBe(200);

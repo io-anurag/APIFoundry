@@ -1,8 +1,9 @@
 /**
  * Customer routes: full CRUD (`GET` list/one, `POST`, `PUT`, `PATCH`, `DELETE`), gated by
- * bearer-token auth — reads require the `customers:read` scope, writes require `customers:write`
- * (either satisfied by `admin`). `Router({ strict: true })` so a trailing slash does not alias the
- * collection route (FR-006 edge case).
+ * bearer-token auth — reads require `customers:read`, POST/PUT/PATCH require `customers:write`, DELETE
+ * requires `customers:execute` (each also satisfied by a higher level on the same resource, or by `admin`).
+ * `Router({ strict: true })` so a trailing slash does not alias the collection route (FR-006 edge
+ * case).
  */
 import { Router } from "express";
 import * as customerController from "../controllers/customer.controller";
@@ -20,5 +21,5 @@ customerRouter.all("/customers", methodNotAllowedHandler);
 customerRouter.get("/customers/:id", authenticate, requireScope("customers:read"), customerController.getCustomerById);
 customerRouter.put("/customers/:id", authenticate, requireScope("customers:write"), customerController.replaceCustomer);
 customerRouter.patch("/customers/:id", authenticate, requireScope("customers:write"), customerController.patchCustomer);
-customerRouter.delete("/customers/:id", authenticate, requireScope("customers:write"), customerController.deleteCustomer);
+customerRouter.delete("/customers/:id", authenticate, requireScope("customers:execute"), customerController.deleteCustomer);
 customerRouter.all("/customers/:id", methodNotAllowedHandler);

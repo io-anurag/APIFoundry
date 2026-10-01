@@ -49,7 +49,43 @@ describe("GET /api/v1/scope/{scope}: scope enforcement (User Story 4)", () => {
     expect(res2.status).toBe(200);
   });
 
-  it("returns 400 for a scope path value that is not one of the seven documented scopes", async () => {
+  describe("scope hierarchy (read < write < execute, per resource)", () => {
+    const RESOURCES = ["users", "products", "orders", "customers"] as const;
+    const LEVELS = ["read", "write", "execute"] as const;
+
+    for (const resource of RESOURCES) {
+      for (const [heldIdx, held] of LEVELS.entries()) {
+        for (const [reqIdx, required] of LEVELS.entries()) {
+          const expected = heldIdx >= reqIdx ? 200 : 403;
+          it(`'${resource}:${held}' -> /scope/${resource}:${required} is ${expected}`, async () => {
+            const token = await issueToken([`${resource}:${held}`]);
+            const res = await request(app)
+              .get(`${SCOPE_BASE}/${resource}:${required}`)
+              .set("Authorization", `Bearer ${token}`);
+            expect(res.status).toBe(expected);
+            if (expected === 403) {
+              expect(res.body.error.code).toBe("INSUFFICIENT_SCOPE");
+            }
+          });
+        }
+      }
+    }
+
+    it("a higher level never carries across resources", async () => {
+      const token = await issueToken(["users:execute"]);
+      const res = await request(app).get(`${SCOPE_BASE}/orders:read`).set("Authorization", `Bearer ${token}`);
+      expect(res.status).toBe(403);
+      expect(res.body.error.code).toBe("INSUFFICIENT_SCOPE");
+    });
+
+    it("no per-resource level satisfies the admin scope", async () => {
+      const token = await issueToken(["users:execute", "products:execute", "orders:execute", "customers:execute"]);
+      const res = await request(app).get(`${SCOPE_BASE}/admin`).set("Authorization", `Bearer ${token}`);
+      expect(res.status).toBe(403);
+    });
+  });
+
+  it("returns 400 for a scope path value that is not one of the documented scopes", async () => {
     const token = await issueToken(["admin"]);
     const res = await request(app).get(`${SCOPE_BASE}/not-a-real-scope`).set("Authorization", `Bearer ${token}`);
     expect(res.status).toBe(400);

@@ -3,7 +3,7 @@ import { HttpError } from "./httpError";
 
 /**
  * Parses a route's `:scope` path segment. Never throws anything but HttpError(400) — any value
- * that isn't exactly one of the seven documented scopes is rejected here (FR-009), mirroring
+ * that isn't exactly one of the documented scopes is rejected here (FR-009), mirroring
  * `roleParam.ts`.
  */
 export function parseScopeParam(raw: string): Scope {

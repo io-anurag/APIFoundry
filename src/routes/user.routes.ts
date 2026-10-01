@@ -1,9 +1,9 @@
 /**
  * User routes: full CRUD (`GET` list/one, `POST`, `PUT`, `PATCH`, `DELETE`), gated by bearer-token
- * auth — reads require the `users:read` scope, writes require `users:write` (either satisfied by
- * `admin`). `Router({ strict: true })` so a trailing slash (e.g. "/users/") does not alias the
- * collection route — it falls through to the app-level 404 handler instead of silently matching
- * "/users" (FR-006 edge case).
+ * auth — reads require `users:read`, POST/PUT/PATCH require `users:write`, DELETE requires
+ * `users:execute` (each also satisfied by a higher level on the same resource, or by `admin`). `Router({ strict: true })` so a trailing
+ * slash (e.g. "/users/") does not alias the collection route — it falls through to the app-level
+ * 404 handler instead of silently matching "/users" (FR-006 edge case).
  */
 import { Router } from "express";
 import * as userController from "../controllers/user.controller";
@@ -22,5 +22,5 @@ userRouter.all("/users", methodNotAllowedHandler);
 userRouter.get("/users/:id", authenticate, requireScope("users:read"), userController.getUserById);
 userRouter.put("/users/:id", authenticate, requireScope("users:write"), userController.replaceUser);
 userRouter.patch("/users/:id", authenticate, requireScope("users:write"), userController.patchUser);
-userRouter.delete("/users/:id", authenticate, requireScope("users:write"), userController.deleteUser);
+userRouter.delete("/users/:id", authenticate, requireScope("users:execute"), userController.deleteUser);
 userRouter.all("/users/:id", methodNotAllowedHandler);

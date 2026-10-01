@@ -4,12 +4,16 @@ export type UserRole = (typeof USER_ROLES)[number];
 export const SCOPES = [
   "users:read",
   "users:write",
+  "users:execute",
   "products:read",
   "products:write",
+  "products:execute",
   "orders:read",
   "orders:write",
+  "orders:execute",
   "customers:read",
   "customers:write",
+  "customers:execute",
   "admin",
 ] as const;
 export type Scope = (typeof SCOPES)[number];
