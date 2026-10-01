@@ -1,11 +1,17 @@
 name: CI
 
 on:
+  # Run build + tests on every pushed commit, on any branch.
   push:
-    branches: [main]
+    branches: ["**"]
   pull_request:
     branches: [main]
   workflow_dispatch:
+
+# Cancel an in-flight run when a newer commit lands on the same branch/PR.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:

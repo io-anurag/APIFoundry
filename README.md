@@ -20,9 +20,6 @@
   <br>
   <a href="https://github.com/io-anurag/APIFoundry/.github/workflows/ci.yml"><img alt="CI" src="https://github.com/io-anurag/APIFoundry/.github/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/io-anurag/APIFoundry/releases/"><img alt="GitHub tag" src="https://img.shields.io/github/tag/io-anurag/APIFoundry?include_prereleases=&sort=semver&color=blue"></a>
-  <a href="https://github.com/io-anurag/APIFoundry/issues"><img alt="issues" src="https://img.shields.io/github/issues/io-anurag/APIFoundry"></a>
-  <a href="https://github.com/io-anurag/APIFoundry"><img alt="stars" src="https://img.shields.io/github/stars/io-anurag/APIFoundry?style=social"></a>
-  <a href="https://github.com/io-anurag/APIFoundry"><img alt="forks" src="https://img.shields.io/github/forks/io-anurag/APIFoundry?style=social"></a>
 </p>
 
 APIFoundry exposes a wide diversity of realistic HTTP patterns, auth mechanisms, error conditions,
@@ -62,23 +59,23 @@ API prefix, CORS origin, JWT/rate-limit/delay/payload/admin settings).
 
 ## What's inside
 
-| # | Area | What it adds |
-| --- | --- | --- |
-| 001 | Foundation, Config & Health | Config, cross-cutting middleware, health/version/info, OpenAPI + Swagger UI skeleton |
-| 002 | Core CRUD Resources | Full CRUD for `users`/`products`/`customers`/`orders` with deterministic seed data, pagination/sorting/filtering, and validation |
-| 003 | Catalog, Nested Resources & Search | Read-only `categories`/`posts`/`comments`/`reviews`/`payments`, nested routes, cross-resource `search` |
-| 004 | Status Code Playground | Deterministic demo for every documented HTTP status code |
-| 005 | JWT Auth, Roles & Scopes | Login/logout/refresh/me, convenience token issuance, `401` vs `403`, role/scope enforcement |
-| 006 | API Key & Basic Auth | Independent secondary auth mechanisms alongside JWT |
-| 007 | HTTP Testing Utilities | Delay, bounded payload, content-type, header echo, cookies |
-| 008 | Resilience Simulation | Rate limiting, seeded flaky failures, idempotent payments, conditional caching |
-| 009 | Files API | Bounded, in-memory upload/download/list/delete |
-| 010 | Error Simulation & Scenario Endpoint | Deterministic `/errors/*` demos plus the k6-facing `GET /api/v1/test` hook |
-| 011 | Admin & Reset | Token-gated reset of data-plane and auth-plane state, independently |
-| 012 | OpenAPI, Swagger UI & Route Discovery | Full spec/implementation parity, enforced by an automated test, plus `GET /api/v1/routes` |
-| 013 | Test Hardening, k6 & README | ≥85% enforced statement coverage, 12 k6 performance/workflow scripts, this README |
+| #   | Area                                  | What it adds                                                                                                                     |
+| --- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 001 | Foundation, Config & Health           | Config, cross-cutting middleware, health/version/info, OpenAPI + Swagger UI skeleton                                             |
+| 002 | Core CRUD Resources                   | Full CRUD for `users`/`products`/`customers`/`orders` with deterministic seed data, pagination/sorting/filtering, and validation |
+| 003 | Catalog, Nested Resources & Search    | Read-only `categories`/`posts`/`comments`/`reviews`/`payments`, nested routes, cross-resource `search`                           |
+| 004 | Status Code Playground                | Deterministic demo for every documented HTTP status code                                                                         |
+| 005 | JWT Auth, Roles & Scopes              | Login/logout/refresh/me, convenience token issuance, `401` vs `403`, role/scope enforcement                                      |
+| 006 | API Key & Basic Auth                  | Independent secondary auth mechanisms alongside JWT                                                                              |
+| 007 | HTTP Testing Utilities                | Delay, bounded payload, content-type, header echo, cookies                                                                       |
+| 008 | Resilience Simulation                 | Rate limiting, seeded flaky failures, idempotent payments, conditional caching                                                   |
+| 009 | Files API                             | Bounded, in-memory upload/download/list/delete                                                                                   |
+| 010 | Error Simulation & Scenario Endpoint  | Deterministic `/errors/*` demos plus the k6-facing `GET /api/v1/test` hook                                                       |
+| 011 | Admin & Reset                         | Token-gated reset of data-plane and auth-plane state, independently                                                              |
+| 012 | OpenAPI, Swagger UI & Route Discovery | Full spec/implementation parity, enforced by an automated test, plus `GET /api/v1/routes`                                        |
+| 013 | Test Hardening, k6 & README           | ≥85% enforced statement coverage, 12 k6 performance/workflow scripts, this README                                                |
 
-Full detail on every endpoint lives in [API reference](#api-reference) below; the *why* behind each
+Full detail on every endpoint lives in [API reference](#api-reference) below; the _why_ behind each
 spec lives in [Spec documentation](#spec-documentation).
 
 ## Tech stack
@@ -102,16 +99,16 @@ expand it.
 <details>
 <summary><strong>Meta (Spec 001)</strong></summary>
 
-| Method | Path                                         | Description                                                           |
-| ------ | -------------------------------------------- | --------------------------------------------------------------------- |
-| GET    | `/health`                                    | Combined health status                                                |
-| GET    | `/health/live`                               | Liveness probe (always `ok` while the process runs)                   |
-| GET    | `/health/ready`                              | Readiness probe (`503` until startup completes)                       |
-| GET    | `/version`                                   | Application version and environment                                   |
-| GET    | `{API_PREFIX}/info` (default `/api/v1/info`) | Running instance info (name, version, environment, apiPrefix, uptime) |
-| GET    | `/openapi.json`                              | OpenAPI document as JSON                                              |
-| GET    | `/openapi.yaml`                              | OpenAPI document as YAML                                              |
-| GET    | `/docs`                                      | Swagger UI                                                            |
+| Method | Path                                         | Description                                                                           |
+| ------ | -------------------------------------------- | ------------------------------------------------------------------------------------- |
+| GET    | `/health`                                    | Combined health status                                                                |
+| GET    | `/health/live`                               | Liveness probe (always `ok` while the process runs)                                   |
+| GET    | `/health/ready`                              | Readiness probe (`503` until startup completes)                                       |
+| GET    | `/version`                                   | Application version and environment                                                   |
+| GET    | `{API_PREFIX}/info` (default `/api/v1/info`) | Running instance info (name, version, environment, apiPrefix, uptime)                 |
+| GET    | `/openapi.json`                              | OpenAPI document as JSON                                                              |
+| GET    | `/openapi.yaml`                              | OpenAPI document as YAML                                                              |
+| GET    | `/docs`                                      | Swagger UI                                                                            |
 | GET    | `{API_PREFIX}/routes`                        | List every implemented route with its method, path, description, and auth requirement |
 
 </details>
@@ -156,7 +153,7 @@ optionally link to a user account via `userId`.
 | GET      | `/payments`                   | Paginated list                                                                                     |
 | GET      | `/payments/{id}`              | Get one by UUID                                                                                    |
 | GET      | `/payments/by-date/{date}`    | Payments processed on a given calendar date                                                        |
-| POST     | `/payments`                   | Creates a payment, honoring `Idempotency-Key` (see Resilience Simulation below)                     |
+| POST     | `/payments`                   | Creates a payment, honoring `Idempotency-Key` (see Resilience Simulation below)                    |
 | GET      | `/users/{id}/orders`          | Orders placed by customers linked to that user                                                     |
 | GET/POST | `/users/{id}/posts`           | List / author a post as that user                                                                  |
 | GET/POST | `/posts/{id}/comments`        | List / add a comment on that post                                                                  |
@@ -224,20 +221,20 @@ Independent of the JWT mechanism above — no shared demo accounts, tokens, or m
 `/api-key/protected`, and `/auth-test/basic` are top-level (not under `{API_PREFIX}`), matching
 CLAUDE.md's own path spelling.
 
-| Method | Path                     | Auth                    | Description                                                                                                                     |
-| ------ | ------------------------ | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| POST   | `/auth/api-key`          | none (test convenience) | Issues a new API key with an optional `label` and `kind` (`valid`, `expired`, `revoked`); returns the key value once, plus its `keyId`/`status`/timestamps |
-| POST   | `/auth/api-key/revoke`   | `X-API-Key` header      | Revokes the presented key; idempotent if already revoked; `404` if the key was never issued                                     |
-| GET    | `/api-key/protected`     | `X-API-Key` header      | `200` only for an active (unexpired, unrevoked), recognized key; `401` with a specific reason otherwise                          |
-| GET    | `/auth-test/basic`       | HTTP Basic              | Demonstrates Basic Auth against the single seeded demo credential below                                                          |
+| Method | Path                   | Auth                    | Description                                                                                                                                                |
+| ------ | ---------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/auth/api-key`        | none (test convenience) | Issues a new API key with an optional `label` and `kind` (`valid`, `expired`, `revoked`); returns the key value once, plus its `keyId`/`status`/timestamps |
+| POST   | `/auth/api-key/revoke` | `X-API-Key` header      | Revokes the presented key; idempotent if already revoked; `404` if the key was never issued                                                                |
+| GET    | `/api-key/protected`   | `X-API-Key` header      | `200` only for an active (unexpired, unrevoked), recognized key; `401` with a specific reason otherwise                                                    |
+| GET    | `/auth-test/basic`     | HTTP Basic              | Demonstrates Basic Auth against the single seeded demo credential below                                                                                    |
 
 API keys carry no role/scope — they're a flat active/expired/revoked mechanism, distinct from the JWT
 role/scope model. Demo Basic Auth credential (feature-owned, independent of the JWT demo accounts — see
 [specs/006-api-key-basic-auth/data-model.md](specs/006-api-key-basic-auth/data-model.md)):
 
-| Username     | Password        |
-| ------------ | --------------- |
-| `demo.basic` | `basic-pass-1`  |
+| Username     | Password       |
+| ------------ | -------------- |
+| `demo.basic` | `basic-pass-1` |
 
 </details>
 
@@ -247,14 +244,14 @@ role/scope model. Demo Basic Auth credential (feature-owned, independent of the 
 Low-level HTTP-mechanics endpoints, all top-level (not under `{API_PREFIX}`), matching CLAUDE.md's own
 path spelling. None require authentication.
 
-| Method            | Path                          | Description                                                                                                             |
-| ------------------ | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| GET                | `/delay/{ms}` , `/delay?ms=`  | Waits `ms` milliseconds before responding, bounded by `MAX_DELAY_MS`; anything over the max or malformed is rejected immediately |
-| GET                | `/payload/{small\|medium\|large}` , `/payload?size=` | Returns a generated body of the requested size (1KB / 100KB / 1MB presets, or an explicit byte count), bounded by `MAX_PAYLOAD_SIZE` |
-| POST               | `/payload`                   | Echoes `{ received: true, contentLength }` — the exact byte length of the request body received; oversized bodies get `413` |
-| GET/POST           | `/content/{json\|text\|html\|xml}` | `GET` returns a fixed demo body in the requested content type; `POST` validates the request's `Content-Type` header matches, `415` on mismatch |
-| GET                | `/headers`                   | Echoes every incoming request header except `Authorization`, `Cookie`, and `X-API-Key`                                  |
-| GET/POST/DELETE    | `/cookies`                   | Reads every cookie present (`GET`), sets one named cookie (`POST`), or clears one named cookie via `?name=` (`DELETE`) — an arbitrary number of independently-named cookies may coexist |
+| Method          | Path                                                 | Description                                                                                                                                                                             |
+| --------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET             | `/delay/{ms}` , `/delay?ms=`                         | Waits `ms` milliseconds before responding, bounded by `MAX_DELAY_MS`; anything over the max or malformed is rejected immediately                                                        |
+| GET             | `/payload/{small\|medium\|large}` , `/payload?size=` | Returns a generated body of the requested size (1KB / 100KB / 1MB presets, or an explicit byte count), bounded by `MAX_PAYLOAD_SIZE`                                                    |
+| POST            | `/payload`                                           | Echoes `{ received: true, contentLength }` — the exact byte length of the request body received; oversized bodies get `413`                                                             |
+| GET/POST        | `/content/{json\|text\|html\|xml}`                   | `GET` returns a fixed demo body in the requested content type; `POST` validates the request's `Content-Type` header matches, `415` on mismatch                                          |
+| GET             | `/headers`                                           | Echoes every incoming request header except `Authorization`, `Cookie`, and `X-API-Key`                                                                                                  |
+| GET/POST/DELETE | `/cookies`                                           | Reads every cookie present (`GET`), sets one named cookie (`POST`), or clears one named cookie via `?name=` (`DELETE`) — an arbitrary number of independently-named cookies may coexist |
 
 `MAX_PAYLOAD_SIZE` is enforced globally on every request body via `express.json()`'s `limit` option
 (closing a previously-invisible gap — every endpoint in Specs 001-006 now shares this same bound).
@@ -267,13 +264,13 @@ path spelling. None require authentication.
 All top-level (not under `{API_PREFIX}`) except `POST /payments`, which extends the existing Spec 003
 resource. None require authentication.
 
-| Method | Path                | Description                                                                                                                                        |
-| ------ | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/rate-limit`       | Per-caller (by `X-API-Key` or IP) request counter against `RATE_LIMIT_REQUESTS`/`RATE_LIMIT_WINDOW_MS`; `429` + `Retry-After` past the threshold, resetting once the window elapses. Disabled entirely (always `200`) when `RATE_LIMIT_ENABLED=false`. |
-| GET    | `/flaky?failureRate=` | Fails at approximately the requested rate (`[0, 1]`, default `FAILURE_RATE`) with a status randomly chosen from `500`/`502`/`503`/`504`, via a seeded, reproducible PRNG. Disabled entirely (always `200`) when `FLAKY_ENABLED=false`.            |
-| POST   | `{API_PREFIX}/payments` | Requires an `Idempotency-Key` header; a fresh key creates one payment (`201`), an identical retry replays it (`200`), and the same key with a different body is rejected (`409`).                                                              |
-| GET    | `/cache/resource`   | Returns a demo resource with `ETag`/`Last-Modified`/`Cache-Control`; honors `If-None-Match` (checked first) and `If-Modified-Since`, returning `304` when they match.                                                                             |
-| PUT    | `/cache/resource`   | Updates the demo resource's content, reissuing its `ETag`/`Last-Modified` so any previously-valid conditional header now falls through to a fresh `200`.                                                                                          |
+| Method | Path                    | Description                                                                                                                                                                                                                                            |
+| ------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| GET    | `/rate-limit`           | Per-caller (by `X-API-Key` or IP) request counter against `RATE_LIMIT_REQUESTS`/`RATE_LIMIT_WINDOW_MS`; `429` + `Retry-After` past the threshold, resetting once the window elapses. Disabled entirely (always `200`) when `RATE_LIMIT_ENABLED=false`. |
+| GET    | `/flaky?failureRate=`   | Fails at approximately the requested rate (`[0, 1]`, default `FAILURE_RATE`) with a status randomly chosen from `500`/`502`/`503`/`504`, via a seeded, reproducible PRNG. Disabled entirely (always `200`) when `FLAKY_ENABLED=false`.                 |
+| POST   | `{API_PREFIX}/payments` | Requires an `Idempotency-Key` header; a fresh key creates one payment (`201`), an identical retry replays it (`200`), and the same key with a different body is rejected (`409`).                                                                      |
+| GET    | `/cache/resource`       | Returns a demo resource with `ETag`/`Last-Modified`/`Cache-Control`; honors `If-None-Match` (checked first) and `If-Modified-Since`, returning `304` when they match.                                                                                  |
+| PUT    | `/cache/resource`       | Updates the demo resource's content, reissuing its `ETag`/`Last-Modified` so any previously-valid conditional header now falls through to a fresh `200`.                                                                                               |
 
 </details>
 
@@ -283,12 +280,12 @@ resource. None require authentication.
 Top-level (not under `{API_PREFIX}`), matching CLAUDE.md's own path spelling. None require
 authentication. All content is held in memory only — nothing is written to disk.
 
-| Method | Path          | Description                                                                                                                                    |
-| ------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Method | Path          | Description                                                                                                                                                                                                                                                                             |
+| ------ | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | POST   | `/files`      | Uploads one file via `multipart/form-data` under the field name `upload`; returns `201` with its id/filename/contentType/size/uploadedAt. Rejects a missing/misnamed field (`400`), a file over `MAX_FILE_SIZE` (`413`), or a store already at `MAX_STORED_FILES` (`409`, no eviction). |
-| GET    | `/files`      | Paginated list of every stored file's metadata (never raw content), ordered newest-first.                                                       |
-| GET    | `/files/{id}` | Downloads a file's exact original bytes with its original `Content-Type` and a safely-encoded `Content-Disposition`; `404` if unknown/deleted, `400` if `{id}` is malformed. |
-| DELETE | `/files/{id}` | Deletes a stored file (`204`); `404` on a repeated delete or unknown id, `400` if `{id}` is malformed.                                            |
+| GET    | `/files`      | Paginated list of every stored file's metadata (never raw content), ordered newest-first.                                                                                                                                                                                               |
+| GET    | `/files/{id}` | Downloads a file's exact original bytes with its original `Content-Type` and a safely-encoded `Content-Disposition`; `404` if unknown/deleted, `400` if `{id}` is malformed.                                                                                                            |
+| DELETE | `/files/{id}` | Deletes a stored file (`204`); `404` on a repeated delete or unknown id, `400` if `{id}` is malformed.                                                                                                                                                                                  |
 
 </details>
 
@@ -299,10 +296,10 @@ Top-level `/errors/*` (not under `{API_PREFIX}`), plus `{API_PREFIX}/test`. None
 authentication — `/errors/unauthorized` and `/errors/forbidden` (and their `scenario` equivalents)
 are unconditional simulations that ignore any credentials supplied.
 
-| Method | Path                                                            | Description                                                                                                                                       |
-| ------ | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/errors/validation`, `/errors/not-found`, `/errors/conflict`, `/errors/unauthorized`, `/errors/forbidden`, `/errors/rate-limit`, `/errors/server-error`, `/errors/service-unavailable`, `/errors/timeout` | Nine dedicated endpoints, each always returning one fixed status/error code (`400`/`404`/`409`/`401`/`403`/`429`/`500`/`503`/`408` respectively), regardless of headers, body, or credentials |
-| GET    | `{API_PREFIX}/test?scenario=&status=&delay=&failureRate=`       | The primary k6-facing hook: dispatches to the same nine outcomes above (plus `success`, `delayed`, `large-response`) via `scenario`; an optional `status` reaches any status-code-playground code when no conflicting scenario is set; `delay` (ms, bounded by `MAX_DELAY_MS`) applies to `scenario=delayed`; `failureRate` ([0, 1], default `1`) tunes the four failure-representing scenarios' outcome probability via the same seeded PRNG as `/flaky` |
+| Method | Path                                                                                                                                                                                                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/errors/validation`, `/errors/not-found`, `/errors/conflict`, `/errors/unauthorized`, `/errors/forbidden`, `/errors/rate-limit`, `/errors/server-error`, `/errors/service-unavailable`, `/errors/timeout` | Nine dedicated endpoints, each always returning one fixed status/error code (`400`/`404`/`409`/`401`/`403`/`429`/`500`/`503`/`408` respectively), regardless of headers, body, or credentials                                                                                                                                                                                                                                                             |
+| GET    | `{API_PREFIX}/test?scenario=&status=&delay=&failureRate=`                                                                                                                                                  | The primary k6-facing hook: dispatches to the same nine outcomes above (plus `success`, `delayed`, `large-response`) via `scenario`; an optional `status` reaches any status-code-playground code when no conflicting scenario is set; `delay` (ms, bounded by `MAX_DELAY_MS`) applies to `scenario=delayed`; `failureRate` ([0, 1], default `1`) tunes the four failure-representing scenarios' outcome probability via the same seeded PRNG as `/flaky` |
 
 `scenario=large-response` returns a body matching `GET /payload/large`'s exact byte size. `/errors/rate-limit`
 and `scenario=rate-limit`/`timeout` never touch the real `/rate-limit` counters or actually hold the
@@ -317,10 +314,10 @@ Top-level (not under `{API_PREFIX}`). Both endpoints require a `X-Admin-Token` h
 `ADMIN_TOKEN`: missing/empty → `401`; present but incorrect → `403` (and no reset is performed either
 way).
 
-| Method | Path                 | Description                                                                                                                                           |
-| ------ | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| POST   | `/admin/reset`       | Restores every CRUD/read-oriented resource, the rate limiter, the idempotency store, the cache-demo resource, uploaded files, and the shared seeded PRNG to their seeded state. Never touches auth state. |
-| POST   | `/admin/auth/reset`  | Invalidates every issued JWT session/refresh token and API key, restoring the documented demo credentials to their fresh-start behavior. Never touches resource/data state. |
+| Method | Path                | Description                                                                                                                                                                                               |
+| ------ | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/admin/reset`      | Restores every CRUD/read-oriented resource, the rate limiter, the idempotency store, the cache-demo resource, uploaded files, and the shared seeded PRNG to their seeded state. Never touches auth state. |
+| POST   | `/admin/auth/reset` | Invalidates every issued JWT session/refresh token and API key, restoring the documented demo credentials to their fresh-start behavior. Never touches resource/data state.                               |
 
 Both endpoints ignore any request body, are safe to call repeatedly with nothing to reset, and
 respond `200` with `{ message, domain: "data" | "auth", requestId }`.
@@ -406,20 +403,20 @@ run externally against a running server instance (`npm run dev` or `npm start` f
 reads its target from the `BASE_URL` environment variable (`k6/lib/config.js`), defaulting to
 `http://localhost:3000`.
 
-| Script | Profile | Purpose |
-| --- | --- | --- |
-| `k6/smoke.js` | 1 VU / 30s | Fast sanity check across representative lightweight endpoints |
-| `k6/load.js` | 20 VUs / 2m | Steady load; p95 < 500ms, error rate < 1% |
-| `k6/stress.js` | ramp 20→100 VUs / 5m | Find the point where latency/error thresholds start to strain |
-| `k6/spike.js` | sudden jump to 200 VUs / 30s | Sudden burst tolerance; error rate < 1% by the end of ramp-down |
-| `k6/soak.js` | 20 VUs / 30m | Endurance run, surfacing slow leaks/growth |
-| `k6/latency.js` | functional | Confirms observed latency tracks `/delay`'s requested duration, bounded by `MAX_DELAY_MS` |
-| `k6/timeout.js` | functional | Confirms the `408` timeout simulations complete rather than hang |
-| `k6/error-rate.js` | functional | `/flaky` aggregate failure-rate check plus a per-VU-keyed `/rate-limit` check |
-| `k6/auth.js` | functional | Login, wrong-password, expired/revoked tokens, scope/role enforcement |
-| `k6/crud.js` | functional | One full create→get→update→delete→404 lifecycle per resource |
-| `k6/chained-workflow.js` | 1 VU | The login→me→list→get→update→create order→get order→delete-user sequence |
-| `k6/concurrent-user.js` | 50 VUs, 1 iteration each | 50 independent chained-workflow runs at once |
+| Script                   | Profile                      | Purpose                                                                                   |
+| ------------------------ | ---------------------------- | ----------------------------------------------------------------------------------------- |
+| `k6/smoke.js`            | 1 VU / 30s                   | Fast sanity check across representative lightweight endpoints                             |
+| `k6/load.js`             | 20 VUs / 2m                  | Steady load; p95 < 500ms, error rate < 1%                                                 |
+| `k6/stress.js`           | ramp 20→100 VUs / 5m         | Find the point where latency/error thresholds start to strain                             |
+| `k6/spike.js`            | sudden jump to 200 VUs / 30s | Sudden burst tolerance; error rate < 1% by the end of ramp-down                           |
+| `k6/soak.js`             | 20 VUs / 30m                 | Endurance run, surfacing slow leaks/growth                                                |
+| `k6/latency.js`          | functional                   | Confirms observed latency tracks `/delay`'s requested duration, bounded by `MAX_DELAY_MS` |
+| `k6/timeout.js`          | functional                   | Confirms the `408` timeout simulations complete rather than hang                          |
+| `k6/error-rate.js`       | functional                   | `/flaky` aggregate failure-rate check plus a per-VU-keyed `/rate-limit` check             |
+| `k6/auth.js`             | functional                   | Login, wrong-password, expired/revoked tokens, scope/role enforcement                     |
+| `k6/crud.js`             | functional                   | One full create→get→update→delete→404 lifecycle per resource                              |
+| `k6/chained-workflow.js` | 1 VU                         | The login→me→list→get→update→create order→get order→delete-user sequence                  |
+| `k6/concurrent-user.js`  | 50 VUs, 1 iteration each     | 50 independent chained-workflow runs at once                                              |
 
 ```bash
 k6 run k6/smoke.js
@@ -464,21 +461,21 @@ Every list response uses the shared pagination envelope:
 Each spec's directory carries its own spec, plan, data model, OpenAPI contract, and quickstart —
 the full design rationale behind the summary table in [What's inside](#whats-inside).
 
-| Spec | Documentation |
-| --- | --- |
-| 001 — Foundation, Config & Health | [specs/001-foundation-platform/](specs/001-foundation-platform/) |
-| 002 — Core CRUD Resources | [specs/002-core-crud-resources/](specs/002-core-crud-resources/) |
-| 003 — Catalog, Nested Resources & Search | [specs/003-catalog-nested-search/](specs/003-catalog-nested-search/) |
-| 004 — Status Code Playground | [specs/004-status-code-playground/](specs/004-status-code-playground/) |
-| 005 — JWT Auth, Roles & Scopes | [specs/005-jwt-auth-roles-scopes/](specs/005-jwt-auth-roles-scopes/) |
-| 006 — API Key & Basic Auth | [specs/006-api-key-basic-auth/](specs/006-api-key-basic-auth/) |
-| 007 — HTTP Testing Utilities | [specs/007-http-testing-utilities/](specs/007-http-testing-utilities/) |
-| 008 — Resilience Simulation | [specs/008-resilience-simulation/](specs/008-resilience-simulation/) |
-| 009 — Files API | [specs/009-files-api/](specs/009-files-api/) |
-| 010 — Error Simulation & Scenario Endpoint | [specs/010-error-simulation-scenario-endpoint/](specs/010-error-simulation-scenario-endpoint/) |
-| 011 — Admin & Reset | [specs/011-admin-reset/](specs/011-admin-reset/) |
-| 012 — OpenAPI, Swagger UI & Route Discovery | [specs/012-openapi-docs-route-discovery/](specs/012-openapi-docs-route-discovery/) |
-| 013 — Test Hardening, k6 Scenarios & README | [specs/013-test-hardening-k6-readme/](specs/013-test-hardening-k6-readme/) |
+| Spec                                        | Documentation                                                                                  |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 001 — Foundation, Config & Health           | [specs/001-foundation-platform/](specs/001-foundation-platform/)                               |
+| 002 — Core CRUD Resources                   | [specs/002-core-crud-resources/](specs/002-core-crud-resources/)                               |
+| 003 — Catalog, Nested Resources & Search    | [specs/003-catalog-nested-search/](specs/003-catalog-nested-search/)                           |
+| 004 — Status Code Playground                | [specs/004-status-code-playground/](specs/004-status-code-playground/)                         |
+| 005 — JWT Auth, Roles & Scopes              | [specs/005-jwt-auth-roles-scopes/](specs/005-jwt-auth-roles-scopes/)                           |
+| 006 — API Key & Basic Auth                  | [specs/006-api-key-basic-auth/](specs/006-api-key-basic-auth/)                                 |
+| 007 — HTTP Testing Utilities                | [specs/007-http-testing-utilities/](specs/007-http-testing-utilities/)                         |
+| 008 — Resilience Simulation                 | [specs/008-resilience-simulation/](specs/008-resilience-simulation/)                           |
+| 009 — Files API                             | [specs/009-files-api/](specs/009-files-api/)                                                   |
+| 010 — Error Simulation & Scenario Endpoint  | [specs/010-error-simulation-scenario-endpoint/](specs/010-error-simulation-scenario-endpoint/) |
+| 011 — Admin & Reset                         | [specs/011-admin-reset/](specs/011-admin-reset/)                                               |
+| 012 — OpenAPI, Swagger UI & Route Discovery | [specs/012-openapi-docs-route-discovery/](specs/012-openapi-docs-route-discovery/)             |
+| 013 — Test Hardening, k6 Scenarios & README | [specs/013-test-hardening-k6-readme/](specs/013-test-hardening-k6-readme/)                     |
 
 ## License
 
